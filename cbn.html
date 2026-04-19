@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Color by Number - Game</title>
+</head>
+<style>
+    body {
+  background: linear-gradient(to right, #a1c4fd, #c2e9fb);
+  font-family: 'Segoe UI', sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+}
+
+.game-container {
+  text-align: center;
+  background: #ffffffcc;
+  padding: 20px;
+  border-radius: 20px;
+  box-shadow: 0px 10px 25px rgba(0,0,0,0.2);
+}
+
+h1 {
+  margin-bottom: 10px;
+}
+
+canvas {
+  background: #f0f0f0;
+  border: 2px solid #555;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+.controls {
+  margin-top: 15px;
+}
+
+#colorPicker {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.color-swatch {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0px 2px 5px rgba(0,0,0,0.3);
+}
+
+button {
+  background: #ff758c;
+  background: linear-gradient(to right, #ff7eb3, #ff758c);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 10px;
+  color: white;
+  margin: 5px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+</style>
+<body>
+
+  <div class="game-container">
+    <h1>🎨 Color by Number</h1>
+    <button id="startBtn">Start Coloring</button>
+
+    <div id="levelSelector" style="display:none;">
+      <h3>Select Level</h3>
+      <button onclick="startLevel('easy')">Easy</button>
+      <button onclick="startLevel('medium')">Medium</button>
+      <button onclick="startLevel('hard')">Hard</button>
+    </div>
+
+    <canvas id="colorCanvas" width="400" height="400"></canvas>
+
+    <div class="controls">
+      <h3>Pick a Color:</h3>
+      <div id="colorPicker"></div>
+      <button id="eraserBtn">Eraser</button>
+    </div>
+
+  </div>
+
+  <audio id="colorSound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_7c2b74e8e6.mp3"></audio>
+
+  <script>
+    const canvas = document.getElementById('colorCanvas');
+const ctx = canvas.getContext('2d');
+const colorPicker = document.getElementById('colorPicker');
+const startBtn = document.getElementById('startBtn');
+const levelSelector = document.getElementById('levelSelector');
+const eraserBtn = document.getElementById('eraserBtn');
+const colorSound = document.getElementById('colorSound');
+
+let selectedColor = 'black';
+let levelData = {};
+let pixelMap = [];
+let cellSize = 20;
+
+startBtn.onclick = () => {
+  startBtn.style.display = 'none';
+  levelSelector.style.display = 'block';
+};
+
+function startLevel(level) {
+  levelSelector.style.display = 'none';
+  setupLevel(level);
+  drawGrid();
+  generateColorPicker();
+}
+
+function setupLevel(level) {
+  pixelMap = [];
+  if (level === 'easy') {
+    cellSize = 40;
+    levelData = {
+      1: '#FF6B6B',
+      2: '#FFD93D',
+      3: '#6BCB77'
+    };
+  } else if (level === 'medium') {
+    cellSize = 30;
+    levelData = {
+      1: '#4D96FF',
+      2: '#FF6B6B',
+      3: '#FFD93D',
+      4: '#6BCB77'
+    };
+  } else if (level === 'hard') {
+    cellSize = 20;
+    levelData = {
+      1: '#FF6B6B',
+      2: '#FFD93D',
+      3: '#6BCB77',
+      4: '#4D96FF',
+      5: '#A66DD4'
+    };
+  }
+
+  for (let y = 0; y < canvas.height / cellSize; y++) {
+    let row = [];
+    for (let x = 0; x < canvas.width / cellSize; x++) {
+      row.push(Math.floor(Math.random() * Object.keys(levelData).length) + 1);
+    }
+    pixelMap.push(row);
+  }
+}
+
+function drawGrid() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  for (let y = 0; y < pixelMap.length; y++) {
+    for (let x = 0; x < pixelMap[y].length; x++) {
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+      ctx.strokeRect(x * cellSize, y * cellSize, cellSize, cellSize);
+
+      ctx.fillStyle = 'black';
+      ctx.font = `${cellSize / 2}px Arial`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(pixelMap[y][x], x * cellSize + cellSize / 2, y * cellSize + cellSize / 2);
+    }
+  }
+}
+
+function generateColorPicker() {
+  colorPicker.innerHTML = '';
+  for (let number in levelData) {
+    let swatch = document.createElement('div');
+    swatch.className = 'color-swatch';
+    swatch.style.backgroundColor = levelData[number];
+    swatch.onclick = () => {
+      selectedColor = levelData[number];
+    };
+    colorPicker.appendChild(swatch);
+  }
+}
+
+canvas.addEventListener('click', function (event) {
+  const rect = canvas.getBoundingClientRect();
+  const x = Math.floor((event.clientX - rect.left) / cellSize);
+  const y = Math.floor((event.clientY - rect.top) / cellSize);
+
+  if (pixelMap[y] && pixelMap[y][x]) {
+    ctx.fillStyle = selectedColor;
+    ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+    ctx.strokeRect(x * cellSize, y * cellSize, cellSize, cellSize);
+
+    colorSound.currentTime = 0;
+    colorSound.play();
+  }
+});
+
+eraserBtn.onclick = () => {
+  selectedColor = '#ffffff';
+};
+
+  </script>
+</body>
+</html>

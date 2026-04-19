@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Finger Follow Game</title>
+</head>
+<body>
+    <style>
+        body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(to bottom right, #f5f7fa, #c3cfe2);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.game-container {
+  text-align: center;
+  background: white;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+}
+
+.controls {
+  margin-bottom: 20px;
+}
+
+button, select {
+  padding: 10px 20px;
+  margin: 5px;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+button:hover, select:hover {
+  background: #e0e0e0;
+}
+
+.play-area {
+  position: relative;
+  width: 300px;
+  height: 300px;
+  background: #f0f0f0;
+  margin: 0 auto;
+  border: 2px dashed #aaa;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.target {
+  width: 40px;
+  height: 40px;
+  background: red;
+  border-radius: 50%;
+  position: absolute;
+  top: 130px;
+  left: 130px;
+  transition: all 0.1s linear;
+  pointer-events: none;
+}
+
+    </style>
+
+  <div class="game-container" id="gameContainer">
+    <h1>Finger Follow Game</h1>
+    <div class="controls">
+      <select id="levelSelect">
+        <option value="easy">Easy</option>
+        <option value="medium">Medium</option>
+        <option value="hard">Hard</option>
+      </select>
+      <button id="startButton">Start Game</button>
+      <button id="endButton" style="display: none;">End Game</button>
+    </div>
+    <div class="play-area" id="playArea">
+      <div class="target" id="target"></div>
+    </div>
+  </div>
+
+  <script>
+    const startButton = document.getElementById('startButton');
+const endButton = document.getElementById('endButton');
+const playArea = document.getElementById('playArea');
+const target = document.getElementById('target');
+const levelSelect = document.getElementById('levelSelect');
+
+let gameActive = false;
+let speed = 5; // Default speed
+
+// Set speed based on selected level
+function setLevelSpeed(level) {
+  if (level === 'easy') speed = 5;
+  else if (level === 'medium') speed = 10;
+  else if (level === 'hard') speed = 15;
+}
+
+// Move target towards finger/touch/mouse
+function moveTarget(x, y) {
+  const rect = playArea.getBoundingClientRect();
+  const centerX = rect.left + rect.width / 2;
+  const centerY = rect.top + rect.height / 2;
+
+  let deltaX = x - centerX;
+  let deltaY = y - centerY;
+
+  const angle = Math.atan2(deltaY, deltaX);
+  const moveX = Math.cos(angle) * speed;
+  const moveY = Math.sin(angle) * speed;
+
+  let newLeft = parseFloat(target.style.left) + moveX;
+  let newTop = parseFloat(target.style.top) + moveY;
+
+  // Keep inside the play area
+  newLeft = Math.min(Math.max(newLeft, 0), playArea.clientWidth - target.clientWidth);
+  newTop = Math.min(Math.max(newTop, 0), playArea.clientHeight - target.clientHeight);
+
+  target.style.left = `${newLeft}px`;
+  target.style.top = `${newTop}px`;
+}
+
+function startGame() {
+  gameActive = true;
+  startButton.style.display = 'none';
+  endButton.style.display = 'inline-block';
+  setLevelSpeed(levelSelect.value);
+
+  target.style.left = '130px';
+  target.style.top = '130px';
+
+  playArea.addEventListener('mousemove', handleMove);
+  playArea.addEventListener('touchmove', handleTouch);
+}
+
+function endGame() {
+  gameActive = false;
+  startButton.style.display = 'inline-block';
+  endButton.style.display = 'none';
+
+  playArea.removeEventListener('mousemove', handleMove);
+  playArea.removeEventListener('touchmove', handleTouch);
+}
+
+function handleMove(event) {
+  if (!gameActive) return;
+  moveTarget(event.clientX, event.clientY);
+}
+
+function handleTouch(event) {
+  if (!gameActive) return;
+  const touch = event.touches[0];
+  moveTarget(touch.clientX, touch.clientY);
+}
+
+startButton.addEventListener('click', startGame);
+endButton.addEventListener('click', endGame);
+
+  </script>
+</body>
+</html>

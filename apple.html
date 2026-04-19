@@ -1,0 +1,183 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Catch the Apple Game</title>
+</head>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(to top, #a8edea, #fed6e3);
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    margin-top: 50px;
+}
+
+#level-select {
+    margin-bottom: 20px;
+}
+
+#startButton, #playButton {
+    padding: 10px 20px;
+    font-size: 18px;
+    margin-top: 10px;
+    cursor: pointer;
+    background-color: #ff5e5e;
+    border: none;
+    border-radius: 5px;
+    color: white;
+}
+
+#startButton:hover, #playButton:hover {
+    background-color: #ff3b3b;
+}
+
+#instruction {
+    margin: 20px auto;
+    width: 300px;
+    padding: 20px;
+    background-color: white;
+    border-radius: 10px;
+}
+
+#gameArea {
+    position: relative;
+    width: 400px;
+    height: 600px;
+    margin: 20px auto;
+    background-color: #fff7e6;
+    border: 2px solid #333;
+    overflow: hidden;
+    border-radius: 10px;
+}
+
+.apple {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    background-image: url('https://cdn-icons-png.flaticon.com/512/415/415733.png');
+    background-size: cover;
+    cursor: pointer;
+}
+
+#scoreBoard {
+    font-size: 20px;
+    margin-top: 10px;
+}
+
+.hidden {
+    display: none;
+}
+
+</style>
+<body>
+
+<div class="container">
+    <h1>Catch the Apple</h1>
+    
+    <div id="level-select">
+        <label for="level">Select Level:</label>
+        <select id="level">
+            <option value="easy">Easy</option>
+            <option value="medium">Medium</option>
+            <option value="hard">Hard</option>
+        </select>
+    </div>
+
+    <button id="startButton">Start Game</button>
+
+    <div id="instruction" class="hidden">
+        <p>Catch the apples by clicking on them before they reach the bottom! The higher the level, the faster the apples fall. Good luck!</p>
+        <button id="playButton">Play!</button>
+    </div>
+
+    <div id="gameArea" class="hidden"></div>
+
+    <div id="scoreBoard" class="hidden">
+        Score: <span id="score">0</span>
+    </div>
+</div>
+
+<script>
+  let gameArea = document.getElementById('gameArea');
+let scoreElement = document.getElementById('score');
+let startButton = document.getElementById('startButton');
+let instruction = document.getElementById('instruction');
+let playButton = document.getElementById('playButton');
+let levelSelect = document.getElementById('level');
+let scoreBoard = document.getElementById('scoreBoard');
+
+let score = 0;
+let gameInterval;
+let appleSpeed = 2; // default
+let spawnRate = 2000; // default
+
+startButton.addEventListener('click', () => {
+    instruction.classList.remove('hidden');
+    startButton.classList.add('hidden');
+    levelSelect.classList.add('hidden');
+});
+
+playButton.addEventListener('click', () => {
+    instruction.classList.add('hidden');
+    startGame();
+});
+
+function startGame() {
+    gameArea.classList.remove('hidden');
+    scoreBoard.classList.remove('hidden');
+    score = 0;
+    scoreElement.textContent = score;
+
+    let level = levelSelect.value;
+    setDifficulty(level);
+
+    gameInterval = setInterval(spawnApple, spawnRate);
+}
+
+function setDifficulty(level) {
+    if (level === 'easy') {
+        appleSpeed = 2;
+        spawnRate = 2000;
+    } else if (level === 'medium') {
+        appleSpeed = 4;
+        spawnRate = 1500;
+    } else if (level === 'hard') {
+        appleSpeed = 6;
+        spawnRate = 1000;
+    }
+}
+
+function spawnApple() {
+    let apple = document.createElement('div');
+    apple.classList.add('apple');
+    apple.style.left = Math.random() * (gameArea.offsetWidth - 40) + 'px';
+    apple.style.top = '0px';
+    gameArea.appendChild(apple);
+
+    let fallInterval = setInterval(() => {
+        let top = parseInt(apple.style.top);
+        if (top >= gameArea.offsetHeight - 40) {
+            apple.remove();
+            clearInterval(fallInterval);
+        } else {
+            apple.style.top = top + appleSpeed + 'px';
+        }
+    }, 20);
+
+    apple.addEventListener('click', () => {
+        score++;
+        scoreElement.textContent = score;
+        apple.remove();
+        clearInterval(fallInterval);
+    });
+}
+
+</script>
+</body>
+</html>

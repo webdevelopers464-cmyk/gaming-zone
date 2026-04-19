@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Battleship Swing Game</title>
+</head>
+<style>
+    body {
+  text-align: center;
+  background: #87CEEB;
+  font-family: 'Arial', sans-serif;
+}
+
+#menu {
+  margin: 20px;
+}
+
+#gameBoard {
+  display: grid;
+  grid-template-columns: repeat(10, 40px);
+  grid-gap: 2px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.cell {
+  width: 40px;
+  height: 40px;
+  background-color: #1E90FF;
+  border: 1px solid #fff;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.cell:hover {
+  background-color: #4169E1;
+}
+
+.ship {
+  animation: swing 2s infinite ease-in-out;
+}
+
+.hidden {
+  display: none;
+}
+
+@keyframes swing {
+  0% { transform: rotate(0deg); }
+  50% { transform: rotate(5deg); }
+  100% { transform: rotate(-5deg); }
+}
+
+.hit {
+  background-color: red;
+}
+
+.miss {
+  background-color: white;
+}
+
+</style>
+<body>
+
+  <h1>Battleship Swing Game</h1>
+
+  <div id="menu">
+    <select id="level">
+      <option value="easy">Easy</option>
+      <option value="medium">Medium</option>
+      <option value="hard">Hard</option>
+    </select>
+    <button id="startButton">Start Game</button>
+  </div>
+
+  <div id="instructions" class="hidden">
+    <h2>How to Play</h2>
+    <p>Click on the grid to find and sink all the ships! Ships swing, so aim carefully!</p>
+  </div>
+
+  <div id="gameBoard" class="hidden"></div>
+
+  <script>
+    const startButton = document.getElementById('startButton');
+const gameBoard = document.getElementById('gameBoard');
+const instructions = document.getElementById('instructions');
+const levelSelect = document.getElementById('level');
+
+let shipPositions = [];
+let boardSize = 10;
+let shipsCount = 0;
+
+startButton.addEventListener('click', startGame);
+
+function startGame() {
+  instructions.classList.remove('hidden');
+  gameBoard.classList.remove('hidden');
+  gameBoard.innerHTML = '';
+  shipPositions = [];
+
+  let level = levelSelect.value;
+  if (level === 'easy') shipsCount = 5;
+  else if (level === 'medium') shipsCount = 7;
+  else shipsCount = 10;
+
+  generateBoard();
+  placeShips();
+}
+
+function generateBoard() {
+  for (let i = 0; i < boardSize * boardSize; i++) {
+    const cell = document.createElement('div');
+    cell.classList.add('cell');
+    cell.dataset.index = i;
+    cell.addEventListener('click', handleCellClick);
+    gameBoard.appendChild(cell);
+  }
+}
+
+function placeShips() {
+  let placed = 0;
+  while (placed < shipsCount) {
+    let index = Math.floor(Math.random() * (boardSize * boardSize));
+    if (!shipPositions.includes(index)) {
+      shipPositions.push(index);
+      placed++;
+    }
+  }
+}
+
+function handleCellClick(e) {
+  const index = parseInt(e.target.dataset.index);
+  if (shipPositions.includes(index)) {
+    e.target.classList.add('hit', 'ship');
+    shipPositions = shipPositions.filter(i => i !== index);
+    if (shipPositions.length === 0) {
+      setTimeout(() => alert('You sunk all the ships! Well done!'), 100);
+    }
+  } else {
+    e.target.classList.add('miss');
+  }
+}
+
+  </script>
+</body>
+</html>

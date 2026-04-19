@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dress-Up Game</title>
+</head>
+<style>
+    body {
+  font-family: sans-serif;
+  text-align: center;
+  background: #f8f8ff;
+}
+.game-container {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin-top: 20px;
+}
+.wardrobe, .model-area {
+  border: 2px dashed #aaa;
+  padding: 20px;
+  border-radius: 10px;
+  background: #fff;
+}
+.item {
+  width: 60px;
+  height: 60px;
+  margin: 10px auto;
+  border-radius: 8px;
+  cursor: grab;
+}
+.shirt {
+  background: #f06292;
+}
+.pants {
+  background: #4fc3f7;
+}
+.hat {
+  background: #9575cd;
+}
+.model {
+  width: 200px;
+  height: 300px;
+  margin: 0 auto;
+  background: #ffe0b2;
+  position: relative;
+}
+.dropzone {
+  position: absolute;
+  border: 2px dashed #333;
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+}
+[data-slot="hat"] {
+  top: 20px;
+  left: 70px;
+}
+[data-slot="shirt"] {
+  top: 100px;
+  left: 70px;
+}
+[data-slot="pants"] {
+  top: 180px;
+  left: 70px;
+}
+.actions {
+  margin-top: 20px;
+}
+
+</style>
+<body>
+  <h1>Dress-Up Time!</h1>
+  <div class="game-container">
+    <div class="wardrobe">
+      <h2>Wardrobe</h2>
+      <div class="item shirt" draggable="true" data-type="shirt"></div>
+      <div class="item pants" draggable="true" data-type="pants"></div>
+      <div class="item hat" draggable="true" data-type="hat"></div>
+    </div>
+    
+    <div class="model-area">
+      <h2>Character</h2>
+      <div class="model">
+        <div class="dropzone" data-slot="hat"></div>
+        <div class="dropzone" data-slot="shirt"></div>
+        <div class="dropzone" data-slot="pants"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button id="saveBtn">Save Look</button>
+    <a id="downloadLink" download="my-look.html" style="display:none;">Download Look</a>
+  </div>
+
+  <audio id="sound" src="https://cdn.pixabay.com/audio/2022/10/24/audio_aac29311f8.mp3"></audio>
+
+  <script>
+    const items = document.querySelectorAll('.item');
+const zones = document.querySelectorAll('.dropzone');
+const sound = document.getElementById('sound');
+const saveBtn = document.getElementById('saveBtn');
+const downloadLink = document.getElementById('downloadLink');
+
+items.forEach(item => {
+  item.addEventListener('dragstart', (e) => {
+    e.dataTransfer.setData('text/plain', item.dataset.type);
+  });
+});
+
+zones.forEach(zone => {
+  zone.addEventListener('dragover', e => e.preventDefault());
+
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    const type = e.dataTransfer.getData('text/plain');
+    const newItem = document.querySelector(`.item.${type}`).cloneNode(true);
+    newItem.draggable = false;
+    zone.innerHTML = '';
+    zone.appendChild(newItem);
+    sound.play();
+  });
+});
+
+saveBtn.addEventListener('click', () => {
+  const html = document.documentElement.outerHTML;
+  const blob = new Blob([html], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  downloadLink.href = url;
+  downloadLink.style.display = 'inline';
+  downloadLink.textContent = "Click to Download Look";
+});
+
+  </script>
+</body>
+</html>
+

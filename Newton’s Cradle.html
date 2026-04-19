@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Newton's Cradle Game</title>
+</head>
+<style>
+    body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  background: linear-gradient(to bottom, #e0f7fa, #ffffff);
+  margin: 0;
+  padding: 0;
+}
+
+h1 {
+  margin-top: 20px;
+  color: #333;
+}
+
+.controls {
+  margin: 20px;
+}
+
+canvas {
+  border: 2px solid #333;
+  background-color: #f0f0f0;
+}
+
+</style>
+<body>
+  <h1>Newton's Cradle Game</h1>
+  <div class="controls">
+    <label for="level">Choose Difficulty:</label>
+    <select id="level">
+      <option value="easy">Easy</option>
+      <option value="medium">Medium</option>
+      <option value="hard">Hard</option>
+    </select>
+    <button id="startButton">Start Game</button>
+  </div>
+  <canvas id="cradleCanvas" width="800" height="400"></canvas>
+
+  <script>
+    const canvas = document.getElementById("cradleCanvas");
+const ctx = canvas.getContext("2d");
+const startButton = document.getElementById("startButton");
+const sound = new Audio("https://actions.google.com/sounds/v1/impacts/wood_plank_flicks.ogg");
+
+let balls = [];
+let swingingBall = null;
+let difficulty = "easy";
+
+startButton.onclick = () => {
+  difficulty = document.getElementById("level").value;
+  setupBalls();
+  speakInstructions();
+};
+
+function speakInstructions() {
+  const msg = new SpeechSynthesisUtterance(
+    "Welcome to Newton's Cradle Game. Click on a side ball to swing it. Watch how energy transfers through the balls. Difficulty changes the swing speed."
+  );
+  window.speechSynthesis.speak(msg);
+}
+
+function setupBalls() {
+  balls = [];
+  const count = 5;
+  const spacing = 80;
+  const startX = (canvas.width - (count - 1) * spacing) / 2;
+  for (let i = 0; i < count; i++) {
+    balls.push({
+      x: startX + i * spacing,
+      y: 200,
+      angle: 0,
+      velocity: 0,
+      swinging: false,
+      direction: 1,
+      id: i
+    });
+  }
+
+  canvas.onclick = (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+
+    for (const ball of balls) {
+      const dist = Math.abs(mouseX - ball.x);
+      if (dist < 30 && (ball.id === 0 || ball.id === balls.length - 1)) {
+        swingBall(ball);
+        break;
+      }
+    }
+  };
+
+  animate();
+}
+
+function swingBall(ball) {
+  if (swingingBall) return;
+
+  ball.swinging = true;
+  swingingBall = ball;
+
+  // Set swing speed based on difficulty
+  let maxAngle;
+  if (difficulty === "easy") maxAngle = 0.6;
+  else if (difficulty === "medium") maxAngle = 0.9;
+  else maxAngle = 1.2;
+
+  ball.angle = maxAngle;
+  ball.velocity = -0.03 * ball.angle;
+  sound.play();
+}
+
+function drawBall(ball) {
+  const length = 150;
+  const offsetX = Math.sin(ball.angle) * length;
+  const offsetY = Math.cos(ball.angle) * length;
+
+  ctx.beginPath();
+  ctx.moveTo(ball.x, 0);
+  ctx.lineTo(ball.x + offsetX, ball.y);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(ball.x + offsetX, ball.y, 20, 0, Math.PI * 2);
+  ctx.fillStyle = "steelblue";
+  ctx.fill();
+  ctx.stroke();
+}
+
+function updateBall(ball) {
+  if (ball.swinging) {
+    ball.angle += ball.velocity;
+
+    // Stop swinging if angle is small
+    if (Math.abs(ball.angle) < 0.01) {
+      ball.swinging = false;
+      ball.angle = 0;
+      ball.velocity = 0;
+      swingingBall = null;
+
+      // Simulate energy transfer
+      let other = ball.id === 0 ? balls[balls.length - 1] : balls[0];
+      swingBall(other);
+      sound.play();
+    }
+  }
+}
+
+function animate() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  for (const ball of balls) {
+    updateBall(ball);
+    drawBall(ball);
+  }
+
+  requestAnimationFrame(animate);
+}
+
+  </script>
+</body>
+</html>

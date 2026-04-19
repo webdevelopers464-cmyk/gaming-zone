@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Math Master Challenge</title>
+</head>
+<style>
+    body {
+  font-family: 'Segoe UI', sans-serif;
+  background: #f2f2f2;
+  text-align: center;
+  margin: 0;
+  padding: 0;
+}
+
+.game-container {
+  max-width: 400px;
+  margin: 50px auto;
+  padding: 20px;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+}
+
+h1 {
+  margin-bottom: 20px;
+}
+
+.hidden {
+  display: none;
+}
+
+.stats {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 20px;
+}
+
+#question {
+  font-size: 24px;
+  margin: 15px 0;
+}
+
+input, select, button {
+  padding: 10px;
+  font-size: 16px;
+  margin: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+button {
+  background: #4CAF50;
+  color: white;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #45a049;
+}
+
+</style>
+<body>
+  <div class="game-container">
+    <h1>🧠 Math Master Challenge</h1>
+    <div class="menu">
+      <label for="level">Choose Level:</label>
+      <select id="level">
+        <option value="easy">Easy</option>
+        <option value="medium">Medium</option>
+        <option value="hard">Hard</option>
+      </select>
+      <button onclick="startGame()">Start Game</button>
+    </div>
+
+    <div class="game hidden">
+      <div class="stats">
+        <p>Score: <span id="score">0</span></p>
+        <p>Time: <span id="time">30</span>s</p>
+      </div>
+      <div id="question">Question here</div>
+      <input type="number" id="answer" placeholder="Your answer" />
+      <button onclick="submitAnswer()">Submit</button>
+    </div>
+
+    <div id="result" class="hidden"></div>
+  </div>
+
+  <script>
+    let score = 0;
+let time = 30;
+let interval;
+let currentAnswer;
+let voices;
+
+window.speechSynthesis.onvoiceschanged = () => {
+  voices = speechSynthesis.getVoices();
+};
+
+function speak(text) {
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.voice = voices[0];
+  speechSynthesis.speak(utterance);
+}
+
+function startGame() {
+  score = 0;
+  time = 30;
+  document.getElementById("score").innerText = score;
+  document.getElementById("time").innerText = time;
+  document.querySelector(".game").classList.remove("hidden");
+  document.querySelector(".menu").classList.add("hidden");
+  document.getElementById("result").classList.add("hidden");
+  generateQuestion();
+  interval = setInterval(() => {
+    time--;
+    document.getElementById("time").innerText = time;
+    if (time <= 0) endGame();
+  }, 1000);
+}
+
+function getRandomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function generateQuestion() {
+  const level = document.getElementById("level").value;
+  let num1, num2, operator;
+
+  if (level === "easy") {
+    num1 = getRandomInt(1, 10);
+    num2 = getRandomInt(1, 10);
+    operator = "+";
+    currentAnswer = num1 + num2;
+  } else if (level === "medium") {
+    num1 = getRandomInt(10, 50);
+    num2 = getRandomInt(10, 50);
+    operator = "-";
+    currentAnswer = num1 - num2;
+  } else {
+    num1 = getRandomInt(2, 12);
+    num2 = getRandomInt(2, 12);
+    operator = "×";
+    currentAnswer = num1 * num2;
+  }
+
+  document.getElementById("question").innerText = `${num1} ${operator} ${num2} = ?`;
+}
+
+function submitAnswer() {
+  const userAnswer = parseInt(document.getElementById("answer").value);
+  if (userAnswer === currentAnswer) {
+    score++;
+    speak("Correct!");
+  } else {
+    speak("Try again!");
+  }
+  document.getElementById("score").innerText = score;
+  document.getElementById("answer").value = "";
+  generateQuestion();
+}
+
+function endGame() {
+  clearInterval(interval);
+  document.querySelector(".game").classList.add("hidden");
+  const resultText = `Time's up! Your score is ${score}`;
+  document.getElementById("result").innerText = resultText;
+  document.getElementById("result").classList.remove("hidden");
+  speak(resultText);
+  document.querySelector(".menu").classList.remove("hidden");
+}
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Typing Challenge Game</title>
+</head>
+<style>
+    body {
+  font-family: 'Arial', sans-serif;
+  background: linear-gradient(to right, #6a11cb, #2575fc);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+}
+
+.game-container {
+  background: #fff;
+  padding: 30px;
+  border-radius: 15px;
+  text-align: center;
+  box-shadow: 0 0 15px rgba(0,0,0,0.2);
+  width: 350px;
+}
+
+h1 {
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.controls {
+  margin-bottom: 20px;
+}
+
+select, button, input {
+  padding: 10px;
+  margin: 5px;
+  width: 80%;
+  font-size: 16px;
+}
+
+#word {
+  font-size: 24px;
+  color: #555;
+  margin-bottom: 15px;
+}
+
+#time, #score {
+  font-size: 18px;
+  margin-top: 10px;
+}
+
+.hidden {
+  display: none;
+}
+
+#instructions p {
+  margin: 5px 0;
+  font-size: 14px;
+  color: #666;
+}
+
+</style>
+<body>
+
+<div class="game-container">
+  <h1>Typing Challenge Game</h1>
+
+  <div id="instructions" class="hidden">
+    <p>⚡ Type the word shown as fast as you can!</p>
+    <p>⏳ You have limited time based on the difficulty.</p>
+    <p>🎯 Faster typing means higher score!</p>
+  </div>
+
+  <div class="controls">
+    <select id="level">
+      <option value="easy">Easy</option>
+      <option value="medium">Medium</option>
+      <option value="hard">Hard</option>
+    </select>
+    <button id="startBtn">Start Game</button>
+  </div>
+
+  <div id="game" class="hidden">
+    <h2 id="word"></h2>
+    <input type="text" id="input" placeholder="Type the word here" autocomplete="off">
+    <p id="time">Time: 0</p>
+    <p id="score">Score: 0</p>
+  </div>
+
+</div>
+
+<script>
+    // Word lists for each level
+const words = {
+  easy: ['cat', 'dog', 'tree', 'book', 'milk', 'car', 'pen', 'ball', 'fish', 'house'],
+  medium: ['planet', 'window', 'garden', 'pencil', 'monster', 'chicken', 'yellow', 'bridge'],
+  hard: ['astronomy', 'encyclopedia', 'architecture', 'philosophy', 'civilization', 'university']
+};
+
+let currentWord = '';
+let score = 0;
+let time = 0;
+let timer;
+let selectedLevel = 'easy';
+
+const wordDisplay = document.getElementById('word');
+const input = document.getElementById('input');
+const timeDisplay = document.getElementById('time');
+const scoreDisplay = document.getElementById('score');
+const startBtn = document.getElementById('startBtn');
+const levelSelect = document.getElementById('level');
+const gameArea = document.getElementById('game');
+const instructions = document.getElementById('instructions');
+
+// Get time limits per level
+const timeLimits = {
+  easy: 7,
+  medium: 5,
+  hard: 3
+};
+
+startBtn.addEventListener('click', startGame);
+
+function startGame() {
+  selectedLevel = levelSelect.value;
+  score = 0;
+  time = timeLimits[selectedLevel];
+  input.value = '';
+  input.focus();
+  gameArea.classList.remove('hidden');
+  instructions.classList.remove('hidden');
+  displayNewWord();
+  updateTime();
+  updateScore();
+
+  clearInterval(timer);
+  timer = setInterval(countDown, 1000);
+  
+  setTimeout(() => {
+    instructions.classList.add('hidden');
+  }, 5000); // Hide instructions after 5 seconds
+}
+
+function displayNewWord() {
+  const wordList = words[selectedLevel];
+  currentWord = wordList[Math.floor(Math.random() * wordList.length)];
+  wordDisplay.textContent = currentWord;
+}
+
+input.addEventListener('input', checkInput);
+
+function checkInput() {
+  if (input.value.trim() === currentWord) {
+    score++;
+    updateScore();
+    input.value = '';
+    displayNewWord();
+    time = timeLimits[selectedLevel] + 1; // Bonus 1 second
+  }
+}
+
+function updateScore() {
+  scoreDisplay.textContent = `Score: ${score}`;
+}
+
+function updateTime() {
+  timeDisplay.textContent = `Time: ${time}`;
+}
+
+function countDown() {
+  time--;
+  updateTime();
+
+  if (time <= 0) {
+    clearInterval(timer);
+    endGame();
+  }
+}
+
+function endGame() {
+  wordDisplay.textContent = 'Game Over!';
+  input.disabled = true;
+}
+
+</script>
+</body>
+</html>

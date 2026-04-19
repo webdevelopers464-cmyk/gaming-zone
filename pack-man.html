@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Mini Pac-Man</title>
+</head>
+<style>
+        body {
+  background: linear-gradient(135deg, #4facfe, #00f2fe);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+}
+
+.game-container {
+  text-align: center;
+}
+
+#gameCanvas {
+  background: #111;
+  border: 5px solid #fff;
+  border-radius: 20px;
+}
+
+.info {
+  margin-top: 15px;
+  color: white;
+}
+
+#startBtn {
+  background-color: #ffcc00;
+  border: none;
+  padding: 10px 20px;
+  font-size: 18px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+#startBtn:hover {
+  background-color: #ffaa00;
+}
+
+</style>
+<body>
+
+<div class="game-container" id="gameContainer">
+  <canvas id="gameCanvas" width="400" height="400"></canvas>
+  <div class="info">
+    <button id="startBtn">Start Game</button>
+    <p>Lives: <span id="lives">3</span></p>
+  </div>
+</div>
+
+<audio id="eatSound" src="https://actions.google.com/sounds/v1/cartoon/slide_whistle_to_drum_hit.ogg"></audio>
+<audio id="deathSound" src="https://actions.google.com/sounds/v1/cartoon/concussive_hit_guitar_boing.ogg"></audio>
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const startBtn = document.getElementById('startBtn');
+const livesDisplay = document.getElementById('lives');
+const eatSound = document.getElementById('eatSound');
+const deathSound = document.getElementById('deathSound');
+
+const pacman = { x: 200, y: 200, size: 20, dx: 20, dy: 0 };
+const ghost = { x: 100, y: 100, size: 20 };
+let dots = [];
+let lives = 3;
+let gameInterval;
+let gameRunning = false;
+
+// Create dots
+for (let i = 20; i < 400; i += 40) {
+  for (let j = 20; j < 400; j += 40) {
+    dots.push({ x: i, y: j, eaten: false });
+  }
+}
+
+// Handle input
+document.addEventListener('keydown', (e) => {
+  if (!gameRunning) return;
+  switch (e.key) {
+    case 'ArrowUp':
+      pacman.dx = 0;
+      pacman.dy = -20;
+      break;
+    case 'ArrowDown':
+      pacman.dx = 0;
+      pacman.dy = 20;
+      break;
+    case 'ArrowLeft':
+      pacman.dx = -20;
+      pacman.dy = 0;
+      break;
+    case 'ArrowRight':
+      pacman.dx = 20;
+      pacman.dy = 0;
+      break;
+  }
+});
+
+// Algorithm: simple ghost chase
+function moveGhost() {
+  const diffX = pacman.x - ghost.x;
+  const diffY = pacman.y - ghost.y;
+
+  if (Math.abs(diffX) > Math.abs(diffY)) {
+    ghost.x += diffX > 0 ? 20 : -20;
+  } else {
+    ghost.y += diffY > 0 ? 20 : -20;
+  }
+}
+
+// Draw everything
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Draw pacman
+  ctx.fillStyle = 'yellow';
+  ctx.beginPath();
+  ctx.arc(pacman.x, pacman.y, pacman.size / 2, 0.2 * Math.PI, 1.8 * Math.PI);
+  ctx.lineTo(pacman.x, pacman.y);
+  ctx.fill();
+
+  // Draw ghost
+  ctx.fillStyle = 'red';
+  ctx.beginPath();
+  ctx.arc(ghost.x, ghost.y, ghost.size / 2, 0, 2 * Math.PI);
+  ctx.fill();
+
+  // Draw dots
+  ctx.fillStyle = 'white';
+  dots.forEach(dot => {
+    if (!dot.eaten) {
+      ctx.beginPath();
+      ctx.arc(dot.x, dot.y, 5, 0, 2 * Math.PI);
+      ctx.fill();
+    }
+  });
+}
+
+// Update game
+function update() {
+  pacman.x += pacman.dx;
+  pacman.y += pacman.dy;
+
+  // Wall collision
+  if (pacman.x < 0) pacman.x = 0;
+  if (pacman.x > canvas.width) pacman.x = canvas.width;
+  if (pacman.y < 0) pacman.y = 0;
+  if (pacman.y > canvas.height) pacman.y = canvas.height;
+
+  moveGhost();
+
+  // Check for dot collision
+  dots.forEach(dot => {
+    if (!dot.eaten && Math.hypot(pacman.x - dot.x, pacman.y - dot.y) < 15) {
+      dot.eaten = true;
+      eatSound.play();
+    }
+  });
+
+  // Check for ghost collision
+  if (Math.hypot(pacman.x - ghost.x, pacman.y - ghost.y) < 20) {
+    lives--;
+    livesDisplay.textContent = lives;
+    deathSound.play();
+    resetPositions();
+
+    if (lives <= 0) {
+      clearInterval(gameInterval);
+      alert('Game Over!');
+      gameRunning = false;
+    }
+  }
+
+  draw();
+}
+
+// Reset positions after death
+function resetPositions() {
+  pacman.x = 200;
+  pacman.y = 200;
+  pacman.dx = 20;
+  pacman.dy = 0;
+  ghost.x = 100;
+  ghost.y = 100;
+}
+
+// Start the game
+startBtn.addEventListener('click', () => {
+  if (gameRunning) return;
+  gameRunning = true;
+  lives = 3;
+  livesDisplay.textContent = lives;
+  dots.forEach(dot => dot.eaten = false);
+  resetPositions();
+  gameInterval = setInterval(update, 300);
+});
+
+</script>
+</body>
+</html>
+

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Truth or Dare Game</title>
+</head>
+<style>
+body {
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #89f7fe, #66a6ff);
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.container {
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    text-align: center;
+}
+
+h1 {
+    margin-bottom: 20px;
+    color: #333;
+}
+
+button {
+    background-color: #66a6ff;
+    border: none;
+    color: white;
+    padding: 15px 25px;
+    margin: 10px;
+    border-radius: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #4e89d9;
+}
+
+#prompt {
+    margin: 20px 0;
+    font-size: 22px;
+    color: #444;
+}
+
+.hidden {
+    display: none;
+}
+</style>
+<body>
+    <div class="container">
+        <h1>🎲 Truth or Dare 🎲</h1>
+        <button id="startBtn">Start Game</button>
+        <div id="gameArea" class="hidden">
+            <p id="prompt"></p>
+            <button id="truthBtn">Truth</button>
+            <button id="dareBtn">Dare</button>
+            <button id="newRoundBtn">Next Turn</button>
+        </div>
+    </div>
+
+    <script>
+        const startBtn = document.getElementById('startBtn');
+const gameArea = document.getElementById('gameArea');
+const promptText = document.getElementById('prompt');
+const truthBtn = document.getElementById('truthBtn');
+const dareBtn = document.getElementById('dareBtn');
+const newRoundBtn = document.getElementById('newRoundBtn');
+
+const truths = [
+    "What is your biggest fear?",
+    "Have you ever lied to your best friend?",
+    "What's the most embarrassing thing you've done?",
+    "Who was your first crush?",
+    "Have you ever kept a big secret from your parents?"
+];
+
+const dares = [
+    "Do 10 jumping jacks!",
+    "Sing a song loudly!",
+    "Act like a chicken for 20 seconds!",
+    "Dance with no music for 1 minute!",
+    "Try to lick your elbow!"
+];
+
+startBtn.addEventListener('click', () => {
+    startBtn.classList.add('hidden');
+    gameArea.classList.remove('hidden');
+});
+
+truthBtn.addEventListener('click', () => {
+    const randomTruth = getRandomItem(truths);
+    showPrompt(randomTruth);
+});
+
+dareBtn.addEventListener('click', () => {
+    const randomDare = getRandomItem(dares);
+    showPrompt(randomDare);
+});
+
+newRoundBtn.addEventListener('click', () => {
+    promptText.textContent = '';
+});
+
+function getRandomItem(list) {
+    const index = Math.floor(Math.random() * list.length);
+    return list[index];
+}
+
+function showPrompt(text) {
+    promptText.textContent = text;
+    speakText(text);
+}
+
+function speakText(message) {
+    const speech = new SpeechSynthesisUtterance();
+    speech.text = message;
+    speech.lang = "en-US";
+    speech.volume = 1;
+    speech.rate = 1;
+    speech.pitch = 1;
+    window.speechSynthesis.speak(speech);
+}
+
+    </script>
+</body>
+</html>

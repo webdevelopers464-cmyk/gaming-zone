@@ -1,0 +1,1560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subway Surfers 3D</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Arial Black', sans-serif;
+            overflow: hidden;
+            background: #000;
+            touch-action: none;
+        }
+        #gameCanvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+        }
+        #ui {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-size: clamp(16px, 3vw, 24px);
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.8);
+            z-index: 10;
+        }
+        .ui-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin: 5px 0;
+        }
+        #gameOver {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.95);
+            padding: clamp(20px, 5vw, 40px);
+            border-radius: 20px;
+            text-align: center;
+            display: none;
+            z-index: 100;
+            max-width: 90vw;
+        }
+        #gameOver h1 {
+            color: #ff4757;
+            font-size: clamp(32px, 8vw, 48px);
+            margin-bottom: 20px;
+        }
+        #gameOver p {
+            color: white;
+            font-size: clamp(16px, 4vw, 24px);
+            margin: 10px 0;
+        }
+        .button {
+            background: #ffa502;
+            color: white;
+            border: none;
+            padding: clamp(10px, 2vw, 15px) clamp(20px, 4vw, 40px);
+            font-size: clamp(16px, 3vw, 24px);
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 10px 5px;
+            font-weight: bold;
+        }
+        .button:hover {
+            background: #ff7f00;
+        }
+        #mainMenu {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 99;
+        }
+        #mainMenu h1 {
+            color: white;
+            font-size: clamp(32px, 10vw, 64px);
+            margin-bottom: 20px;
+            text-shadow: 4px 4px 8px rgba(0,0,0,0.5);
+        }
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .menu-button {
+            background: #ffa502;
+            color: white;
+            border: none;
+            padding: clamp(15px, 3vw, 20px) clamp(40px, 8vw, 60px);
+            font-size: clamp(20px, 4vw, 32px);
+            border-radius: 15px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+        }
+        .menu-button:hover {
+            background: #ff7f00;
+            transform: scale(1.05);
+        }
+        #dayNightToggle {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            border: 2px solid #ffa502;
+            padding: clamp(8px, 2vw, 10px) clamp(15px, 3vw, 20px);
+            font-size: clamp(14px, 3vw, 18px);
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            z-index: 10;
+        }
+        #dayNightToggle:hover {
+            background: rgba(255,165,2,0.3);
+        }
+        #menuButton {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            border: 2px solid #ffa502;
+            padding: clamp(8px, 2vw, 10px) clamp(15px, 3vw, 20px);
+            font-size: clamp(14px, 3vw, 18px);
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            z-index: 10;
+        }
+        .modal {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            z-index: 200;
+            overflow-y: auto;
+        }
+        .modal-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 20px auto;
+            padding: clamp(20px, 4vw, 40px);
+            border-radius: 20px;
+            max-width: 90vw;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .modal-header h2 {
+            color: white;
+            font-size: clamp(24px, 6vw, 40px);
+        }
+        .close-btn {
+            background: #ff4757;
+            color: white;
+            border: none;
+            width: clamp(30px, 6vw, 40px);
+            height: clamp(30px, 6vw, 40px);
+            border-radius: 50%;
+            font-size: clamp(20px, 4vw, 28px);
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .character-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        @media (max-width: 768px) {
+            .character-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+                gap: 10px;
+            }
+        }
+        @media (max-width: 480px) {
+            .character-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+            }
+        }
+        .character-card {
+            background: rgba(255,255,255,0.1);
+            border: 3px solid #ffa502;
+            border-radius: 15px;
+            padding: clamp(10px, 2vw, 15px);
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .character-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255,165,2,0.5);
+        }
+        .character-card.locked {
+            opacity: 0.6;
+            border-color: #666;
+        }
+        .character-card.selected {
+            border-color: #00ff00;
+            box-shadow: 0 0 20px rgba(0,255,0,0.5);
+        }
+        .character-icon {
+            font-size: clamp(40px, 8vw, 60px);
+            margin: 10px 0;
+        }
+        .character-name {
+            color: white;
+            font-size: clamp(12px, 2.5vw, 16px);
+            margin: 5px 0;
+        }
+        .character-price {
+            color: #ffd700;
+            font-size: clamp(14px, 3vw, 18px);
+            font-weight: bold;
+        }
+        .achievement-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .achievement-item {
+            background: rgba(255,255,255,0.1);
+            border: 2px solid #ffa502;
+            border-radius: 10px;
+            padding: clamp(15px, 3vw, 20px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .achievement-item.completed {
+            border-color: #00ff00;
+            background: rgba(0,255,0,0.1);
+        }
+        .achievement-info {
+            flex: 1;
+        }
+        .achievement-title {
+            color: white;
+            font-size: clamp(14px, 3vw, 20px);
+            margin-bottom: 5px;
+        }
+        .achievement-desc {
+            color: #ccc;
+            font-size: clamp(12px, 2.5vw, 16px);
+        }
+        .achievement-icon {
+            font-size: clamp(30px, 6vw, 40px);
+        }
+        .diamond-store {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        @media (max-width: 768px) {
+            .diamond-store {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+        }
+        .diamond-pack {
+            background: rgba(255,255,255,0.1);
+            border: 3px solid #00ffff;
+            border-radius: 15px;
+            padding: clamp(15px, 3vw, 25px);
+            text-align: center;
+            cursor: pointer;
+        }
+        .diamond-pack:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0,255,255,0.5);
+        }
+        .diamond-amount {
+            color: #00ffff;
+            font-size: clamp(20px, 5vw, 32px);
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .diamond-price {
+            color: #ffd700;
+            font-size: clamp(16px, 4vw, 24px);
+            margin: 10px 0;
+        }
+        .stats-display {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .stat-item {
+            background: rgba(255,255,255,0.1);
+            border: 2px solid #ffa502;
+            border-radius: 10px;
+            padding: clamp(10px, 2vw, 15px);
+            text-align: center;
+            margin: 5px;
+        }
+        .stat-value {
+            color: white;
+            font-size: clamp(20px, 5vw, 32px);
+            font-weight: bold;
+        }
+        .stat-label {
+            color: #ccc;
+            font-size: clamp(12px, 2.5vw, 16px);
+        }
+    </style>
+</head>
+<body>
+    <div id="gameCanvas"></div>
+    
+    <div id="ui">
+        <div class="ui-item">Score: <span id="score">0</span></div>
+        <div class="ui-item">💰 <span id="coins">0</span></div>
+        <div class="ui-item">💎 <span id="diamonds">100</span></div>
+        <div id="powerupStatus"></div>
+    </div>
+    
+    <button id="dayNightToggle">🌙 Night</button>
+    <button id="menuButton">☰ Menu</button>
+
+    <div id="mainMenu">
+        <h1>🚇 SUBWAY SURFERS 3D 🚇</h1>
+        <div class="menu-buttons">
+            <button class="menu-button" onclick="startGame()">▶️ PLAY GAME</button>
+            <button class="menu-button" onclick="openModal('charactersModal')">👤 CHARACTERS</button>
+            <button class="menu-button" onclick="openModal('diamondModal')">💎 DIAMOND STORE</button>
+            <button class="menu-button" onclick="openModal('achievementModal')">🏆 ACHIEVEMENTS</button>
+        </div>
+        <div class="stats-display" style="margin-top: 30px;">
+            <div class="stat-item">
+                <div class="stat-value" id="totalCoins">0</div>
+                <div class="stat-label">Total Coins</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="highScore">0</div>
+                <div class="stat-label">High Score</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="totalDiamonds">100</div>
+                <div class="stat-label">Diamonds</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="gameOver">
+        <h1>GAME OVER!</h1>
+        <p>Score: <span id="finalScore">0</span></p>
+        <p>💰 Coins: <span id="finalCoins">0</span></p>
+        <button class="button" onclick="startGame()">PLAY AGAIN</button>
+        <button class="button" onclick="backToMenu()">MENU</button>
+    </div>
+
+    <!-- Characters Modal -->
+    <div id="charactersModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>👤 SELECT CHARACTER</h2>
+                <button class="close-btn" onclick="closeModal('charactersModal')">×</button>
+            </div>
+            <div class="stats-display">
+                <div class="stat-item">
+                    <div class="stat-value" id="modalCoins">0</div>
+                    <div class="stat-label">Your Coins</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="modalDiamonds">100</div>
+                    <div class="stat-label">Your Diamonds</div>
+                </div>
+            </div>
+            <div class="character-grid" id="characterGrid"></div>
+        </div>
+    </div>
+
+    <!-- Diamond Store Modal -->
+    <div id="diamondModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>💎 DIAMOND STORE</h2>
+                <button class="close-btn" onclick="closeModal('diamondModal')">×</button>
+            </div>
+            <p style="color: white; text-align: center; font-size: clamp(14px, 3vw, 18px); margin: 20px 0;">
+                Buy diamonds with coins to unlock premium characters!
+            </p>
+            <div class="diamond-store">
+                <div class="diamond-pack" onclick="buyDiamonds(50, 500)">
+                    <div style="font-size: clamp(40px, 8vw, 60px);">💎</div>
+                    <div class="diamond-amount">50 Diamonds</div>
+                    <div class="diamond-price">500 Coins</div>
+                </div>
+                <div class="diamond-pack" onclick="buyDiamonds(120, 1000)">
+                    <div style="font-size: clamp(40px, 8vw, 60px);">💎💎</div>
+                    <div class="diamond-amount">120 Diamonds</div>
+                    <div class="diamond-price">1000 Coins</div>
+                </div>
+                <div class="diamond-pack" onclick="buyDiamonds(300, 2000)">
+                    <div style="font-size: clamp(40px, 8vw, 60px);">💎💎💎</div>
+                    <div class="diamond-amount">300 Diamonds</div>
+                    <div class="diamond-price">2000 Coins</div>
+                </div>
+                <div class="diamond-pack" onclick="buyDiamonds(700, 4000)">
+                    <div style="font-size: clamp(40px, 8vw, 60px);">💎💎💎💎</div>
+                    <div class="diamond-amount">700 Diamonds</div>
+                    <div class="diamond-price">4000 Coins</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Achievement Modal -->
+    <div id="achievementModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🏆 ACHIEVEMENTS</h2>
+                <button class="close-btn" onclick="closeModal('achievementModal')">×</button>
+            </div>
+            <div class="achievement-list" id="achievementList"></div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Game State
+        let gameState = {
+            coins: 0,
+            diamonds: 100,
+            totalCoins: 0,
+            highScore: 0,
+            unlockedCharacters: [0],
+            selectedCharacter: 0,
+            achievements: {
+                firstRun: false,
+                score1000: false,
+                score5000: false,
+                score10000: false,
+                coins100: false,
+                coins500: false,
+                coins1000: false,
+                jump100: false,
+                powerup10: false,
+                character5: false,
+                character15: false,
+                allCharacters: false
+            },
+            stats: {
+                totalJumps: 0,
+                totalPowerups: 0
+            }
+        };
+
+        if (localStorage.getItem('subwaySurfersData')) {
+            gameState = JSON.parse(localStorage.getItem('subwaySurfersData'));
+        }
+
+        const characters = [
+            { name: 'Jake', icon: '👦', price: 0, currency: 'free', skinColor: 0xFFDBB5, shirtColor: 0x4A90E2 },
+            { name: 'Tricky', icon: '👧', price: 10, currency: 'coins', skinColor: 0xFFD4A3, shirtColor: 0xFF6B9D },
+            { name: 'Fresh', icon: '🧒', price: 20, currency: 'coins', skinColor: 0xC68642, shirtColor: 0x00D9FF },
+            { name: 'Spike', icon: '👨', price: 30, currency: 'coins', skinColor: 0xFFDBB5, shirtColor: 0xFF4500 },
+            { name: 'Yutani', icon: '👩', price: 50, currency: 'coins', skinColor: 0xFFE4C4, shirtColor: 0x9D50BB },
+            { name: 'Frank', icon: '🧑', price: 80, currency: 'coins', skinColor: 0xFFD4A3, shirtColor: 0x228B22 },
+            { name: 'King', icon: '🤴', price: 100, currency: 'coins', skinColor: 0xFFDBB5, shirtColor: 0xFFD700 },
+            { name: 'Ninja', icon: '🥷', price: 150, currency: 'coins', skinColor: 0xFFE4C4, shirtColor: 0x2C3E50 },
+            { name: 'Zombie', icon: '🧟', price: 200, currency: 'coins', skinColor: 0x90EE90, shirtColor: 0x8B4513 },
+            { name: 'Robot', icon: '🤖', price: 250, currency: 'coins', skinColor: 0xC0C0C0, shirtColor: 0x4169E1 },
+            { name: 'Alien', icon: '👽', price: 300, currency: 'coins', skinColor: 0x7FFF00, shirtColor: 0x8B008B },
+            { name: 'Pirate', icon: '🏴‍☠️', price: 400, currency: 'coins', skinColor: 0xD2B48C, shirtColor: 0x8B0000 },
+            { name: 'Cowboy', icon: '🤠', price: 500, currency: 'coins', skinColor: 0xFFDBB5, shirtColor: 0xCD853F },
+            { name: 'Detective', icon: '🕵️', price: 600, currency: 'coins', skinColor: 0xFFD4A3, shirtColor: 0x696969 },
+            { name: 'Astronaut', icon: '👨‍🚀', price: 700, currency: 'coins', skinColor: 0xFFE4C4, shirtColor: 0xFFFFFF },
+            { name: 'Princess', icon: '👸', price: 50, currency: 'diamonds', skinColor: 0xFFE4E1, shirtColor: 0xFF69B4 },
+            { name: 'Prince', icon: '🤴', price: 80, currency: 'diamonds', skinColor: 0xFFDBB5, shirtColor: 0x4169E1 },
+            { name: 'Wizard', icon: '🧙', price: 100, currency: 'diamonds', skinColor: 0xFFD4A3, shirtColor: 0x8B008B },
+            { name: 'Fairy', icon: '🧚', price: 120, currency: 'diamonds', skinColor: 0xFFF0F5, shirtColor: 0xFF1493 },
+            { name: 'Vampire', icon: '🧛', price: 150, currency: 'diamonds', skinColor: 0xF5F5DC, shirtColor: 0x000000 },
+            { name: 'Superhero', icon: '🦸', price: 180, currency: 'diamonds', skinColor: 0xFFE4C4, shirtColor: 0xFF0000 },
+            { name: 'Supervillain', icon: '🦹', price: 200, currency: 'diamonds', skinColor: 0xD3D3D3, shirtColor: 0x4B0082 },
+            { name: 'Elf', icon: '🧝', price: 220, currency: 'diamonds', skinColor: 0xFFE4C4, shirtColor: 0x228B22 },
+            { name: 'Mermaid', icon: '🧜', price: 250, currency: 'diamonds', skinColor: 0xFFE4E1, shirtColor: 0x00CED1 },
+            { name: 'Genie', icon: '🧞', price: 280, currency: 'diamonds', skinColor: 0x87CEEB, shirtColor: 0xFFD700 },
+            { name: 'Santa', icon: '🎅', price: 300, currency: 'diamonds', skinColor: 0xFFE4C4, shirtColor: 0xFF0000 },
+            { name: 'Angel', icon: '👼', price: 350, currency: 'diamonds', skinColor: 0xFFF5EE, shirtColor: 0xFFFFFF },
+            { name: 'Devil', icon: '😈', price: 400, currency: 'diamonds', skinColor: 0xFF6347, shirtColor: 0x8B0000 },
+            { name: 'Dragon', icon: '🐉', price: 500, currency: 'diamonds', skinColor: 0xFF4500, shirtColor: 0xFFD700 },
+            { name: 'Golden Jake', icon: '👑', price: 1000, currency: 'diamonds', skinColor: 0xFFD700, shirtColor: 0xFFA500 }
+        ];
+
+        const achievements = [
+            { id: 'firstRun', title: 'First Run', desc: 'Play your first game', icon: '🏃' },
+            { id: 'score1000', title: 'Beginner', desc: 'Score 1000 points', icon: '🥉' },
+            { id: 'score5000', title: 'Pro Runner', desc: 'Score 5000 points', icon: '🥈' },
+            { id: 'score10000', title: 'Legend', desc: 'Score 10000 points', icon: '🥇' },
+            { id: 'coins100', title: 'Coin Collector', desc: 'Collect 100 coins', icon: '💰' },
+            { id: 'coins500', title: 'Coin Master', desc: 'Collect 500 coins', icon: '💵' },
+            { id: 'coins1000', title: 'Millionaire', desc: 'Collect 1000 coins', icon: '💸' },
+            { id: 'jump100', title: 'High Jumper', desc: 'Jump 100 times', icon: '⬆️' },
+            { id: 'powerup10', title: 'Power User', desc: 'Collect 10 powerups', icon: '⚡' },
+            { id: 'character5', title: 'Character Fan', desc: 'Unlock 5 characters', icon: '👥' },
+            { id: 'character15', title: 'Collector', desc: 'Unlock 15 characters', icon: '👨‍👩‍👧‍👦' },
+            { id: 'allCharacters', title: 'Complete Set', desc: 'Unlock all characters', icon: '🎉' }
+        ];
+
+        let scene, camera, renderer;
+        let player, playerMesh;
+        let gameStarted = false;
+        let gameOver = false;
+        let score = 0;
+        let coins = 0;
+        let speed = 0.2;
+        let lanes = [-4, 0, 4];
+        let currentLane = 1;
+        let targetLaneX = 0;
+        let isJumping = false;
+        let jumpVelocity = 0;
+        let isRolling = false;
+        let rollTimer = 0;
+
+        let obstacles = [];
+        let coinItems = [];
+        let powerups = [];
+        let trains = [];
+        let groundSegments = [];
+        let buildings = [];
+
+        let hoverboardActive = false;
+        let hoverboardTimer = 0;
+        let jetpackActive = false;
+        let jetpackTimer = 0;
+        let magnetActive = false;
+        let magnetTimer = 0;
+        let superSneakersActive = false;
+        let superSneakersTimer = 0;
+
+        let lastSpacePress = 0;
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let isDayMode = true;
+
+        function saveGame() {
+            localStorage.setItem('subwaySurfersData', JSON.stringify(gameState));
+        }
+
+        function updateUI() {
+            document.getElementById('coins').textContent = gameState.coins;
+            document.getElementById('diamonds').textContent = gameState.diamonds;
+            document.getElementById('totalCoins').textContent = gameState.totalCoins;
+            document.getElementById('highScore').textContent = gameState.highScore;
+            document.getElementById('totalDiamonds').textContent = gameState.diamonds;
+            document.getElementById('modalCoins').textContent = gameState.coins;
+            document.getElementById('modalDiamonds').textContent = gameState.diamonds;
+        }
+
+        function checkAchievements() {
+            if (!gameState.achievements.firstRun) {
+                gameState.achievements.firstRun = true;
+            }
+            if (score >= 1000 && !gameState.achievements.score1000) {
+                gameState.achievements.score1000 = true;
+                showNotification('Achievement Unlocked: Beginner! 🥉');
+            }
+            if (score >= 5000 && !gameState.achievements.score5000) {
+                gameState.achievements.score5000 = true;
+                showNotification('Achievement Unlocked: Pro Runner! 🥈');
+            }
+            if (score >= 10000 && !gameState.achievements.score10000) {
+                gameState.achievements.score10000 = true;
+                showNotification('Achievement Unlocked: Legend! 🥇');
+            }
+            if (gameState.totalCoins >= 100 && !gameState.achievements.coins100) {
+                gameState.achievements.coins100 = true;
+                showNotification('Achievement Unlocked: Coin Collector! 💰');
+            }
+            if (gameState.totalCoins >= 500 && !gameState.achievements.coins500) {
+                gameState.achievements.coins500 = true;
+                showNotification('Achievement Unlocked: Coin Master! 💵');
+            }
+            if (gameState.totalCoins >= 1000 && !gameState.achievements.coins1000) {
+                gameState.achievements.coins1000 = true;
+                showNotification('Achievement Unlocked: Millionaire! 💸');
+            }
+            if (gameState.unlockedCharacters.length >= 5 && !gameState.achievements.character5) {
+                gameState.achievements.character5 = true;
+                showNotification('Achievement Unlocked: Character Fan! 👥');
+            }
+            if (gameState.unlockedCharacters.length >= 15 && !gameState.achievements.character15) {
+                gameState.achievements.character15 = true;
+                showNotification('Achievement Unlocked: Collector! 👨‍👩‍👧‍👦');
+            }
+            if (gameState.unlockedCharacters.length >= 30 && !gameState.achievements.allCharacters) {
+                gameState.achievements.allCharacters = true;
+                showNotification('Achievement Unlocked: Complete Set! 🎉');
+            }
+        }
+
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 100px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(0,255,0,0.9);
+                color: white;
+                padding: 15px 30px;
+                border-radius: 10px;
+                font-size: 18px;
+                z-index: 1000;
+                animation: slideDown 0.5s;
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            setTimeout(() => notification.remove(), 3000);
+        }
+
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+            if (modalId === 'charactersModal') {
+                renderCharacters();
+            } else if (modalId === 'achievementModal') {
+                renderAchievements();
+            }
+            updateUI();
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function renderCharacters() {
+            const grid = document.getElementById('characterGrid');
+            grid.innerHTML = '';
+            
+            characters.forEach((char, index) => {
+                const card = document.createElement('div');
+                const isUnlocked = gameState.unlockedCharacters.includes(index);
+                const isSelected = gameState.selectedCharacter === index;
+                
+                card.className = `character-card ${!isUnlocked ? 'locked' : ''} ${isSelected ? 'selected' : ''}`;
+                card.innerHTML = `
+                    <div class="character-icon">${char.icon}</div>
+                    <div class="character-name">${char.name}</div>
+                    <div class="character-price">
+                        ${isUnlocked ? (isSelected ? '✓ Selected' : 'Unlocked') : 
+                          `${char.price} ${char.currency === 'coins' ? '💰' : '💎'}`}
+                    </div>
+                `;
+                
+                card.onclick = () => selectCharacter(index);
+                grid.appendChild(card);
+            });
+        }
+
+        function selectCharacter(index) {
+            const char = characters[index];
+            const isUnlocked = gameState.unlockedCharacters.includes(index);
+            
+            if (isUnlocked) {
+                gameState.selectedCharacter = index;
+                saveGame();
+                renderCharacters();
+                showNotification(`${char.name} selected!`);
+            } else {
+                if (char.currency === 'coins' && gameState.coins >= char.price) {
+                    gameState.coins -= char.price;
+                    gameState.unlockedCharacters.push(index);
+                    gameState.selectedCharacter = index;
+                    saveGame();
+                    renderCharacters();
+                    updateUI();
+                    checkAchievements();
+                    showNotification(`${char.name} unlocked!`);
+                } else if (char.currency === 'diamonds' && gameState.diamonds >= char.price) {
+                    gameState.diamonds -= char.price;
+                    gameState.unlockedCharacters.push(index);
+                    gameState.selectedCharacter = index;
+                    saveGame();
+                    renderCharacters();
+                    updateUI();
+                    checkAchievements();
+                    showNotification(`${char.name} unlocked!`);
+                } else {
+                    showNotification(`Not enough ${char.currency}!`);
+                }
+            }
+        }
+
+        function renderAchievements() {
+            const list = document.getElementById('achievementList');
+            list.innerHTML = '';
+            
+            achievements.forEach(ach => {
+                const item = document.createElement('div');
+                const completed = gameState.achievements[ach.id];
+                
+                item.className = `achievement-item ${completed ? 'completed' : ''}`;
+                item.innerHTML = `
+                    <div class="achievement-info">
+                        <div class="achievement-title">${ach.title}</div>
+                        <div class="achievement-desc">${ach.desc}</div>
+                    </div>
+                    <div class="achievement-icon">${completed ? '✓' : ach.icon}</div>
+                `;
+                
+                list.appendChild(item);
+            });
+        }
+
+        function buyDiamonds(amount, cost) {
+            if (gameState.coins >= cost) {
+                gameState.coins -= cost;
+                gameState.diamonds += amount;
+                saveGame();
+                updateUI();
+                showNotification(`Bought ${amount} diamonds!`);
+            } else {
+                showNotification('Not enough coins!');
+            }
+        }
+
+        function backToMenu() {
+            document.getElementById('gameOver').style.display = 'none';
+            document.getElementById('mainMenu').style.display = 'flex';
+            gameStarted = false;
+        }
+
+        function init() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x87CEEB);
+            scene.fog = new THREE.Fog(0x87CEEB, 10, 100);
+
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 8, 12);
+            camera.lookAt(0, 2, 0);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            document.getElementById('gameCanvas').appendChild(renderer.domElement);
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(10, 20, 10);
+            directionalLight.castShadow = true;
+            directionalLight.shadow.camera.left = -20;
+            directionalLight.shadow.camera.right = 20;
+            directionalLight.shadow.camera.top = 20;
+            directionalLight.shadow.camera.bottom = -20;
+            scene.add(directionalLight);
+
+            for (let i = 0; i < 10; i++) {
+                createGroundSegment(i * 20 - 40);
+            }
+
+            createPlayer();
+            createBuildings();
+
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        function createPlayer() {
+            if (player) {
+                scene.remove(player);
+            }
+            
+            player = new THREE.Group();
+            const char = characters[gameState.selectedCharacter];
+            
+            // Head - more rounded and beautiful
+            const headGeometry = new THREE.SphereGeometry(0.6, 32, 32);
+            const skinMaterial = new THREE.MeshPhongMaterial({ 
+                color: char.skinColor,
+                shininess: 30
+            });
+            const head = new THREE.Mesh(headGeometry, skinMaterial);
+            head.position.y = 1.6;
+            head.scale.set(1, 1.1, 1);
+            head.castShadow = true;
+            player.add(head);
+
+            // Beautiful eyes - bigger and more detailed
+            const eyeWhiteGeometry = new THREE.SphereGeometry(0.15, 16, 16);
+            const eyeWhiteMaterial = new THREE.MeshPhongMaterial({ color: 0xFFFFFF });
+            
+            const leftEyeWhite = new THREE.Mesh(eyeWhiteGeometry, eyeWhiteMaterial);
+            leftEyeWhite.position.set(-0.25, 1.7, 0.45);
+            leftEyeWhite.scale.set(1, 1.2, 0.5);
+            player.add(leftEyeWhite);
+            
+            const rightEyeWhite = new THREE.Mesh(eyeWhiteGeometry, eyeWhiteMaterial);
+            rightEyeWhite.position.set(0.25, 1.7, 0.45);
+            rightEyeWhite.scale.set(1, 1.2, 0.5);
+            player.add(rightEyeWhite);
+
+            // Pupils - beautiful blue/brown eyes
+            const pupilGeometry = new THREE.SphereGeometry(0.08, 16, 16);
+            const pupilMaterial = new THREE.MeshPhongMaterial({ color: 0x4A90E2 });
+            
+            const leftPupil = new THREE.Mesh(pupilGeometry, pupilMaterial);
+            leftPupil.position.set(-0.25, 1.7, 0.52);
+            player.add(leftPupil);
+            
+            const rightPupil = new THREE.Mesh(pupilGeometry, pupilMaterial);
+            rightPupil.position.set(0.25, 1.7, 0.52);
+            player.add(rightPupil);
+
+            // Tiny black pupil center
+            const centerPupilGeometry = new THREE.SphereGeometry(0.04, 8, 8);
+            const centerPupilMaterial = new THREE.MeshPhongMaterial({ color: 0x000000 });
+            
+            const leftCenter = new THREE.Mesh(centerPupilGeometry, centerPupilMaterial);
+            leftCenter.position.set(-0.25, 1.7, 0.56);
+            player.add(leftCenter);
+            
+            const rightCenter = new THREE.Mesh(centerPupilGeometry, centerPupilMaterial);
+            rightCenter.position.set(0.25, 1.7, 0.56);
+            player.add(rightCenter);
+
+            // Beautiful smile
+            const smileGeometry = new THREE.TorusGeometry(0.25, 0.04, 8, 16, Math.PI);
+            const smileMaterial = new THREE.MeshPhongMaterial({ color: 0xFF6B9D });
+            const smile = new THREE.Mesh(smileGeometry, smileMaterial);
+            smile.position.set(0, 1.35, 0.5);
+            smile.rotation.x = Math.PI;
+            player.add(smile);
+
+            // Nose - small and cute
+            const noseGeometry = new THREE.SphereGeometry(0.08, 8, 8);
+            const nose = new THREE.Mesh(noseGeometry, skinMaterial);
+            nose.position.set(0, 1.5, 0.55);
+            nose.scale.set(0.8, 0.6, 0.8);
+            player.add(nose);
+
+            // Body - more proportional
+            const bodyGeometry = new THREE.BoxGeometry(1, 1.4, 0.6);
+            const shirtMaterial = new THREE.MeshPhongMaterial({ 
+                color: char.shirtColor,
+                shininess: 20
+            });
+            const body = new THREE.Mesh(bodyGeometry, shirtMaterial);
+            body.position.y = 0.4;
+            body.castShadow = true;
+            player.add(body);
+
+            // Arms - better proportions
+            const armGeometry = new THREE.CylinderGeometry(0.12, 0.12, 1, 8);
+            const leftArm = new THREE.Mesh(armGeometry, skinMaterial);
+            leftArm.position.set(-0.6, 0.5, 0);
+            leftArm.rotation.z = 0.3;
+            leftArm.castShadow = true;
+            player.add(leftArm);
+            
+            const rightArm = new THREE.Mesh(armGeometry, skinMaterial);
+            rightArm.position.set(0.6, 0.5, 0);
+            rightArm.rotation.z = -0.3;
+            rightArm.castShadow = true;
+            player.add(rightArm);
+
+            // Legs - better proportions
+            const legGeometry = new THREE.CylinderGeometry(0.15, 0.15, 1, 8);
+            const pantsMaterial = new THREE.MeshPhongMaterial({ color: 0x2C3E50 });
+            
+            const leftLeg = new THREE.Mesh(legGeometry, pantsMaterial);
+            leftLeg.position.set(-0.25, -0.5, 0);
+            leftLeg.castShadow = true;
+            player.add(leftLeg);
+            
+            const rightLeg = new THREE.Mesh(legGeometry, pantsMaterial);
+            rightLeg.position.set(0.25, -0.5, 0);
+            rightLeg.castShadow = true;
+            player.add(rightLeg);
+
+            // Shoes
+            const shoeGeometry = new THREE.BoxGeometry(0.2, 0.15, 0.3);
+            const shoeMaterial = new THREE.MeshPhongMaterial({ color: 0x000000 });
+            
+            const leftShoe = new THREE.Mesh(shoeGeometry, shoeMaterial);
+            leftShoe.position.set(-0.25, -1.05, 0.05);
+            leftShoe.castShadow = true;
+            player.add(leftShoe);
+            
+            const rightShoe = new THREE.Mesh(shoeGeometry, shoeMaterial);
+            rightShoe.position.set(0.25, -1.05, 0.05);
+            rightShoe.castShadow = true;
+            player.add(rightShoe);
+
+            player.position.set(0, 2, 0);
+            scene.add(player);
+            playerMesh = player;
+        }
+
+        function createBuildings() {
+            buildings.forEach(building => scene.remove(building));
+            buildings = [];
+
+            const buildingCount = 20;
+            for (let i = 0; i < buildingCount; i++) {
+                createBuilding(-15, i * 25 - 100);
+                createBuilding(15, i * 25 - 100);
+            }
+        }
+
+        function createBuilding(xPos, zPos) {
+            const building = new THREE.Group();
+            
+            const height = 15 + Math.random() * 25;
+            const width = 4 + Math.random() * 3;
+            const depth = 4 + Math.random() * 3;
+            
+            const buildingGeometry = new THREE.BoxGeometry(width, height, depth);
+            const buildingColors = [0x4A90E2, 0xFF6B6B, 0x95E1D3, 0xF38181, 0x786FA6, 0xF8B500, 0x596275, 0xEA8685];
+            const buildingColor = buildingColors[Math.floor(Math.random() * buildingColors.length)];
+            const buildingMaterial = new THREE.MeshPhongMaterial({ 
+                color: buildingColor,
+                emissive: isDayMode ? 0x000000 : buildingColor,
+                emissiveIntensity: isDayMode ? 0 : 0.3,
+                shininess: 50
+            });
+            const buildingMesh = new THREE.Mesh(buildingGeometry, buildingMaterial);
+            buildingMesh.position.y = height / 2;
+            buildingMesh.castShadow = true;
+            buildingMesh.receiveShadow = true;
+            building.add(buildingMesh);
+            
+            // Beautiful windows
+            const windowRows = Math.floor(height / 2);
+            const windowCols = 3;
+            const windowWidth = 0.6;
+            const windowHeight = 0.8;
+            const windowSpacing = 0.9;
+            
+            const neonColors = [0x00FFFF, 0xFF00FF, 0xFFFF00, 0x00FF00, 0xFF0080, 0x0080FF];
+            
+            for (let row = 0; row < windowRows; row++) {
+                for (let col = 0; col < windowCols; col++) {
+                    // Window frame
+                    const frameGeometry = new THREE.BoxGeometry(windowWidth + 0.1, windowHeight + 0.1, 0.15);
+                    const frameMaterial = new THREE.MeshPhongMaterial({ color: 0x2C3E50 });
+                    const frame = new THREE.Mesh(frameGeometry, frameMaterial);
+                    
+                    // Window glass
+                    const windowGeometry = new THREE.BoxGeometry(windowWidth, windowHeight, 0.1);
+                    const neonColor = neonColors[Math.floor(Math.random() * neonColors.length)];
+                    
+                    let windowColor, emissiveIntensity;
+                    if (isDayMode) {
+                        // Beautiful day windows - light blue/cyan reflection
+                        windowColor = 0x87CEEB;
+                        emissiveIntensity = 0.1;
+                    } else {
+                        // Neon night windows
+                        windowColor = neonColor;
+                        emissiveIntensity = 0.8;
+                    }
+                    
+                    const windowMaterial = new THREE.MeshPhongMaterial({ 
+                        color: windowColor,
+                        emissive: windowColor,
+                        emissiveIntensity: emissiveIntensity,
+                        shininess: 100,
+                        transparent: true,
+                        opacity: 0.9
+                    });
+                    const window = new THREE.Mesh(windowGeometry, windowMaterial);
+                    
+                    const offsetX = (col - 1) * windowSpacing;
+                    const offsetY = (row - windowRows / 2) * 2;
+                    const offsetZ = xPos < 0 ? depth / 2 + 0.05 : -depth / 2 - 0.05;
+                    
+                    frame.position.set(offsetX, height / 2 + offsetY, offsetZ);
+                    window.position.set(offsetX, height / 2 + offsetY, offsetZ + 0.03);
+                    
+                    building.add(frame);
+                    building.add(window);
+                    
+                    // Window dividers for day mode
+                    if (isDayMode) {
+                        const dividerMaterial = new THREE.MeshPhongMaterial({ color: 0x2C3E50 });
+                        
+                        // Horizontal divider
+                        const hDivGeometry = new THREE.BoxGeometry(windowWidth, 0.05, 0.12);
+                        const hDiv = new THREE.Mesh(hDivGeometry, dividerMaterial);
+                        hDiv.position.set(offsetX, height / 2 + offsetY, offsetZ + 0.04);
+                        building.add(hDiv);
+                        
+                        // Vertical divider
+                        const vDivGeometry = new THREE.BoxGeometry(0.05, windowHeight, 0.12);
+                        const vDiv = new THREE.Mesh(vDivGeometry, dividerMaterial);
+                        vDiv.position.set(offsetX, height / 2 + offsetY, offsetZ + 0.04);
+                        building.add(vDiv);
+                    }
+                }
+            }
+            
+            // Neon signs
+            if (Math.random() > 0.5) {
+                const signWidth = width * 0.8;
+                const signHeight = 1.5;
+                const signGeometry = new THREE.BoxGeometry(signWidth, signHeight, 0.15);
+                const signColor = neonColors[Math.floor(Math.random() * neonColors.length)];
+                const signMaterial = new THREE.MeshPhongMaterial({ 
+                    color: isDayMode ? signColor : signColor,
+                    emissive: signColor,
+                    emissiveIntensity: isDayMode ? 0.3 : 1.0
+                });
+                const sign = new THREE.Mesh(signGeometry, signMaterial);
+                sign.position.set(0, height - 2, xPos < 0 ? depth / 2 + 0.1 : -depth / 2 - 0.1);
+                building.add(sign);
+                
+                if (!isDayMode) {
+                    const signLight = new THREE.PointLight(signColor, 0.5, 10);
+                    signLight.position.set(0, height - 2, xPos < 0 ? depth / 2 + 1 : -depth / 2 - 1);
+                    building.add(signLight);
+                }
+            }
+            
+            // Rooftop
+            const roofGeometry = new THREE.BoxGeometry(width + 0.5, 0.5, depth + 0.5);
+            const roofMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0x2C3E50,
+                emissive: isDayMode ? 0x000000 : 0x2C3E50,
+                emissiveIntensity: isDayMode ? 0 : 0.2
+            });
+            const roof = new THREE.Mesh(roofGeometry, roofMaterial);
+            roof.position.y = height;
+            building.add(roof);
+            
+            building.position.set(xPos, 0, zPos);
+            building.userData = { type: 'building', initialZ: zPos };
+            scene.add(building);
+            buildings.push(building);
+            
+            return building;
+        }
+
+        function updateSceneMode() {
+            if (isDayMode) {
+                scene.background = new THREE.Color(0x87CEEB);
+                scene.fog.color = new THREE.Color(0x87CEEB);
+            } else {
+                scene.background = new THREE.Color(0x1a1a2e);
+                scene.fog.color = new THREE.Color(0x1a1a2e);
+            }
+            createBuildings();
+        }
+
+        function toggleDayNight() {
+            isDayMode = !isDayMode;
+            const btn = document.getElementById('dayNightToggle');
+            btn.textContent = isDayMode ? '🌙 Night' : '☀️ Day';
+            updateSceneMode();
+        }
+
+        function createGroundSegment(zPosition) {
+            const segment = new THREE.Group();
+            const groundGeometry = new THREE.PlaneGeometry(15, 20);
+            const groundMaterial = new THREE.MeshPhongMaterial({ color: 0x555555 });
+            const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+            ground.rotation.x = -Math.PI / 2;
+            ground.receiveShadow = true;
+            segment.add(ground);
+
+            for (let i = 0; i < 3; i++) {
+                const railGroup = new THREE.Group();
+                const railGeometry = new THREE.BoxGeometry(0.3, 0.3, 20);
+                const railMaterial = new THREE.MeshPhongMaterial({ color: 0x8B4513 });
+                
+                const leftRail = new THREE.Mesh(railGeometry, railMaterial);
+                leftRail.position.set(-1.5, 0.15, 0);
+                leftRail.castShadow = true;
+                railGroup.add(leftRail);
+                
+                const rightRail = new THREE.Mesh(railGeometry, railMaterial);
+                rightRail.position.set(1.5, 0.15, 0);
+                rightRail.castShadow = true;
+                railGroup.add(rightRail);
+
+                for (let j = 0; j < 10; j++) {
+                    const sleeperGeometry = new THREE.BoxGeometry(3.5, 0.2, 0.3);
+                    const sleeper = new THREE.Mesh(sleeperGeometry, railMaterial);
+                    sleeper.position.set(0, 0.1, -9 + j * 2);
+                    sleeper.castShadow = true;
+                    railGroup.add(sleeper);
+                }
+
+                railGroup.position.x = lanes[i];
+                segment.add(railGroup);
+            }
+
+            segment.position.z = zPosition;
+            scene.add(segment);
+            groundSegments.push(segment);
+        }
+
+        function createObstacle(lane, zPos) {
+            const obstacle = new THREE.Group();
+            const barrierGeometry = new THREE.BoxGeometry(1.5, 2, 0.5);
+            const barrierMaterial = new THREE.MeshPhongMaterial({ color: 0xFF6B6B });
+            const barrier = new THREE.Mesh(barrierGeometry, barrierMaterial);
+            barrier.position.y = 1;
+            barrier.castShadow = true;
+            obstacle.add(barrier);
+
+            const stripeGeometry = new THREE.BoxGeometry(1.4, 0.2, 0.6);
+            const stripeMaterial = new THREE.MeshPhongMaterial({ color: 0xFFE66D });
+            for (let i = 0; i < 3; i++) {
+                const stripe = new THREE.Mesh(stripeGeometry, stripeMaterial);
+                stripe.position.set(0, 0.4 + i * 0.6, 0);
+                obstacle.add(stripe);
+            }
+
+            obstacle.position.set(lanes[lane], 0, zPos);
+            obstacle.userData = { type: 'obstacle', lane: lane };
+            scene.add(obstacle);
+            obstacles.push(obstacle);
+        }
+
+        function createTrain(lane, zPos) {
+            const train = new THREE.Group();
+            const bodyGeometry = new THREE.BoxGeometry(3, 4, 15);
+            const bodyMaterial = new THREE.MeshPhongMaterial({ color: 0xC41E3A });
+            const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+            body.position.y = 2;
+            body.castShadow = true;
+            train.add(body);
+
+            const windowGeometry = new THREE.BoxGeometry(0.1, 1, 1.2);
+            const windowMaterial = new THREE.MeshPhongMaterial({ color: 0x87CEEB });
+            for (let i = 0; i < 6; i++) {
+                const leftWindow = new THREE.Mesh(windowGeometry, windowMaterial);
+                leftWindow.position.set(-1.5, 2.5, -6 + i * 2.5);
+                train.add(leftWindow);
+                const rightWindow = new THREE.Mesh(windowGeometry, windowMaterial);
+                rightWindow.position.set(1.5, 2.5, -6 + i * 2.5);
+                train.add(rightWindow);
+            }
+
+            const topGeometry = new THREE.BoxGeometry(3, 0.5, 15);
+            const topMaterial = new THREE.MeshPhongMaterial({ color: 0x8B0000 });
+            const top = new THREE.Mesh(topGeometry, topMaterial);
+            top.position.y = 4.25;
+            train.add(top);
+
+            train.position.set(lanes[lane], 0, zPos);
+            train.userData = { type: 'train', lane: lane, length: 15 };
+            scene.add(train);
+            trains.push(train);
+        }
+
+        function createCoin(lane, zPos, xOffset = 0) {
+            const coinGeometry = new THREE.CylinderGeometry(0.3, 0.3, 0.1, 16);
+            const coinMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0xFFD700,
+                emissive: 0xFFAA00,
+                emissiveIntensity: 0.3
+            });
+            const coin = new THREE.Mesh(coinGeometry, coinMaterial);
+            coin.rotation.x = Math.PI / 2;
+            coin.position.set(lanes[lane] + xOffset, 1.5, zPos);
+            coin.castShadow = true;
+            coin.userData = { type: 'coin', lane: lane, collected: false };
+            scene.add(coin);
+            coinItems.push(coin);
+        }
+
+        function createPowerup(lane, zPos, type) {
+            const powerup = new THREE.Group();
+            const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
+            const colors = {
+                'jetpack': 0x4ECDC4,
+                'magnet': 0xFF6B6B,
+                'sneakers': 0x95E1D3,
+                'hoverboard': 0xFFA502
+            };
+            const boxMaterial = new THREE.MeshPhongMaterial({ 
+                color: colors[type],
+                emissive: colors[type],
+                emissiveIntensity: 0.2
+            });
+            const box = new THREE.Mesh(boxGeometry, boxMaterial);
+            box.castShadow = true;
+            powerup.add(box);
+
+            powerup.position.set(lanes[lane], 1.5, zPos);
+            powerup.userData = { type: type, lane: lane, collected: false };
+            scene.add(powerup);
+            powerups.push(powerup);
+        }
+
+        function handleJump() {
+            if (!isJumping && !jetpackActive && player.position.y <= 2.1) {
+                isJumping = true;
+                jumpVelocity = superSneakersActive ? 0.5 : 0.35;
+                gameState.stats.totalJumps++;
+                if (gameState.stats.totalJumps >= 100 && !gameState.achievements.jump100) {
+                    gameState.achievements.jump100 = true;
+                    showNotification('Achievement Unlocked: High Jumper! ⬆️');
+                }
+            }
+        }
+
+        function handleRoll() {
+            if (!isRolling && !isJumping) {
+                isRolling = true;
+                rollTimer = 30;
+            }
+        }
+
+        function activatePowerup(type) {
+            gameState.stats.totalPowerups++;
+            if (gameState.stats.totalPowerups >= 10 && !gameState.achievements.powerup10) {
+                gameState.achievements.powerup10 = true;
+                showNotification('Achievement Unlocked: Power User! ⚡');
+            }
+            
+            if (type === 'jetpack') {
+                jetpackActive = true;
+                jetpackTimer = 300;
+            } else if (type === 'magnet') {
+                magnetActive = true;
+                magnetTimer = 300;
+            } else if (type === 'sneakers') {
+                superSneakersActive = true;
+                superSneakersTimer = 300;
+            } else if (type === 'hoverboard') {
+                hoverboardActive = true;
+                hoverboardTimer = 180;
+            }
+        }
+
+        function checkCollisions() {
+            const playerBox = new THREE.Box3().setFromObject(player);
+            
+            for (let obs of obstacles) {
+                if (obs.userData.collected) continue;
+                const obsBox = new THREE.Box3().setFromObject(obs);
+                if (playerBox.intersectsBox(obsBox) && !isRolling) {
+                    if (hoverboardActive) {
+                        hoverboardActive = false;
+                        obs.userData.collected = true;
+                        scene.remove(obs);
+                    } else {
+                        endGame();
+                    }
+                }
+            }
+            
+            for (let train of trains) {
+                if (train.userData.collected) continue;
+                const trainBox = new THREE.Box3().setFromObject(train);
+                if (playerBox.intersectsBox(trainBox)) {
+                    if (hoverboardActive) {
+                        hoverboardActive = false;
+                        train.userData.collected = true;
+                    } else {
+                        endGame();
+                    }
+                }
+            }
+            
+            for (let coin of coinItems) {
+                if (coin.userData.collected) continue;
+                const coinBox = new THREE.Box3().setFromObject(coin);
+                const distance = player.position.distanceTo(coin.position);
+                if (playerBox.intersectsBox(coinBox) || (magnetActive && distance < 5)) {
+                    coin.userData.collected = true;
+                    scene.remove(coin);
+                    coins++;
+                    gameState.coins++;
+                    gameState.totalCoins++;
+                }
+            }
+            
+            for (let powerup of powerups) {
+                if (powerup.userData.collected) continue;
+                const powerupBox = new THREE.Box3().setFromObject(powerup);
+                if (playerBox.intersectsBox(powerupBox)) {
+                    powerup.userData.collected = true;
+                    scene.remove(powerup);
+                    activatePowerup(powerup.userData.type);
+                }
+            }
+        }
+
+        function update() {
+            if (!gameStarted || gameOver) return;
+            
+            score++;
+            speed = 0.2 + Math.floor(score / 2000) * 0.02;
+            
+            const lerpSpeed = 0.15;
+            targetLaneX = lanes[currentLane];
+            player.position.x += (targetLaneX - player.position.x) * lerpSpeed;
+            
+            if (jetpackActive) {
+                player.position.y = Math.min(player.position.y + 0.05, 6);
+                jetpackTimer--;
+                if (jetpackTimer <= 0) jetpackActive = false;
+            } else if (isJumping) {
+                player.position.y += jumpVelocity;
+                jumpVelocity -= 0.02;
+                if (player.position.y <= 2) {
+                    player.position.y = 2;
+                    isJumping = false;
+                    jumpVelocity = 0;
+                }
+            }
+            
+            if (isRolling) {
+                player.scale.y = 0.5;
+                player.position.y = 1.5;
+                rollTimer--;
+                if (rollTimer <= 0) {
+                    isRolling = false;
+                    player.scale.y = 1;
+                    player.position.y = 2;
+                }
+            }
+            
+            if (hoverboardActive) {
+                hoverboardTimer--;
+                if (hoverboardTimer <= 0) hoverboardActive = false;
+            }
+            if (magnetActive) {
+                magnetTimer--;
+                if (magnetTimer <= 0) magnetActive = false;
+            }
+            if (superSneakersActive) {
+                superSneakersTimer--;
+                if (superSneakersTimer <= 0) superSneakersActive = false;
+            }
+            
+            obstacles.forEach(obs => {
+                obs.position.z += speed;
+                if (obs.position.z > 15) scene.remove(obs);
+            });
+            
+            trains.forEach(train => {
+                train.position.z += speed;
+                if (train.position.z > 20) scene.remove(train);
+            });
+            
+            coinItems.forEach(coin => {
+                coin.position.z += speed;
+                coin.rotation.y += 0.05;
+                if (coin.position.z > 15) scene.remove(coin);
+            });
+            
+            powerups.forEach(powerup => {
+                powerup.position.z += speed;
+                powerup.rotation.y += 0.03;
+                if (powerup.position.z > 15) scene.remove(powerup);
+            });
+            
+            groundSegments.forEach(segment => {
+                segment.position.z += speed;
+                if (segment.position.z > 20) segment.position.z -= 200;
+            });
+            
+            buildings.forEach(building => {
+                building.position.z += speed;
+                if (building.position.z > 200) building.position.z -= 500;
+            });
+            
+            obstacles = obstacles.filter(obs => obs.position.z <= 15 && !obs.userData.collected);
+            trains = trains.filter(train => train.position.z <= 20 && !train.userData.collected);
+            coinItems = coinItems.filter(coin => coin.position.z <= 15 && !coin.userData.collected);
+            powerups = powerups.filter(powerup => powerup.position.z <= 15 && !powerup.userData.collected);
+            
+            if (Math.random() < 0.015) {
+                const lane = Math.floor(Math.random() * 3);
+                createObstacle(lane, -40);
+            }
+            
+            if (Math.random() < 0.005) {
+                const lane = Math.floor(Math.random() * 3);
+                createTrain(lane, -50);
+            }
+            
+            if (Math.random() < 0.02) {
+                const lane = Math.floor(Math.random() * 3);
+                const pattern = Math.random();
+                if (pattern < 0.3) {
+                    for (let i = 0; i < 5; i++) {
+                        createCoin(lane, -30 - i * 2);
+                    }
+                } else if (pattern < 0.6) {
+                    for (let i = 0; i < 3; i++) {
+                        createCoin(i, -30);
+                    }
+                } else {
+                    createCoin(lane, -30);
+                }
+            }
+            
+            if (Math.random() < 0.003) {
+                const lane = Math.floor(Math.random() * 3);
+                const types = ['jetpack', 'magnet', 'sneakers', 'hoverboard'];
+                const type = types[Math.floor(Math.random() * types.length)];
+                createPowerup(lane, -35, type);
+            }
+            
+            checkCollisions();
+            checkAchievements();
+            
+            document.getElementById('score').textContent = score;
+            document.getElementById('coins').textContent = gameState.coins;
+            
+            let statusText = '';
+            if (jetpackActive) statusText += '🚀 Jetpack ';
+            if (magnetActive) statusText += '🧲 Magnet ';
+            if (superSneakersActive) statusText += '👟 Sneakers ';
+            if (hoverboardActive) statusText += '🛹 Hoverboard ';
+            document.getElementById('powerupStatus').textContent = statusText;
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            update();
+            renderer.render(scene, camera);
+        }
+
+        function startGame() {
+            gameStarted = true;
+            gameOver = false;
+            score = 0;
+            coins = 0;
+            speed = 0.2;
+            currentLane = 1;
+            
+            obstacles.forEach(obs => scene.remove(obs));
+            trains.forEach(train => scene.remove(train));
+            coinItems.forEach(coin => scene.remove(coin));
+            powerups.forEach(powerup => scene.remove(powerup));
+            
+            obstacles = [];
+            trains = [];
+            coinItems = [];
+            powerups = [];
+            
+            hoverboardActive = false;
+            jetpackActive = false;
+            magnetActive = false;
+            superSneakersActive = false;
+            
+            createPlayer();
+            player.position.set(0, 2, 0);
+            player.scale.y = 1;
+            
+            document.getElementById('mainMenu').style.display = 'none';
+            document.getElementById('gameOver').style.display = 'none';
+        }
+
+        function endGame() {
+            gameOver = true;
+            gameStarted = false;
+            
+            if (score > gameState.highScore) {
+                gameState.highScore = score;
+            }
+            
+            saveGame();
+            updateUI();
+            
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('finalCoins').textContent = coins;
+            document.getElementById('gameOver').style.display = 'block';
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (!gameStarted) return;
+            
+            if (e.key === 'ArrowLeft' && currentLane > 0) currentLane--;
+            else if (e.key === 'ArrowRight' && currentLane < 2) currentLane++;
+            else if (e.key === 'ArrowUp') handleJump();
+            else if (e.key === 'ArrowDown') handleRoll();
+            else if (e.key === ' ') {
+                const currentTime = Date.now();
+                if (currentTime - lastSpacePress < 300) {
+                    if (!hoverboardActive) {
+                        hoverboardActive = true;
+                        hoverboardTimer = 180;
+                    }
+                }
+                lastSpacePress = currentTime;
+                handleJump();
+            }
+        });
+
+        document.addEventListener('touchstart', (e) => {
+            if (!gameStarted) return;
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        });
+
+        document.addEventListener('touchend', (e) => {
+            if (!gameStarted) return;
+            const touchEndX = e.changedTouches[0].clientX;
+            const touchEndY = e.changedTouches[0].clientY;
+            
+            const deltaX = touchEndX - touchStartX;
+            const deltaY = touchEndY - touchStartY;
+            
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                if (deltaX > 50 && currentLane < 2) currentLane++;
+                else if (deltaX < -50 && currentLane > 0) currentLane--;
+            } else {
+                if (deltaY < -50) handleJump();
+                else if (deltaY > 50) handleRoll();
+            }
+        });
+
+        document.getElementById('dayNightToggle').addEventListener('click', toggleDayNight);
+        document.getElementById('menuButton').addEventListener('click', () => {
+            if (gameStarted) {
+                gameStarted = false;
+                backToMenu();
+            }
+        });
+
+        init();
+        animate();
+        updateUI();
+    </script>
+</body>
+</html>

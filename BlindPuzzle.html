@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Blind Puzzle Game</title>
+</head>
+<style>
+    body {
+  font-family: sans-serif;
+  text-align: center;
+  background: linear-gradient(to bottom right, #2b5876, #4e4376);
+  color: white;
+  margin: 0;
+  padding: 20px;
+}
+
+#controls {
+  margin-bottom: 20px;
+}
+
+#puzzle-container {
+  display: grid;
+  gap: 5px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.tile {
+  width: 60px;
+  height: 60px;
+  background-color: #333;
+  border: 2px solid #fff;
+  font-size: 24px;
+  color: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.tile:hover {
+  background-color: #555;
+  color: white;
+}
+
+</style>
+<body>
+  <h1>🧩 Blind Puzzle Game</h1>
+  <div id="controls">
+    <select id="level">
+      <option value="3">Easy (3x3)</option>
+      <option value="4">Medium (4x4)</option>
+      <option value="5">Hard (5x5)</option>
+    </select>
+    <button id="startBtn">Start Game</button>
+  </div>
+  <p id="instruction"></p>
+  <div id="puzzle-container"></div>
+  <audio id="move-sound" src="move.mp3" preload="auto"></audio>
+
+  <script>
+    const puzzleContainer = document.getElementById('puzzle-container');
+const startBtn = document.getElementById('startBtn');
+const levelSelect = document.getElementById('level');
+const moveSound = document.getElementById('move-sound');
+const instructionText = document.getElementById('instruction');
+
+let size = 3;
+let tiles = [];
+
+startBtn.addEventListener('click', startGame);
+
+function startGame() {
+  size = parseInt(levelSelect.value);
+  generatePuzzle(size);
+  speakInstructions();
+}
+
+function generatePuzzle(size) {
+  puzzleContainer.innerHTML = '';
+  puzzleContainer.style.gridTemplateColumns = `repeat(${size}, 60px)`;
+  tiles = Array.from({ length: size * size }, (_, i) => i).sort(() => Math.random() - 0.5);
+
+  // Ensure the puzzle is solvable
+  if (!isSolvable(tiles, size)) tiles = shuffleUntilSolvable(tiles, size);
+
+  tiles.forEach((num, idx) => {
+    const tile = document.createElement('div');
+    tile.className = 'tile';
+    tile.dataset.index = idx;
+    tile.textContent = num !== 0 ? num : '';
+    if (num === 0) tile.style.visibility = 'hidden';
+    tile.addEventListener('click', () => moveTile(idx));
+    puzzleContainer.appendChild(tile);
+  });
+}
+
+function moveTile(index) {
+  const emptyIndex = tiles.indexOf(0);
+  const validMove = isAdjacent(index, emptyIndex);
+  if (validMove) {
+    [tiles[index], tiles[emptyIndex]] = [tiles[emptyIndex], tiles[index]];
+    generatePuzzle(size);
+    moveSound.play();
+    if (isSolved()) alert('🎉 Puzzle Solved!');
+  }
+}
+
+function isAdjacent(i1, i2) {
+  const row1 = Math.floor(i1 / size), col1 = i1 % size;
+  const row2 = Math.floor(i2 / size), col2 = i2 % size;
+  return (Math.abs(row1 - row2) + Math.abs(col1 - col2)) === 1;
+}
+
+function isSolvable(arr, size) {
+  const invCount = arr.filter(x => x !== 0).reduce((inv, val, i) =>
+    inv + arr.slice(i + 1).filter(x => x && x < val).length, 0);
+  if (size % 2 === 1) return invCount % 2 === 0;
+  const rowFromBottom = size - Math.floor(arr.indexOf(0) / size);
+  return (rowFromBottom % 2 === 0) !== (invCount % 2 === 0);
+}
+
+function shuffleUntilSolvable(arr, size) {
+  let newArr = [...arr];
+  while (!isSolvable(newArr, size)) newArr = [...arr].sort(() => Math.random() - 0.5);
+  return newArr;
+}
+
+function isSolved() {
+  return tiles.slice(0, -1).every((val, i) => val === i + 1);
+}
+
+function speakInstructions() {
+  const message = `Welcome to the Blind Puzzle Game. You selected ${size} by ${size} level. 
+  Your goal is to arrange the numbers in order by clicking tiles to slide them into the empty space. 
+  You won't see the numbers unless you hover over them. Good luck!`;
+  instructionText.textContent = message;
+  const utterance = new SpeechSynthesisUtterance(message);
+  speechSynthesis.speak(utterance);
+}
+
+  </script>
+</body>
+</html>

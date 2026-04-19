@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fortune Wheel Game</title>
+</head>
+<style>
+    body {
+    background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+}
+
+.container {
+    text-align: center;
+}
+
+h1 {
+    color: #fff;
+    margin-bottom: 20px;
+    font-size: 3rem;
+}
+
+#spinButton {
+    margin-top: 20px;
+    padding: 15px 30px;
+    font-size: 1.5rem;
+    background: #ff6f91;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+#spinButton:hover {
+    background: #ff3e6c;
+}
+
+#result {
+    margin-top: 30px;
+    font-size: 2rem;
+    color: #fff;
+}
+
+</style>
+
+<body>
+    <div class="container">
+        <h1>🎡 Fortune Wheel 🎡</h1>
+        <canvas id="wheel" width="500" height="500"></canvas>
+        <button id="spinButton">Spin the Wheel!</button>
+        <h2 id="result"></h2>
+    </div>
+
+    <audio id="spinSound" src="https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3"></audio>
+    <audio id="winSound" src="https://www.soundjay.com/misc/sounds/small-bell-ring-01a.mp3"></audio>
+
+    <script>
+        const wheel = document.getElementById("wheel");
+const ctx = wheel.getContext("2d");
+const spinButton = document.getElementById("spinButton");
+const resultText = document.getElementById("result");
+const spinSound = document.getElementById("spinSound");
+const winSound = document.getElementById("winSound");
+
+const segments = [
+    "🎉 Jackpot",
+    "🍕 Pizza",
+    "🎮 Game",
+    "🎁 Gift Card",
+    "🍫 Chocolate",
+    "🎟️ Movie Ticket",
+    "🎵 Free Song",
+    "🧸 Teddy Bear"
+];
+
+const colors = [
+    "#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0",
+    "#9966FF", "#FF9F40", "#66FF66", "#FF6666"
+];
+
+let angle = 0;
+let spinning = false;
+
+function drawWheel() {
+    const sliceAngle = 2 * Math.PI / segments.length;
+    for (let i = 0; i < segments.length; i++) {
+        ctx.beginPath();
+        ctx.fillStyle = colors[i];
+        ctx.moveTo(250, 250);
+        ctx.arc(250, 250, 250, sliceAngle * i, sliceAngle * (i + 1));
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.save();
+        ctx.translate(250, 250);
+        ctx.rotate(sliceAngle * (i + 0.5));
+        ctx.fillStyle = "white";
+        ctx.font = "bold 20px Poppins";
+        ctx.fillText(segments[i], 100, 10);
+        ctx.restore();
+    }
+}
+
+function spinWheel() {
+    if (spinning) return;
+    spinning = true;
+    resultText.textContent = "";
+
+    spinSound.play();
+
+    const spinTime = Math.random() * 3000 + 4000; // 4-7 seconds
+    const finalAngle = Math.random() * 360 + 1440; // 1440 = 4 full spins minimum
+    const start = performance.now();
+
+    function animate(now) {
+        const elapsed = now - start;
+        const progress = Math.min(elapsed / spinTime, 1);
+        const easeOut = 1 - Math.pow(1 - progress, 4); // Easing function for slowing down
+        angle = easeOut * finalAngle;
+
+        drawRotatedWheel();
+
+        if (progress < 1) {
+            requestAnimationFrame(animate);
+        } else {
+            spinSound.pause();
+            spinSound.currentTime = 0;
+            winSound.play();
+            announceResult();
+            spinning = false;
+        }
+    }
+
+    requestAnimationFrame(animate);
+}
+
+function drawRotatedWheel() {
+    ctx.clearRect(0, 0, wheel.width, wheel.height);
+    ctx.save();
+    ctx.translate(250, 250);
+    ctx.rotate(angle * Math.PI / 180);
+    ctx.translate(-250, -250);
+    drawWheel();
+    ctx.restore();
+}
+
+function announceResult() {
+    const sliceAngle = 360 / segments.length;
+    const winningIndex = Math.floor(((360 - (angle % 360)) % 360) / sliceAngle);
+    const prize = segments[winningIndex];
+    resultText.textContent = `You won: ${prize}! 🎉`;
+}
+
+drawWheel();
+spinButton.addEventListener("click", spinWheel);
+
+    </script>
+</body>
+</html>

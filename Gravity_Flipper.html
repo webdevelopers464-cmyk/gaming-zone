@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gravity Flipper Game</title>
+</head>
+<style>
+    body {
+  margin: 0;
+  font-family: sans-serif;
+  background: linear-gradient(to bottom, #222, #444);
+  color: white;
+  text-align: center;
+}
+
+#gameContainer {
+  max-width: 600px;
+  margin: auto;
+  padding-top: 50px;
+}
+
+#menu, #instruction {
+  background-color: #333;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+.hidden {
+  display: none;
+}
+
+canvas {
+  border: 2px solid white;
+  display: none;
+  background-color: #111;
+}
+
+</style>
+<body>
+  <div id="gameContainer">
+    <div id="menu">
+      <h1>Gravity Flipper</h1>
+      <p>Select Difficulty:</p>
+      <select id="difficulty">
+        <option value="easy">Easy</option>
+        <option value="medium">Medium</option>
+        <option value="hard">Hard</option>
+      </select>
+      <button id="startBtn">Start Game</button>
+    </div>
+    
+    <div id="instruction" class="hidden">
+      <h2>How to Play</h2>
+      <p>Press <strong>Space</strong> or <strong>Tap</strong> to flip gravity and avoid obstacles. Try to survive as long as possible!</p>
+      <button id="playBtn">Play</button>
+    </div>
+
+    <canvas id="gameCanvas" width="600" height="400"></canvas>
+  </div>
+
+  <audio id="jumpSound" src="jump.mp3"></audio>
+  <audio id="hitSound" src="hit.mp3"></audio>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+const startBtn = document.getElementById("startBtn");
+const playBtn = document.getElementById("playBtn");
+const menu = document.getElementById("menu");
+const instruction = document.getElementById("instruction");
+const jumpSound = document.getElementById("jumpSound");
+const hitSound = document.getElementById("hitSound");
+
+let gravity = 0.6;
+let gravityFlip = -gravity;
+let player, obstacles, gameLoop, levelSettings, isFlipped;
+
+const levels = {
+  easy: { speed: 2, gap: 200 },
+  medium: { speed: 3, gap: 150 },
+  hard: { speed: 4, gap: 100 }
+};
+
+startBtn.onclick = () => {
+  menu.classList.add("hidden");
+  instruction.classList.remove("hidden");
+};
+
+playBtn.onclick = () => {
+  instruction.classList.add("hidden");
+  canvas.style.display = "block";
+  startGame(document.getElementById("difficulty").value);
+};
+
+function startGame(level) {
+  const { speed, gap } = levels[level];
+  levelSettings = { speed, gap };
+  player = { x: 50, y: 200, size: 20, dy: 0 };
+  isFlipped = false;
+  obstacles = [];
+  canvas.onclick = flipGravity;
+  document.onkeydown = e => {
+    if (e.code === "Space") flipGravity();
+  };
+  gameLoop = setInterval(update, 1000 / 60);
+}
+
+function flipGravity() {
+  gravity *= -1;
+  jumpSound.play();
+}
+
+function update() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  player.dy += gravity;
+  player.y += player.dy;
+  if (player.y < 0 || player.y > canvas.height - player.size) {
+    gameOver();
+  }
+
+  ctx.fillStyle = "cyan";
+  ctx.fillRect(player.x, player.y, player.size, player.size);
+
+  if (Math.random() < 0.02) {
+    obstacles.push({
+      x: canvas.width,
+      y: Math.random() < 0.5 ? 0 : canvas.height - 80,
+      width: 20,
+      height: 80
+    });
+  }
+
+  for (let i = obstacles.length - 1; i >= 0; i--) {
+    const obs = obstacles[i];
+    obs.x -= levelSettings.speed;
+    ctx.fillStyle = "red";
+    ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+
+    if (
+      player.x < obs.x + obs.width &&
+      player.x + player.size > obs.x &&
+      player.y < obs.y + obs.height &&
+      player.y + player.size > obs.y
+    ) {
+      gameOver();
+    }
+
+    if (obs.x + obs.width < 0) obstacles.splice(i, 1);
+  }
+}
+
+function gameOver() {
+  hitSound.play();
+  clearInterval(gameLoop);
+  alert("Game Over!");
+  window.location.reload();
+}
+
+  </script>
+</body>
+</html>

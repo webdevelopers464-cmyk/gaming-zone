@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bomberman Game</title>
+  </head>
+  <style>
+    body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f4;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+}
+
+#game-container {
+  text-align: center;
+}
+
+h1 {
+  color: #2e3b4e;
+  font-size: 3rem;
+  margin-bottom: 20px;
+}
+
+#start-button {
+  background-color: #4CAF50;
+  color: white;
+  padding: 15px 32px;
+  font-size: 18px;
+  border: none;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background-color 0.3s;
+}
+
+#start-button:hover {
+  background-color: #45a049;
+}
+
+#game-board {
+  margin-top: 30px;
+  display: grid;
+  grid-template-columns: repeat(10, 50px);
+  grid-template-rows: repeat(10, 50px);
+  gap: 2px;
+  justify-content: center;
+}
+
+#game-board div {
+  width: 50px;
+  height: 50px;
+  background-color: #9e9e9e;
+  border-radius: 5px;
+}
+
+.bomb {
+  background-color: red;
+}
+
+.player {
+  background-color: blue;
+}
+
+.explosion {
+  background-color: yellow;
+}
+
+  </style>
+<body>
+  <div id="game-container">
+    <h1>Bomberman Game</h1>
+    <button id="start-button">Start Game</button>
+    <div id="game-board"></div>
+  </div>
+  <script>
+    document.getElementById("start-button").addEventListener("click", startGame);
+
+let playerPosition = { x: 0, y: 0 };
+let bombPosition = { x: 4, y: 4 };
+let isGameActive = false;
+
+function startGame() {
+  isGameActive = true;
+  document.getElementById("game-board").innerHTML = "";
+  createBoard();
+  playGameSound('start');
+}
+
+function createBoard() {
+  const gameBoard = document.getElementById("game-board");
+
+  for (let row = 0; row < 10; row++) {
+    for (let col = 0; col < 10; col++) {
+      let cell = document.createElement("div");
+      gameBoard.appendChild(cell);
+      if (row === playerPosition.x && col === playerPosition.y) {
+        cell.classList.add("player");
+      } else if (row === bombPosition.x && col === bombPosition.y) {
+        cell.classList.add("bomb");
+      }
+    }
+  }
+}
+
+function movePlayer(direction) {
+  if (!isGameActive) return;
+
+  switch (direction) {
+    case 'up':
+      if (playerPosition.x > 0) playerPosition.x--;
+      break;
+    case 'down':
+      if (playerPosition.x < 9) playerPosition.x++;
+      break;
+    case 'left':
+      if (playerPosition.y > 0) playerPosition.y--;
+      break;
+    case 'right':
+      if (playerPosition.y < 9) playerPosition.y++;
+      break;
+  }
+  updateBoard();
+}
+
+function updateBoard() {
+  const gameBoard = document.getElementById("game-board");
+  gameBoard.innerHTML = "";
+  createBoard();
+}
+
+function playGameSound(event) {
+  const audio = new Audio();
+  switch (event) {
+    case 'start':
+      audio.src = 'start-sound.mp3'; // Path to your start game sound
+      break;
+    case 'explosion':
+      audio.src = 'explosion-sound.mp3'; // Path to explosion sound
+      break;
+  }
+  audio.play();
+}
+
+// Example Key Press for Movement
+document.addEventListener('keydown', (e) => {
+  if (e.key === "ArrowUp") movePlayer("up");
+  if (e.key === "ArrowDown") movePlayer("down");
+  if (e.key === "ArrowLeft") movePlayer("left");
+  if (e.key === "ArrowRight") movePlayer("right");
+});
+
+  </script>
+</body>
+</html>

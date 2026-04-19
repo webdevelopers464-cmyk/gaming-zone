@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Drawing Challenge Game</title>
+</head>
+<style>
+    body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(to right, #ff9a9e, #fad0c4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.game-container {
+  background: #fff;
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  text-align: center;
+  max-width: 600px;
+}
+
+.status {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+canvas {
+  border: 3px dashed #ff6b6b;
+  background: #fffefa;
+  cursor: crosshair;
+}
+
+.controls {
+  margin-top: 15px;
+}
+
+button {
+  padding: 10px 20px;
+  margin: 5px;
+  border: none;
+  background: #ff6b6b;
+  color: white;
+  border-radius: 10px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #e55050;
+}
+
+#feedback {
+  margin-top: 20px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #444;
+}
+
+.instructions {
+  position: fixed;
+  background: white;
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  z-index: 999;
+}
+
+.instructions button {
+  background-color: #4CAF50;
+  margin-top: 20px;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 16px;
+}
+
+</style>
+<body>
+  <div id="instructions" class="instructions">
+    <h2>🎨 How to Play:</h2>
+    <p>Welcome to the Drawing Challenge! You will be given a shape to draw in each level.</p>
+    <p>Use your mouse (or finger on touch screen) to draw on the canvas.</p>
+    <p>Each level has a different shape to draw: Circle, Square, Triangle, and more.</p>
+    <p>You'll get helpful feedback. Try your best!</p>
+    <button id="startGameBtn">Start Game</button>
+  </div>
+
+  <div class="game-container">
+    <h1>🎯 Drawing Challenge</h1>
+    <div class="status">
+      <span id="level-display">Level: 1 (Easy)</span>
+      <span id="shape-display">Draw: Circle</span>
+      <span id="time-display">Time Left: <span id="time-left">30</span>s</span>
+    </div>
+    <canvas id="canvas" width="500" height="400"></canvas>
+    <div class="controls">
+      <button id="clearBtn">Clear</button>
+      <button id="endBtn">End Game</button>
+    </div>
+    <div id="feedback"></div>
+  </div>
+
+  <!-- Sounds -->
+  <audio id="correct-sound" src="correct.mp3"></audio>
+  <audio id="wrong-sound" src="wrong.mp3"></audio>
+  <audio id="end-sound" src="end.mp3"></audio>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const timeDisplay = document.getElementById('time-left');
+const shapeDisplay = document.getElementById('shape-display');
+const levelDisplay = document.getElementById('level-display');
+const feedbackDisplay = document.getElementById('feedback');
+const clearBtn = document.getElementById('clearBtn');
+const endBtn = document.getElementById('endBtn');
+const instructions = document.getElementById('instructions');
+const startGameBtn = document.getElementById('startGameBtn');
+
+const correctSound = document.getElementById('correct-sound');
+const wrongSound = document.getElementById('wrong-sound');
+const endSound = document.getElementById('end-sound');
+
+let time = 30;
+let timer;
+let isDrawing = false;
+let level = 1;
+let shape = 'Circle';
+
+const levels = [
+  { name: 'Easy', shape: 'Circle' },
+  { name: 'Medium', shape: 'Square' },
+  { name: 'Hard', shape: 'Triangle' }
+];
+
+// Show instructions on first load
+instructions.style.display = 'block';
+
+startGameBtn.onclick = () => {
+  instructions.style.display = 'none';
+  startLevel();
+};
+
+// Drawing Logic
+canvas.addEventListener('mousedown', e => {
+  isDrawing = true;
+  ctx.beginPath();
+  ctx.moveTo(e.offsetX, e.offsetY);
+});
+
+canvas.addEventListener('mousemove', e => {
+  if (isDrawing) {
+    ctx.lineTo(e.offsetX, e.offsetY);
+    ctx.stroke();
+  }
+});
+
+canvas.addEventListener('mouseup', () => {
+  isDrawing = false;
+});
+
+clearBtn.onclick = () => {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+};
+
+endBtn.onclick = () => {
+  clearInterval(timer);
+  endSound.play();
+  feedbackDisplay.textContent = "Game ended. Thanks for playing!";
+};
+
+// Game Logic
+function startLevel() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  feedbackDisplay.textContent = '';
+  time = 30;
+  shape = levels[level - 1].shape;
+  levelDisplay.textContent = `Level: ${level} (${levels[level - 1].name})`;
+  shapeDisplay.textContent = `Draw: ${shape}`;
+  startTimer();
+}
+
+function startTimer() {
+  timeDisplay.textContent = time;
+  timer = setInterval(() => {
+    time--;
+    timeDisplay.textContent = time;
+    if (time <= 0) {
+      clearInterval(timer);
+      checkDrawing();
+    }
+  }, 1000);
+}
+
+function checkDrawing() {
+  // Placeholder for shape check — simulate result
+  const success = Math.random() > 0.3;
+
+  if (success) {
+    correctSound.play();
+    feedbackDisplay.textContent = "Great job! That looks like a " + shape + "!";
+  } else {
+    wrongSound.play();
+    feedbackDisplay.textContent = "You're close! Keep practicing to perfect your " + shape + "!";
+  }
+
+  if (level < levels.length) {
+    level++;
+    setTimeout(startLevel, 3000);
+  } else {
+    setTimeout(() => {
+      feedbackDisplay.textContent = "🎉 You've completed all levels! Well done!";
+    }, 3000);
+  }
+}
+
+  </script>
+</body>
+</html>
+
+
+
+

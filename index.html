@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>36+ Games Hub</title>
+  <link rel="icon" href="images (11).jpeg">
+</head>
+<style>
+    body {
+  font-family: sans-serif;
+  background: url(./unnamed.webp);
+  color: rgb(242, 234, 234);
+  text-align: center;
+}
+
+.game-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  padding: 2rem;
+}
+
+button {
+  background: #e10a0a;
+  color: white;
+  padding: 1rem;
+  border: 2px solid #444;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  transition: 3s;
+}
+button:hover {
+  background: #890209e6;
+}
+
+</style>
+<body>
+  <h1>🎮 Gaming Hub(40 games)</h1>
+  
+  <div class="game-grid" id="gameMenu"></div>
+  <script>
+    const games = [
+  { name: "Math Quiz", file: "math.html"},//1
+  { name: "Memory Match", file: "memory.html" },//2
+  { name: "Puzzle Slider", file: "puzzle_slider.html" },//3
+  { name: "Word Search", file: "word.html" },//4
+  { name: "Maze Solver", file: "maze_solver.html" },//5
+  { name: "Reaction Timer", file: "timer.html" },//6
+  { name: "archery aim", file: "archeryaim.html" },//7
+  { name: "Angram solve", file: "AnagramSolve.html" },//8
+  { name: "Catch The Apple", file: "apple.html" },//9
+  { name: "emoji creator", file: "emg_creator.html" },//10
+  { name: "Liar Truth game", file: "LiarTruthGame.html" },//11
+  { name: "Flash_box", file: "Flash_box.html" },//12
+  { name: "Pong", file: "pong.html" },//13
+  { name: "Whack-A-Black-Mole", file: "Whack-a-Mole.html" },//14
+  { name: "match the words", file: "Challenge.html" },//15
+  { name: "checkers", file: "checkers.html" },//16
+  { name: "astiorids", file: "astiorids.html" },//17
+  { name: "bomber man", file: "Bomberman.html" },//18
+  { name: "blocks game", file: "block.html" },//19
+  { name: "emoji puzzle", file: "emg.html" },//20
+  { name: "Typing Challange", file: "TypigChallege.html" },//21
+  { name: "Tic Tac Toe", file: "ticc.html" },//22
+  { name: "Truth or Dare", file: "td.html" },//23
+  { name: "Tetris", file: "tetris.html" },//24
+  { name: "Crush The Ball", file: "crush_ball.html" },//25
+  { name: "Flappy Birds", file: "fb.html" },//26
+  { name: "Flip the bottle", file: "flip.html" },//27
+  { name: "Color by number", file: "cbn.html" },//28
+  { name: "Dont touch red", file: "dontt_red.html" },//29
+  { name: "finger follow", file: "finger.html" },//30
+  { name: "Gravity Flipper", file: "Gravity_Flipper.html" },//31
+  { name: "Blind Puzzle", file: "BlindPuzzle.html" },//32
+  { name: "Human Body Information", file: "Humanbodyinfo.html" },//33
+  { name: "Slingshot", file: "Slingshot.html" },//33
+  { name: "Newton's Cradle", file: "Newton's Cradle.html" },//34
+  { name: "Mine Sweeper", file: "Minesweeper.html" },//35
+  { name: "Fun Box Game", file: "funboxg.html" },//36
+  { name: "scramble", file: "words.html" },//37
+  { name: "chess", file: "chess.html" },//38
+  { name: "talking_kitty", file: "kitty.html" },//39
+  { name: "subway surfers", file: "jake.html" },//40
+  { name: "shooters", file: "free.html" },//41
+  { name: "Ludo Master", file: "ludo.html" },//42
+  { name: "om-nom and nelle-running_game", file: "om.html" },//43
+];
+
+const gameMenu = document.getElementById("gameMenu");
+
+games.forEach(game => {
+  const btn = document.createElement("button");
+  btn.textContent = game.name;
+  btn.onclick = () => window.location.href = game.file;
+  gameMenu.appendChild(btn);
+});
+
+  </script>
+</body>
+ </html> 
+
+

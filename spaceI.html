@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Space Invaders Game</title>
+</head>
+<style>
+    body {
+  background-color: #0d0d0d;
+  font-family: Arial, sans-serif;
+  color: white;
+  margin: 0;
+  padding: 0;
+}
+
+.game-container {
+  text-align: center;
+  position: relative;
+}
+
+.game-header {
+  background-color: #333;
+  padding: 10px;
+  color: white;
+}
+
+button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #45a049;
+}
+
+canvas {
+  border: 2px solid #ffffff;
+  background-color: #000000;
+}
+
+#score {
+  font-size: 20px;
+}
+
+</style>
+<body>
+  <div class="game-container">
+    <div class="game-header">
+      <button id="start-button">Start Game</button>
+      <p id="score">Score: 0</p>
+    </div>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+  </div>
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const startButton = document.getElementById('start-button');
+const scoreElement = document.getElementById('score');
+
+let score = 0;
+let gameInterval;
+let enemies = [];
+let bullets = [];
+let player;
+let gameRunning = false;
+let laserSound = new Audio('laser.mp3');  // Make sure to include the sound files in your project.
+let explosionSound = new Audio('explosion.mp3');
+
+// Create player
+function createPlayer() {
+  player = {
+    x: canvas.width / 2 - 20,
+    y: canvas.height - 40,
+    width: 40,
+    height: 20,
+    speed: 5
+  };
+}
+
+// Create enemies
+function createEnemies() {
+  enemies = [];
+  const rows = 5;
+  const cols = 10;
+  const gap = 50;
+
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < cols; col++) {
+      enemies.push({
+        x: col * (gap + 30),
+        y: row * (gap + 30),
+        width: 30,
+        height: 30,
+        alive: true
+      });
+    }
+  }
+}
+
+// Draw player
+function drawPlayer() {
+  ctx.fillStyle = 'lime';
+  ctx.fillRect(player.x, player.y, player.width, player.height);
+}
+
+// Draw enemies
+function drawEnemies() {
+  enemies.forEach(enemy => {
+    if (enemy.alive) {
+      ctx.fillStyle = 'red';
+      ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+    }
+  });
+}
+
+// Draw bullets
+function drawBullets() {
+  bullets.forEach(bullet => {
+    ctx.fillStyle = 'white';
+    ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+  });
+}
+
+// Move player
+function movePlayer() {
+  if (leftArrowPressed && player.x > 0) player.x -= player.speed;
+  if (rightArrowPressed && player.x + player.width < canvas.width) player.x += player.speed;
+}
+
+// Move bullets
+function moveBullets() {
+  bullets.forEach(bullet => bullet.y -= 5);
+}
+
+// Check collisions
+function checkCollisions() {
+  bullets.forEach(bullet => {
+    enemies.forEach(enemy => {
+      if (
+        bullet.x < enemy.x + enemy.width &&
+        bullet.x + bullet.width > enemy.x &&
+        bullet.y < enemy.y + enemy.height &&
+        bullet.y + bullet.height > enemy.y
+      ) {
+        enemy.alive = false;
+        bullet.y = -10; // Move bullet offscreen
+        score += 10;
+        explosionSound.play();
+      }
+    });
+  });
+}
+
+// Draw score
+function drawScore() {
+  scoreElement.textContent = `Score: ${score}`;
+}
+
+// Game loop
+function gameLoop() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  movePlayer();
+  moveBullets();
+  checkCollisions();
+  drawPlayer();
+  drawEnemies();
+  drawBullets();
+  drawScore();
+}
+
+// Start game
+function startGame() {
+  score = 0;
+  gameRunning = true;
+  createPlayer();
+  createEnemies();
+  gameInterval = setInterval(gameLoop, 1000 / 60); // 60 FPS
+  startButton.disabled = true; // Disable start button after game starts
+}
+
+// Handle key events for movement
+let leftArrowPressed = false;
+let rightArrowPressed = false;
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowLeft') leftArrowPressed = true;
+  if (e.key === 'ArrowRight') rightArrowPressed = true;
+  if (e.key === ' ') shoot();
+});
+
+document.addEventListener('keyup', e => {
+  if (e.key === 'ArrowLeft') leftArrowPressed = false;
+  if (e.key === 'ArrowRight') rightArrowPressed = false;
+});
+
+// Shoot bullets
+function shoot() {
+  if (!gameRunning) return;
+  let bullet = {
+    x: player.x + player.width / 2 - 2.5,
+    y: player.y,
+    width: 5,
+    height: 10
+  };
+  bullets.push(bullet);
+  laserSound.play();
+}
+
+// Start button click event
+startButton.addEventListener('click', () => {
+  if (!gameRunning) {
+    startGame();
+  }
+});
+
+
+  </script>
+</body>
+</html>

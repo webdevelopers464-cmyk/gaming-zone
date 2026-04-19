@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dot Catcher Game</title>
+</head>
+<style>
+    body {
+  font-family: Arial, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+  background-color: #f0f0f0;
+}
+
+#game-container {
+  text-align: center;
+  position: relative;
+}
+
+#start-button {
+  padding: 10px 20px;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+#instructions {
+  margin-top: 20px;
+}
+
+#game {
+  position: relative;
+  width: 400px;
+  height: 400px;
+  background-color: #fff;
+  border: 2px solid #000;
+  margin-top: 20px;
+  display: none;
+}
+
+#catcher {
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  background-color: red;
+  border-radius: 50%;
+}
+
+#score-level {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  font-size: 18px;
+  color: #000;
+}
+
+#score, #level {
+  margin: 5px;
+  font-weight: bold;
+}
+
+</style>
+<body>
+  <div id="game-container">
+    <button id="start-button">Start Game</button>
+    <div id="instructions">
+      <h2>Instructions:</h2>
+      <p>Use the mouse to move the catcher and catch as many dots as possible! Avoid missing them.</p>
+      <p>Try to catch as many dots as you can to increase your score and level up.</p>
+    </div>
+    <div id="game" style="display: none;">
+      <div id="catcher"></div>
+      <div id="score-level">
+        <div id="score">Score: 0</div>
+        <div id="level">Level: 1</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const startButton = document.getElementById('start-button');
+const instructionsDiv = document.getElementById('instructions');
+const gameDiv = document.getElementById('game');
+const catcher = document.getElementById('catcher');
+const scoreElement = document.getElementById('score');
+const levelElement = document.getElementById('level');
+
+let score = 0;
+let level = 1;
+let gameInterval;
+let dotInterval;
+let catcherSpeed = 10;
+
+startButton.addEventListener('click', startGame);
+
+function startGame() {
+  // Hide instructions and start button, show the game
+  startButton.style.display = 'none';
+  instructionsDiv.style.display = 'none';
+  gameDiv.style.display = 'block';
+  
+  // Initialize score and level
+  score = 0;
+  level = 1;
+  scoreElement.innerText = `Score: ${score}`;
+  levelElement.innerText = `Level: ${level}`;
+
+  // Move the catcher and start the game
+  document.addEventListener('mousemove', moveCatcher);
+  startDotGeneration();
+}
+
+function moveCatcher(event) {
+  let catcherX = event.clientX - gameDiv.offsetLeft - catcher.offsetWidth / 2;
+  let catcherY = event.clientY - gameDiv.offsetTop - catcher.offsetHeight / 2;
+  
+  // Make sure the catcher stays within the game boundaries
+  if (catcherX < 0) catcherX = 0;
+  if (catcherX > gameDiv.offsetWidth - catcher.offsetWidth) catcherX = gameDiv.offsetWidth - catcher.offsetWidth;
+  if (catcherY < 0) catcherY = 0;
+  if (catcherY > gameDiv.offsetHeight - catcher.offsetHeight) catcherY = gameDiv.offsetHeight - catcher.offsetHeight;
+
+  catcher.style.left = catcherX + 'px';
+  catcher.style.top = catcherY + 'px';
+}
+
+function startDotGeneration() {
+  dotInterval = setInterval(generateDot, 1000 - level * 100);
+}
+
+function generateDot() {
+  const dot = document.createElement('div');
+  dot.classList.add('dot');
+  dot.style.position = 'absolute';
+  dot.style.width = '20px';
+  dot.style.height = '20px';
+  dot.style.backgroundColor = 'green';
+  dot.style.borderRadius = '50%';
+  dot.style.left = Math.random() * (gameDiv.offsetWidth - 20) + 'px';
+  dot.style.top = Math.random() * (gameDiv.offsetHeight - 20) + 'px';
+  
+  gameDiv.appendChild(dot);
+  
+  dot.addEventListener('click', () => {
+    score++;
+    scoreElement.innerText = `Score: ${score}`;
+    dot.remove();
+    checkLevelUp();
+  });
+  
+  // Remove dot if not caught
+  setTimeout(() => {
+    if (dot.parentNode) {
+      dot.remove();
+      checkLevelUp();
+    }
+  }, 2000); // Dot disappears after 2 seconds
+}
+
+function checkLevelUp() {
+  if (score >= level * 10) {
+    level++;
+    levelElement.innerText = `Level: ${level}`;
+  }
+}
+
+  </script>
+</body>
+</html>

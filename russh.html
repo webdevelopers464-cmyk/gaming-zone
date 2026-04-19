@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Reaction Rush</title>
+</head>
+<style>
+    body {
+  font-family: 'Arial', sans-serif;
+  text-align: center;
+  background: linear-gradient(to right, #74ebd5, #acb6e5);
+  color: #333;
+  margin-top: 50px;
+}
+
+#gameArea {
+  position: relative;
+  width: 100%;
+  height: 400px;
+  margin-top: 30px;
+  border: 2px dashed #444;
+}
+
+#target {
+  width: 60px;
+  height: 60px;
+  background: red;
+  border-radius: 50%;
+  position: absolute;
+  display: none;
+  cursor: pointer;
+  transition: 0.1s;
+}
+
+button {
+  padding: 10px 20px;
+  font-size: 18px;
+  border: none;
+  background-color: #444;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 20px;
+}
+
+</style>
+<body>
+  <h1>🎯 Reaction Rush</h1>
+  <p>Click the circle as FAST as you can!</p>
+  <div id="gameArea">
+    <div id="target"></div>
+  </div>
+  <div id="info">
+    <p>⏱ Time: <span id="reactionTime">--</span> ms</p>
+    <p>🏆 Best: <span id="bestTime">--</span> ms</p>
+  </div>
+  <button onclick="startGame()">Start</button>
+
+  <script>
+    let target = document.getElementById("target");
+let reactionTimeDisplay = document.getElementById("reactionTime");
+let bestTimeDisplay = document.getElementById("bestTime");
+let gameArea = document.getElementById("gameArea");
+
+let bestTime = null;
+let startTime = 0;
+
+function startGame() {
+  target.style.display = "none";
+  let delay = Math.random() * 2000 + 1000; // 1s to 3s
+  setTimeout(() => {
+    placeTargetRandomly();
+    startTime = new Date().getTime();
+    target.style.display = "block";
+  }, delay);
+}
+
+function placeTargetRandomly() {
+  const maxX = gameArea.offsetWidth - 60;
+  const maxY = gameArea.offsetHeight - 60;
+  const x = Math.random() * maxX;
+  const y = Math.random() * maxY;
+
+  target.style.left = `${x}px`;
+  target.style.top = `${y}px`;
+}
+
+target.addEventListener("click", () => {
+  let endTime = new Date().getTime();
+  let reaction = endTime - startTime;
+  reactionTimeDisplay.textContent = reaction;
+
+  if (!bestTime || reaction < bestTime) {
+    bestTime = reaction;
+    bestTimeDisplay.textContent = bestTime;
+  }
+
+  target.style.display = "none";
+  setTimeout(startGame, 1000);
+});
+
+  </script>
+</body>
+</html>

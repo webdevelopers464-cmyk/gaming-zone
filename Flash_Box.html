@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flash Box Game</title>
+</head>
+<style>
+    * {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f0f0f0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+#game-container {
+  text-align: center;
+}
+
+#start-btn {
+  padding: 10px 20px;
+  font-size: 16px;
+  margin-bottom: 20px;
+  cursor: pointer;
+}
+
+#instruction-text {
+  font-size: 18px;
+  margin-bottom: 20px;
+}
+
+#game-boxes {
+  display: grid;
+  grid-template-columns: repeat(2, 100px);
+  gap: 10px;
+  justify-content: center;
+}
+
+.box {
+  width: 100px;
+  height: 100px;
+  background-color: lightgray;
+  border: 2px solid #ccc;
+  border-radius: 10px;
+  transition: background-color 0.3s;
+}
+
+</style>
+<body>
+  <div id="game-container">
+    <button id="start-btn">Start Game</button>
+    <div id="instruction-text"></div>
+    <div id="game-boxes">
+      <div class="box" id="box1"></div>
+      <div class="box" id="box2"></div>
+      <div class="box" id="box3"></div>
+      <div class="box" id="box4"></div>
+    </div>
+  </div>
+  <script>
+    let startBtn = document.getElementById('start-btn');
+let gameBoxes = document.querySelectorAll('.box');
+let instructionText = document.getElementById('instruction-text');
+
+let gameStarted = false;
+let level = 1;
+let flashInterval;
+let flashSequence = [];
+let playerInput = [];
+
+startBtn.addEventListener('click', startGame);
+
+function startGame() {
+  startBtn.style.display = 'none';
+  instructionText.textContent = `Level ${level}: Memorize the flashing boxes!`;
+  gameStarted = true;
+  generateSequence();
+}
+
+function generateSequence() {
+  flashSequence = [];
+  for (let i = 0; i < level; i++) {
+    flashSequence.push(Math.floor(Math.random() * 4)); // Random box ID (0-3)
+  }
+  flashBoxes(flashSequence);
+}
+
+function flashBoxes(sequence) {
+  let index = 0;
+  flashInterval = setInterval(() => {
+    if (index < sequence.length) {
+      let boxId = sequence[index];
+      gameBoxes[boxId].style.backgroundColor = 'red';
+      setTimeout(() => {
+        gameBoxes[boxId].style.backgroundColor = 'lightgray';
+      }, 500);
+      index++;
+    } else {
+      clearInterval(flashInterval);
+      getPlayerInput();
+    }
+  }, 1000);
+}
+
+function getPlayerInput() {
+  instructionText.textContent = 'Repeat the sequence by clicking the boxes!';
+  gameBoxes.forEach((box, index) => {
+    box.addEventListener('click', () => handlePlayerClick(index));
+  });
+}
+
+function handlePlayerClick(index) {
+  if (gameStarted) {
+    playerInput.push(index);
+    gameBoxes[index].style.backgroundColor = 'blue';
+    setTimeout(() => {
+      gameBoxes[index].style.backgroundColor = 'lightgray';
+    }, 500);
+
+    if (playerInput.length === flashSequence.length) {
+      checkPlayerInput();
+    }
+  }
+}
+
+function checkPlayerInput() {
+  if (playerInput.toString() === flashSequence.toString()) {
+    level++;
+    playerInput = [];
+    instructionText.textContent = `Well done! Level ${level}: Memorize the flashing boxes!`;
+    setTimeout(() => {
+      generateSequence();
+    }, 2000);
+  } else {
+    instructionText.textContent = 'Game Over! Try Again.';
+    setTimeout(() => {
+      resetGame();
+    }, 2000);
+  }
+}
+
+function resetGame() {
+  level = 1;
+  playerInput = [];
+  gameStarted = false;
+  startBtn.style.display = 'block';
+  instructionText.textContent = 'Click Start to Play Again!';
+}
+
+  </script>
+</body>
+</html>

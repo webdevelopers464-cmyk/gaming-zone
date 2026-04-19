@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tic Tac Toe</title>
+</head>
+<style>
+    body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  background: #f0f0f0;
+}
+
+h1 {
+  margin-top: 20px;
+}
+
+.controls {
+  margin: 15px;
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(3, 100px);
+  margin: 0 auto;
+  gap: 5px;
+}
+
+.cell {
+  width: 100px;
+  height: 100px;
+  font-size: 2.5rem;
+  background-color: white;
+  border: 2px solid #444;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+
+.cell.taken {
+  pointer-events: none;
+  color: #333;
+}
+
+</style>
+<body>
+  <h1>Tic Tac Toe</h1>
+  <div class="controls">
+    <label for="level">Level:</label>
+    <select id="level">
+      <option value="easy">Easy</option>
+      <option value="medium">Medium</option>
+      <option value="hard">Hard</option>
+    </select>
+  </div>
+  <div class="board" id="board"></div>
+  <p id="status"></p>
+  <button onclick="startGame()">Restart</button>
+
+  <audio id="clickSound" src="click.mp3"></audio>
+  <audio id="winSound" src="win.mp3"></audio>
+
+  <script>
+    const boardEl = document.getElementById('board');
+const statusEl = document.getElementById('status');
+const levelEl = document.getElementById('level');
+const clickSound = document.getElementById('clickSound');
+const winSound = document.getElementById('winSound');
+
+let board = [];
+let currentPlayer = 'X';
+let gameActive = true;
+
+function startGame() {
+  board = Array(9).fill('');
+  boardEl.innerHTML = '';
+  gameActive = true;
+  currentPlayer = 'X';
+  statusEl.textContent = 'Your turn';
+
+  for (let i = 0; i < 9; i++) {
+    const cell = document.createElement('div');
+    cell.classList.add('cell');
+    cell.addEventListener('click', () => handleCellClick(i));
+    boardEl.appendChild(cell);
+  }
+}
+
+function handleCellClick(index) {
+  if (!gameActive || board[index] !== '') return;
+
+  playSound(clickSound);
+  board[index] = currentPlayer;
+  updateBoard();
+  if (checkWin(currentPlayer)) {
+    endGame(`${currentPlayer} wins!`);
+    return;
+  }
+
+  if (board.every(cell => cell !== '')) {
+    endGame("It's a draw!");
+    return;
+  }
+
+  currentPlayer = 'O';
+  statusEl.textContent = "AI's turn";
+
+  setTimeout(() => {
+    aiMove();
+    updateBoard();
+    if (checkWin('O')) {
+      endGame('O wins!');
+    } else if (board.every(cell => cell !== '')) {
+      endGame("It's a draw!");
+    } else {
+      currentPlayer = 'X';
+      statusEl.textContent = 'Your turn';
+    }
+  }, 500);
+}
+
+function aiMove() {
+  const level = levelEl.value;
+  let move;
+
+  if (level === 'easy') {
+    move = getRandomMove();
+  } else if (level === 'medium') {
+    move = Math.random() < 0.5 ? getRandomMove() : getBestMove();
+  } else {
+    move = getBestMove();
+  }
+
+  playSound(clickSound);
+  board[move] = 'O';
+}
+
+function getRandomMove() {
+  const available = board.map((val, idx) => val === '' ? idx : null).filter(v => v !== null);
+  return available[Math.floor(Math.random() * available.length)];
+}
+
+function getBestMove() {
+  let bestScore = -Infinity;
+  let move;
+  board.forEach((val, idx) => {
+    if (val === '') {
+      board[idx] = 'O';
+      let score = minimax(board, 0, false);
+      board[idx] = '';
+      if (score > bestScore) {
+        bestScore = score;
+        move = idx;
+      }
+    }
+  });
+  return move;
+}
+
+function minimax(newBoard, depth, isMaximizing) {
+  const winner = checkWin('O') ? 'O' : checkWin('X') ? 'X' : null;
+  if (winner === 'O') return 10 - depth;
+  if (winner === 'X') return depth - 10;
+  if (newBoard.every(cell => cell !== '')) return 0;
+
+  if (isMaximizing) {
+    let best = -Infinity;
+    newBoard.forEach((val, idx) => {
+      if (val === '') {
+        newBoard[idx] = 'O';
+        best = Math.max(best, minimax(newBoard, depth + 1, false));
+        newBoard[idx] = '';
+      }
+    });
+    return best;
+  } else {
+    let best = Infinity;
+    newBoard.forEach((val, idx) => {
+      if (val === '') {
+        newBoard[idx] = 'X';
+        best = Math.min(best, minimax(newBoard, depth + 1, true));
+        newBoard[idx] = '';
+      }
+    });
+    return best;
+  }
+}
+
+function updateBoard() {
+  Array.from(boardEl.children).forEach((cell, idx) => {
+    cell.textContent = board[idx];
+    if (board[idx] !== '') cell.classList.add('taken');
+  });
+}
+
+function checkWin(player) {
+  const winCombos = [
+    [0,1,2], [3,4,5], [6,7,8],
+    [0,3,6], [1,4,7], [2,5,8],
+    [0,4,8], [2,4,6]
+  ];
+  return winCombos.some(combo => combo.every(index => board[index] === player));
+}
+
+function endGame(message) {
+  gameActive = false;
+  statusEl.textContent = message;
+  playSound(winSound);
+}
+
+function playSound(sound) {
+  sound.currentTime = 0;
+  sound.play();
+}
+
+startGame();
+
+  </script>
+</body>
+</html>
+
+
+
+
+

@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Checkers Game</title>
+</head>
+<style>
+    body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  background: #f0f0f0;
+}
+
+#menu {
+  margin: 20px;
+}
+
+#gameBoard {
+  display: grid;
+  grid-template-columns: repeat(8, 60px);
+  grid-template-rows: repeat(8, 60px);
+  margin: 20px auto;
+  border: 5px solid #333;
+}
+
+.cell {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.black {
+  background-color: #333;
+}
+
+.white {
+  background-color: #eee;
+}
+
+.piece {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.player1 {
+  background-color: red;
+}
+
+.player2 {
+  background-color: blue;
+}
+
+.highlight {
+  border: 3px dashed yellow;
+}
+
+</style>
+<body>
+
+  <h1>Checkers Game</h1>
+
+  <div id="menu">
+    <label for="difficulty">Select Level:</label>
+    <select id="difficulty">
+      <option value="easy">Easy</option>
+      <option value="medium">Medium</option>
+      <option value="hard">Hard</option>
+    </select>
+    <button id="startBtn">Start Game</button>
+  </div>
+
+  <div id="gameBoard"></div>
+
+  <audio id="moveSound" src="move.mp3"></audio>
+  <audio id="selectSound" src="select.mp3"></audio>
+
+  <script>
+   const board = document.getElementById('gameBoard');
+const startBtn = document.getElementById('startBtn');
+const moveSound = document.getElementById('moveSound');
+const selectSound = document.getElementById('selectSound');
+let selectedPiece = null;
+let currentPlayer = 'player1';
+let difficulty = 'easy';
+
+startBtn.addEventListener('click', startGame);
+
+function startGame() {
+  difficulty = document.getElementById('difficulty').value;
+  currentPlayer = 'player1';
+  selectedPiece = null;
+  generateBoard();
+}
+
+function generateBoard() {
+  board.innerHTML = '';
+  for (let row = 0; row < 8; row++) {
+    for (let col = 0; col < 8; col++) {
+      const cell = document.createElement('div');
+      cell.classList.add('cell');
+      if ((row + col) % 2 === 0) {
+        cell.classList.add('white');
+      } else {
+        cell.classList.add('black');
+      }
+      cell.dataset.row = row;
+      cell.dataset.col = col;
+      board.appendChild(cell);
+    }
+  }
+  placePieces();
+}
+
+function placePieces() {
+  const cells = document.querySelectorAll('.cell');
+  cells.forEach(cell => {
+    let row = parseInt(cell.dataset.row);
+    if (row < 3 && cell.classList.contains('black')) {
+      createPiece(cell, 'player2');
+    } else if (row > 4 && cell.classList.contains('black')) {
+      createPiece(cell, 'player1');
+    }
+    cell.addEventListener('click', handleCellClick);
+  });
+}
+
+function createPiece(cell, player) {
+  const piece = document.createElement('div');
+  piece.classList.add('piece', player);
+  cell.appendChild(piece);
+}
+
+function handleCellClick(e) {
+  const cell = e.currentTarget;
+  if (selectedPiece) {
+    if (cell.classList.contains('highlight')) {
+      movePiece(cell);
+      clearHighlights();
+      selectedPiece = null;
+      checkGameOver();
+      if (currentPlayer === 'player2') {
+        setTimeout(cpuMove, 500);
+      }
+    } else {
+      clearHighlights();
+      selectedPiece = null;
+    }
+  } else if (cell.querySelector('.piece') && cell.querySelector('.piece').classList.contains(currentPlayer)) {
+    selectSound.play();
+    selectedPiece = cell;
+    showMoves(cell);
+  }
+}
+
+function showMoves(cell) {
+  clearHighlights();
+  const row = parseInt(cell.dataset.row);
+  const col = parseInt(cell.dataset.col);
+  const moves = getAvailableMoves(row, col, currentPlayer);
+  moves.forEach(move => {
+    const targetCell = getCell(move.row, move.col);
+    if (targetCell) targetCell.classList.add('highlight');
+  });
+}
+
+function getAvailableMoves(row, col, player) {
+  let moves = [];
+  let directions = player === 'player1' ? [[-1, -1], [-1, 1]] : [[1, -1], [1, 1]];
+
+  directions.forEach(dir => {
+    const newRow = row + dir[0];
+    const newCol = col + dir[1];
+    const targetCell = getCell(newRow, newCol);
+    if (targetCell && !targetCell.querySelector('.piece')) {
+      moves.push({row: newRow, col: newCol});
+    }
+  });
+
+  return moves;
+}
+
+function getCell(row, col) {
+  return document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
+}
+
+function movePiece(targetCell) {
+  moveSound.play();
+  const piece = selectedPiece.querySelector('.piece');
+  targetCell.appendChild(piece);
+  switchPlayer();
+}
+
+function clearHighlights() {
+  document.querySelectorAll('.highlight').forEach(cell => cell.classList.remove('highlight'));
+}
+
+function switchPlayer() {
+  currentPlayer = currentPlayer === 'player1' ? 'player2' : 'player1';
+}
+
+function cpuMove() {
+  const pieces = Array.from(document.querySelectorAll('.piece.player2'));
+  const movablePieces = [];
+
+  pieces.forEach(p => {
+    const cell = p.parentElement;
+    const moves = getAvailableMoves(parseInt(cell.dataset.row), parseInt(cell.dataset.col), 'player2');
+    if (moves.length > 0) {
+      movablePieces.push({ piece: p, moves });
+    }
+  });
+
+  if (movablePieces.length === 0) {
+    alert('You Win! (CPU has no moves)');
+    return;
+  }
+
+  let moveData;
+  if (difficulty === 'easy') {
+    moveData = movablePieces[Math.floor(Math.random() * movablePieces.length)];
+  } else if (difficulty === 'medium' || difficulty === 'hard') {
+    moveData = movablePieces[0]; // smarter pick later
+  }
+
+  const move = moveData.moves[Math.floor(Math.random() * moveData.moves.length)];
+  const fromCell = moveData.piece.parentElement;
+  const toCell = getCell(move.row, move.col);
+
+  selectedPiece = fromCell;
+  movePiece(toCell);
+  clearHighlights();
+  selectedPiece = null;
+
+  checkGameOver();
+}
+
+function checkGameOver() {
+  const player1Pieces = document.querySelectorAll('.piece.player1').length;
+  const player2Pieces = document.querySelectorAll('.piece.player2').length;
+
+  if (player1Pieces === 0) {
+    setTimeout(() => alert('CPU Wins!'), 100);
+  } else if (player2Pieces === 0) {
+    setTimeout(() => alert('You Win!'), 100);
+  }
+}
+
+  </script>
+</body>
+</html>

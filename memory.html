@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Memory Game</title>
+</head>
+<style>
+    body {
+  font-family: sans-serif;
+  text-align: center;
+  background-color: #f2f2f2;
+}
+
+#game-board {
+  display: grid;
+  grid-template-columns: repeat(4, 100px);
+  gap: 10px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.card {
+  width: 100px;
+  height: 100px;
+  background-color: #3498db;
+  color: white;
+  font-size: 2em;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  border-radius: 8px;
+  user-select: none;
+}
+
+.card.flipped {
+  background-color: #2ecc71;
+}
+
+</style>
+<body>
+  <h1>Memory Game</h1>
+  <div id="game-board"></div>
+  <button onclick="startGame()">Start Game</button>
+
+  <script>
+    const board = document.getElementById('game-board');
+let cards = [];
+let flipped = [];
+let lock = false;
+
+function speak(text) {
+  const synth = window.speechSynthesis;
+  const utter = new SpeechSynthesisUtterance(text);
+  synth.speak(utter);
+}
+
+function shuffle(array) {
+  return array.sort(() => Math.random() - 0.5);
+}
+
+function createCards() {
+  const base = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+  const doubled = shuffle([...base, ...base]); // 8 pairs = 16 cards
+  return doubled.map((value, index) => ({
+    id: index,
+    value,
+    flipped: false,
+    matched: false
+  }));
+}
+
+function renderCards() {
+  board.innerHTML = '';
+  cards.forEach(card => {
+    const div = document.createElement('div');
+    div.className = 'card';
+    if (card.flipped || card.matched) div.classList.add('flipped');
+    div.textContent = card.flipped || card.matched ? card.value : '';
+    div.addEventListener('click', () => handleFlip(card.id));
+    board.appendChild(div);
+  });
+}
+
+function handleFlip(id) {
+  if (lock) return;
+
+  const card = cards.find(c => c.id === id);
+  if (card.flipped || card.matched) return;
+
+  card.flipped = true;
+  flipped.push(card);
+  renderCards();
+
+  if (flipped.length === 2) {
+    lock = true;
+    setTimeout(() => {
+      const [a, b] = flipped;
+      if (a.value === b.value) {
+        a.matched = b.matched = true;
+        speak(`Matched ${a.value}`);
+      } else {
+        a.flipped = b.flipped = false;
+        speak("Try again");
+      }
+      flipped = [];
+      lock = false;
+      renderCards();
+      if (cards.every(card => card.matched)) {
+        speak("You won!");
+        alert("You matched all the cards!");
+      }
+    }, 1000);
+  }
+}
+
+function startGame() {
+  cards = createCards();
+  flipped = [];
+  lock = false;
+  renderCards();
+  speak("Game started! Match the pairs.");
+}
+  </script>
+</body>
+</html>
+
+
+
+
+

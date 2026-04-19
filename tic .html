@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tic Tac Toe by logics of maryam</title>
+  <style>
+    th {
+      width: 130px;
+      height: 130px;
+      background-color: pink;
+      border-radius: 10px;
+      color: rgb(255, 5, 5);
+      font-size: 80px;
+      text-align: center;
+      vertical-align: middle;
+      cursor: pointer;
+    }
+    table {
+      border-collapse: collapse;
+    }
+    button {
+      margin: 10px;
+      padding: 10px 20px;
+      font-size: 18px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <p align="center"><font size="7"><b>Tic Tac Toe</b></font></p>
+  <p align="center"><font size="4"><b>Designed & Developed By: logics Of Maryam</b></font></p>
+  <p align="center" id="player"><font size="5"><b>Let's Play</b></font></p>
+
+  <div align="center">
+    <select id="mode" onchange="restartGame()">
+      <option value="pvp">Player vs Player</option>
+      <option value="easy">Player vs Computer (Easy)</option>
+      <option value="hard">Player vs Computer (Hard)</option>
+    </select>
+    <button onclick="restartGame()">Restart</button>
+  </div>
+
+  <center>
+    <table border="0" cellspacing="5">
+      <tr>
+        <th id="b1" onclick="makeMove(1)"></th>
+        <th id="b2" onclick="makeMove(2)"></th>
+        <th id="b3" onclick="makeMove(3)"></th>
+      </tr>
+      <tr>
+        <th id="b4" onclick="makeMove(4)"></th>
+        <th id="b5" onclick="makeMove(5)"></th>
+        <th id="b6" onclick="makeMove(6)"></th>
+      </tr>
+      <tr>
+        <th id="b7" onclick="makeMove(7)"></th>
+        <th id="b8" onclick="makeMove(8)"></th>
+        <th id="b9" onclick="makeMove(9)"></th>
+      </tr>
+    </table>
+  </center>
+
+  <script>
+     let sign = "X";
+let gameOver = false;
+let display = document.getElementById("player");
+
+function makeMove(number) {
+  if (gameOver) return;
+  let box = document.getElementById("b" + number);
+  if (box.innerText !== "") return;
+
+  box.innerHTML = sign;
+  if (checkWinner(getBoard(), sign)) {
+    endGame(`${sign} Wins!`);
+    return;
+  }
+
+  if (isFull(getBoard())) {
+    endGame("It's a Tie!");
+    return;
+  }
+
+  switchTurn();
+
+  const mode = document.getElementById("mode").value;
+  if ((mode === "easy" || mode === "hard") && sign === "O") {
+    setTimeout(() => computerMove(mode), 500);
+  }
+}
+
+function switchTurn() {
+  sign = (sign === "X") ? "O" : "X";
+  display.innerHTML = `<font size='5'><b>${sign}'s Turn</b></font>`;
+}
+
+function endGame(msg) {
+  display.innerHTML = `<font size='5'><b>${msg}</b></font>`;
+  gameOver = true;
+}
+
+function getBoard() {
+  return [...Array(9)].map((_, i) => document.getElementById("b" + (i + 1)).innerText);
+}
+
+function isFull(board) {
+  return board.every(cell => cell !== "");
+}
+
+function checkWinner(board, player) {
+  const wins = [
+    [0,1,2], [3,4,5], [6,7,8],
+    [0,3,6], [1,4,7], [2,5,8],
+    [0,4,8], [2,4,6]
+  ];
+  return wins.some(([a,b,c]) => board[a] === player && board[b] === player && board[c] === player);
+}
+function endGame(msg) {
+  display.innerHTML = `<font size='5'><b>${msg}</b></font>`;
+  gameOver = true;
+  setTimeout(restartGame, 2000); // Auto-restart after 2 seconds
+}
+
+function computerMove(mode) {
+  let board = getBoard();
+  let move;
+
+  if (mode === "easy") {
+    let empty = board.map((val, i) => val === "" ? i : null).filter(i => i !== null);
+    move = empty[Math.floor(Math.random() * empty.length)];
+  } else {
+    move = bestMove(board);
+  }
+
+  makeMove(move + 1);
+}
+
+function bestMove(board) {
+  let bestScore = -Infinity;
+  let move;
+
+  for (let i = 0; i < 9; i++) {
+    if (board[i] === "") {
+      board[i] = "O";
+      let score = minimax(board, 0, false);
+      board[i] = "";
+      if (score > bestScore) {
+        bestScore = score;
+        move = i;
+      }
+    }
+  }
+  return move;
+ 
+
+}
+
+function minimax(board, depth, isMaximizing) {
+  if (checkWinner(board, "O")) return 10 - depth;
+  if (checkWinner(board, "X")) return depth - 10;
+  if (isFull(board)) return 0;
+
+  if (isMaximizing) {
+    let maxEval = -Infinity;
+    for (let i = 0; i < 9; i++) {
+      if (board[i] === "") {
+        board[i] = "O";
+        let score = minimax(board, depth + 1, false);
+        board[i] = "";
+        maxEval = Math.max(score, maxEval);
+      }
+    }
+    return maxEval;
+  } else {
+    let minEval = Infinity;
+    for (let i = 0; i < 9; i++) {
+      if (board[i] === "") {
+        board[i] = "X";
+        let score = minimax(board, depth + 1, true);
+        board[i] = "";
+        minEval = Math.min(score, minEval);
+      }
+    }
+    return minEval;
+  }
+}
+
+function restartGame() {
+  for (let i = 1; i <= 9; i++) {
+    document.getElementById("b" + i).innerHTML = "";
+  }
+  sign = "X";
+  gameOver = false;
+  display.innerHTML = "<font size='5'><b>Let's Play</b></font>";
+
+  const mode = document.getElementById("mode").value;
+  if (mode !== "pvp" && sign === "O") {
+    setTimeout(() => computerMove(mode), 500);
+  }
+}
+
+  </script>
+</body>
+</html>

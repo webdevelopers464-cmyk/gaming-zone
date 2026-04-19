@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Word Board Puzzle</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+--bg:#0f172a;
+--panel:#1e293b;
+--tile:#38bdf8;
+--box:#334155;
+--accent:#22c55e;
+--text:#fff;
+}
+
+[data-theme="neon"]{
+--bg:#020617;--panel:#020617;
+--tile:#22d3ee;--box:#0ea5e9;--accent:#a3e635;
+}
+
+[data-theme="candy"]{
+--bg:#831843;--panel:#9d174d;
+--tile:#f472b6;--box:#be185d;--accent:#fde047;
+}
+
+body{
+margin:0;
+min-height:100vh;
+background:var(--bg);
+display:flex;
+justify-content:center;
+align-items:center;
+color:var(--text);
+font-family:Segoe UI,sans-serif;
+}
+
+.game{
+width:420px;
+background:var(--panel);
+padding:20px;
+border-radius:18px;
+box-shadow:0 30px 60px rgba(0,0,0,.6);
+}
+
+h1{text-align:center;margin:5px}
+
+.controls,.info{
+display:flex;
+justify-content:space-between;
+gap:6px;
+margin:8px 0;
+}
+
+select,button{
+padding:8px;
+border-radius:8px;
+border:none;
+font-weight:bold;
+cursor:pointer;
+}
+
+button{background:var(--accent)}
+
+.board{
+display:flex;
+justify-content:center;
+gap:10px;
+margin:15px 0;
+}
+
+.box{
+width:45px;height:55px;
+border-radius:8px;
+background:var(--box);
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:22px;
+font-weight:bold;
+cursor:pointer;
+transition:.2s;
+}
+
+.box.filled{
+background:var(--accent);
+color:#022c22;
+}
+
+.letters{
+display:flex;
+flex-wrap:wrap;
+justify-content:center;
+gap:10px;
+margin:10px 0;
+}
+
+.tile{
+width:45px;height:45px;
+border-radius:8px;
+background:var(--tile);
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:20px;
+font-weight:bold;
+cursor:pointer;
+transition:.2s;
+}
+
+.tile.used{
+background:#475569;
+pointer-events:none;
+}
+
+.message{
+height:20px;
+text-align:center;
+font-weight:bold;
+margin-top:6px;
+}
+
+.leader{
+margin-top:10px;
+font-size:14px;
+border-top:1px solid #475569;
+padding-top:6px;
+}
+</style>
+</head>
+
+<body data-theme="dark">
+
+<div class="game">
+<h1>🧩 Word Board</h1>
+
+<div class="controls">
+<select onchange="setTheme(this.value)">
+<option value="dark">Dark</option>
+<option value="neon">Neon</option>
+<option value="candy">Candy</option>
+</select>
+
+<select id="mode">
+<option value="pvp">PvP</option>
+<option value="ai">Vs AI</option>
+</select>
+</div>
+
+<div class="info">
+<div>👤 Player <span id="player">1</span></div>
+<div>⏱ <span id="time">30</span>s</div>
+<div>⭐ <span id="score">0</span></div>
+</div>
+
+<div class="board" id="board"></div>
+<div class="letters" id="letters"></div>
+
+<button onclick="submitWord()">Submit</button>
+<button onclick="clearBoard()">Clear</button>
+
+<div class="message" id="msg"></div>
+<div class="leader" id="leader"></div>
+</div>
+
+<script>
+/* ===== WORDS ===== */
+const WORDS=["APPLE","HOUSE","PLANT","TRAIN","MOUSE","PHONE","CHAIR","TABLE"];
+
+/* ===== STATE ===== */
+let answer="";
+let boxes=[], tiles=[];
+let player=1;
+let scores=[0,0];
+let time=30, timer;
+
+/* ===== SOUND ===== */
+function beep(freq){
+const ctx=new AudioContext();
+const o=ctx.createOscillator();
+o.frequency.value=freq;
+o.connect(ctx.destination);
+o.start();
+o.stop(ctx.currentTime+.08);
+}
+
+/* ===== THEME ===== */
+function setTheme(t){
+document.body.dataset.theme=t;
+localStorage.setItem("theme",t);
+}
+setTheme(localStorage.getItem("theme")||"dark");
+
+/* ===== GAME ===== */
+function shuffle(a){return a.sort(()=>Math.random()-0.5)}
+
+function startGame(){
+clearInterval(timer);
+answer=WORDS[Math.floor(Math.random()*WORDS.length)];
+board.innerHTML="";
+letters.innerHTML="";
+boxes=[];tiles=[];
+msg.textContent="";
+time=30;
+timeSpan.textContent=time;
+scoreSpan.textContent=scores[player-1];
+
+for(let i=0;i<answer.length;i++){
+const b=document.createElement("div");
+b.className="box";
+b.onclick=()=>removeLetter(b);
+board.appendChild(b);
+boxes.push(b);
+}
+
+shuffle(answer.split("")).forEach(l=>{
+const t=document.createElement("div");
+t.className="tile";
+t.textContent=l;
+t.onclick=()=>placeLetter(t);
+letters.appendChild(t);
+tiles.push(t);
+});
+
+timer=setInterval(()=>{
+time--;
+timeSpan.textContent=time;
+if(time===0) endTurn();
+},1000);
+}
+
+function placeLetter(tile){
+const box=boxes.find(b=>!b.textContent);
+if(!box)return;
+box.textContent=tile.textContent;
+box.classList.add("filled");
+tile.classList.add("used");
+tile.dataset.box=boxes.indexOf(box);
+beep(500);
+}
+
+function removeLetter(box){
+if(!box.textContent)return;
+const i=boxes.indexOf(box);
+const tile=tiles.find(t=>t.dataset.box==i);
+if(tile){
+tile.classList.remove("used");
+delete tile.dataset.box;
+}
+box.textContent="";
+box.classList.remove("filled");
+}
+
+function submitWord(){
+const word=boxes.map(b=>b.textContent).join("");
+if(word===answer){
+scores[player-1]+=word.length;
+msg.textContent="✅ Correct!";
+beep(800);
+saveLeaderboard();
+setTimeout(startGame,1000);
+}else{
+msg.textContent="❌ Wrong!";
+beep(200);
+}
+}
+
+function clearBoard(){
+boxes.forEach(removeLetter);
+tiles.forEach(t=>{t.classList.remove("used");delete t.dataset.box});
+}
+
+function endTurn(){
+player=player===1?2:1;
+playerSpan.textContent=player;
+if(mode.value==="ai" && player===2){
+setTimeout(()=>{
+scores[1]+=answer.length;
+player=1;
+playerSpan.textContent=1;
+startGame();
+},1200);
+}else{
+startGame();
+}
+}
+
+/* ===== LEADERBOARD ===== */
+function saveLeaderboard(){
+const lb=JSON.parse(localStorage.getItem("wordLB")||"[]");
+lb.push({player,score:scores[player-1]});
+lb.sort((a,b)=>b.score-a.score);
+localStorage.setItem("wordLB",JSON.stringify(lb.slice(0,5)));
+renderLeaderboard();
+}
+
+function renderLeaderboard(){
+const lb=JSON.parse(localStorage.getItem("wordLB")||"[]");
+leader.innerHTML="<b>🏆 Leaderboard</b><br>"+
+lb.map(l=>`Player ${l.player}: ${l.score}`).join("<br>");
+}
+
+/* ===== DOM ===== */
+const board=document.getElementById("board");
+const letters=document.getElementById("letters");
+const msg=document.getElementById("msg");
+const timeSpan=document.getElementById("time");
+const scoreSpan=document.getElementById("score");
+const playerSpan=document.getElementById("player");
+const mode=document.getElementById("mode");
+const leader=document.getElementById("leader");
+
+renderLeaderboard();
+startGame();
+</script>
+
+</body>
+</html>

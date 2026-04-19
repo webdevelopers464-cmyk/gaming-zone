@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Beautiful Snake Game</title>
+</head>
+<style>
+    body {
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(135deg, #74ebd5, #acb6e5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-family: 'Poppins', sans-serif;
+}
+
+.game-container {
+  text-align: center;
+  background: white;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.2);
+}
+
+#gameCanvas {
+  background-color: #f0f0f0;
+  border: 2px solid #74ebd5;
+  margin-top: 10px;
+}
+
+#startBtn {
+  margin-top: 15px;
+  padding: 10px 20px;
+  background: #74ebd5;
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+#startBtn:hover {
+  background: #4ecdc4;
+}
+
+</style>
+<body>
+  <div class="game-container">
+    <h1>🐍 Snake Game</h1>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <button id="startBtn">Start Game</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const startBtn = document.getElementById('startBtn');
+
+const box = 20;
+const canvasSize = 20; // 20x20 grid
+
+let snake = [];
+let food = {};
+let direction = "";
+let gameLoop = null;
+let gameStarted = false;
+
+// Voice effects
+const eatSound = new SpeechSynthesisUtterance("Yummy!");
+const gameOverSound = new SpeechSynthesisUtterance("Game Over! Try again!");
+
+function initGame() {
+  snake = [{ x: 9 * box, y: 9 * box }];
+  direction = "";
+  spawnFood();
+  if (gameLoop) clearInterval(gameLoop);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawSnake();
+  drawFood();
+  gameStarted = true;
+  gameLoop = setInterval(drawGame, 150);
+}
+
+function spawnFood() {
+  food = {
+    x: Math.floor(Math.random() * canvasSize) * box,
+    y: Math.floor(Math.random() * canvasSize) * box,
+  };
+}
+
+function drawSnake() {
+  snake.forEach((segment, index) => {
+    ctx.fillStyle = index === 0 ? "#4ecdc4" : "#74ebd5";
+    ctx.fillRect(segment.x, segment.y, box, box);
+    ctx.strokeStyle = "#ffffff";
+    ctx.strokeRect(segment.x, segment.y, box, box);
+  });
+}
+
+function drawFood() {
+  ctx.fillStyle = "#ff6b6b";
+  ctx.fillRect(food.x, food.y, box, box);
+}
+
+function drawGame() {
+  if (!gameStarted) return;
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Move snake only if direction is set
+  if (direction !== "") {
+    moveSnake();
+  }
+
+  drawSnake();
+  drawFood();
+}
+
+function moveSnake() {
+  let headX = snake[0].x;
+  let headY = snake[0].y;
+
+  if (direction === "LEFT") headX -= box;
+  if (direction === "UP") headY -= box;
+  if (direction === "RIGHT") headX += box;
+  if (direction === "DOWN") headY += box;
+
+  // Check for collision with wall or self
+  if (
+    headX < 0 || headY < 0 ||
+    headX >= canvas.width || headY >= canvas.height ||
+    collision(headX, headY, snake)
+  ) {
+    clearInterval(gameLoop);
+    speechSynthesis.speak(gameOverSound);
+    gameStarted = false;
+    return;
+  }
+
+  let newHead = { x: headX, y: headY };
+
+  // Check for eating food
+  if (headX === food.x && headY === food.y) {
+    speechSynthesis.speak(eatSound);
+    spawnFood();
+  } else {
+    snake.pop();
+  }
+
+  snake.unshift(newHead);
+}
+
+function collision(x, y, array) {
+  for (let i = 0; i < array.length; i++) {
+    if (x === array[i].x && y === array[i].y) {
+      return true;
+    }
+  }
+  return false;
+}
+
+document.addEventListener('keydown', (e) => {
+  if (!gameStarted) return;
+
+  if (e.key === "ArrowLeft" && direction !== "RIGHT") direction = "LEFT";
+  if (e.key === "ArrowUp" && direction !== "DOWN") direction = "UP";
+  if (e.key === "ArrowRight" && direction !== "LEFT") direction = "RIGHT";
+  if (e.key === "ArrowDown" && direction !== "UP") direction = "DOWN";
+});
+
+startBtn.addEventListener('click', initGame);
+
+  </script>
+</body>
+</html>

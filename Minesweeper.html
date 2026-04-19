@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Minesweeper Game</title>
+</head>
+<style>
+    body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  background: #f0f8ff;
+  color: #333;
+}
+.controls {
+  margin: 20px;
+}
+#grid {
+  display: grid;
+  margin: 0 auto;
+  gap: 2px;
+  width: fit-content;
+}
+.cell {
+  width: 30px;
+  height: 30px;
+  background-color: #ccc;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  cursor: pointer;
+  user-select: none;
+}
+.cell.revealed {
+  background-color: #eee;
+}
+.cell.bomb {
+  background-color: red;
+  color: white;
+}
+
+</style>
+<body>
+  <h1>Minesweeper</h1>
+  <div class="controls">
+    <select id="difficulty">
+      <option value="easy">Easy</option>
+      <option value="medium">Medium</option>
+      <option value="hard">Hard</option>
+    </select>
+    <button id="startBtn">Start Game</button>
+  </div>
+  <div id="instructions"></div>
+  <div id="grid"></div>
+  <audio id="clickSound" src="click.mp3" preload="auto"></audio>
+  <audio id="explosionSound" src="explosion.mp3" preload="auto"></audio>
+  <script>
+    const grid = document.getElementById("grid");
+const startBtn = document.getElementById("startBtn");
+const difficultySelect = document.getElementById("difficulty");
+const instructions = document.getElementById("instructions");
+const clickSound = document.getElementById("clickSound");
+const explosionSound = document.getElementById("explosionSound");
+
+let rows, cols, bombs;
+
+startBtn.addEventListener("click", () => {
+  const difficulty = difficultySelect.value;
+  switch (difficulty) {
+    case "easy":
+      rows = cols = 8;
+      bombs = 10;
+      break;
+    case "medium":
+      rows = cols = 12;
+      bombs = 25;
+      break;
+    case "hard":
+      rows = cols = 16;
+      bombs = 50;
+      break;
+  }
+  speakInstructions();
+  generateGrid(rows, cols, bombs);
+});
+
+function speakInstructions() {
+  const msg = new SpeechSynthesisUtterance(
+    "Welcome to Minesweeper! Click on cells to reveal them. Avoid the bombs. If you reveal all safe cells, you win!"
+  );
+  window.speechSynthesis.speak(msg);
+  instructions.textContent = msg.text;
+}
+
+function generateGrid(rows, cols, bombs) {
+  grid.innerHTML = "";
+  grid.style.gridTemplateColumns = `repeat(${cols}, 30px)`;
+
+  const totalCells = rows * cols;
+  const cells = Array.from({ length: totalCells }, (_, i) => ({
+    id: i,
+    isBomb: false,
+    element: document.createElement("div"),
+  }));
+
+  // Place bombs
+  for (let i = 0; i < bombs; i++) {
+    let index;
+    do {
+      index = Math.floor(Math.random() * totalCells);
+    } while (cells[index].isBomb);
+    cells[index].isBomb = true;
+  }
+
+  cells.forEach((cell, i) => {
+    const el = cell.element;
+    el.classList.add("cell");
+    el.addEventListener("click", () => handleClick(cell, cells, cols));
+    grid.appendChild(el);
+  });
+}
+
+function handleClick(cell, cells, cols) {
+  const el = cell.element;
+  if (el.classList.contains("revealed")) return;
+  clickSound.play();
+
+  if (cell.isBomb) {
+    el.classList.add("bomb", "revealed");
+    el.textContent = "💣";
+    explosionSound.play();
+    alert("Game Over!");
+    revealAll(cells);
+    return;
+  }
+
+  const index = cell.id;
+  const neighbors = getNeighbors(index, cols, cells.length);
+  const bombCount = neighbors.filter(i => cells[i].isBomb).length;
+
+  el.classList.add("revealed");
+  if (bombCount > 0) {
+    el.textContent = bombCount;
+  } else {
+    neighbors.forEach(i => handleClick(cells[i], cells, cols));
+  }
+}
+
+function getNeighbors(index, cols, total) {
+  const neighbors = [];
+  const row = Math.floor(index / cols);
+  const col = index % cols;
+
+  for (let r = -1; r <= 1; r++) {
+    for (let c = -1; c <= 1; c++) {
+      if (r === 0 && c === 0) continue;
+      const newRow = row + r;
+      const newCol = col + c;
+      const newIndex = newRow * cols + newCol;
+      if (
+        newRow >= 0 &&
+        newRow < total / cols &&
+        newCol >= 0 &&
+        newCol < cols
+      ) {
+        neighbors.push(newIndex);
+      }
+    }
+  }
+  return neighbors;
+}
+
+function revealAll(cells) {
+  cells.forEach(cell => {
+    if (cell.isBomb) {
+      cell.element.classList.add("bomb");
+      cell.element.textContent = "💣";
+    }
+    cell.element.classList.add("revealed");
+  });
+}
+
+  </script>
+</body>
+</html>

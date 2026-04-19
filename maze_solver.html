@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Maze Solver Game</title>
+</head>
+<style>
+    body {
+  font-family: 'Segoe UI', sans-serif;
+  text-align: center;
+  background: #f4f4f4;
+  margin: 0;
+  padding: 20px;
+}
+
+h1 {
+  margin-bottom: 10px;
+}
+
+canvas {
+  border: 2px solid #333;
+  margin-top: 20px;
+  background-color: white;
+}
+
+select, button {
+  margin: 5px;
+  padding: 8px 12px;
+  font-size: 16px;
+}
+
+</style>
+<body>
+  <h1>Maze Solver</h1>
+  <div>
+    <label for="level">Select Level:</label>
+    <select id="level">
+      <option value="5">Easy</option>
+      <option value="10">Medium</option>
+      <option value="15">Hard</option>
+    </select>
+    <button onclick="generateMaze()">Generate Maze</button>
+    <button onclick="solveMaze()">Solve Maze</button>
+  </div>
+  <canvas id="mazeCanvas"></canvas>
+
+  <script>
+    const canvas = document.getElementById('mazeCanvas');
+const ctx = canvas.getContext('2d');
+let cols, rows, cellSize;
+let grid = [];
+let current;
+let stack = [];
+let solverPath = [];
+let mazeGenerated = false;
+
+class Cell {
+  constructor(i, j) {
+    this.i = i;
+    this.j = j;
+    this.walls = [true, true, true, true]; // top right bottom left
+    this.visited = false;
+  }
+
+  draw() {
+    const x = this.i * cellSize;
+    const y = this.j * cellSize;
+
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 2;
+
+    if (this.walls[0]) line(x, y, x + cellSize, y);           // top
+    if (this.walls[1]) line(x + cellSize, y, x + cellSize, y + cellSize); // right
+    if (this.walls[2]) line(x + cellSize, y + cellSize, x, y + cellSize); // bottom
+    if (this.walls[3]) line(x, y + cellSize, x, y);           // left
+
+    if (this.visited) {
+      ctx.fillStyle = "#ddd";
+      ctx.fillRect(x, y, cellSize, cellSize);
+    }
+  }
+
+  checkNeighbors() {
+    const neighbors = [];
+
+    const top = grid[index(this.i, this.j - 1)];
+    const right = grid[index(this.i + 1, this.j)];
+    const bottom = grid[index(this.i, this.j + 1)];
+    const left = grid[index(this.i - 1, this.j)];
+
+    if (top && !top.visited) neighbors.push(top);
+    if (right && !right.visited) neighbors.push(right);
+    if (bottom && !bottom.visited) neighbors.push(bottom);
+    if (left && !left.visited) neighbors.push(left);
+
+    if (neighbors.length > 0) {
+      return neighbors[Math.floor(Math.random() * neighbors.length)];
+    }
+    return undefined;
+  }
+}
+
+function index(i, j) {
+  if (i < 0 || j < 0 || i >= cols || j >= rows) return -1;
+  return i + j * cols;
+}
+
+function removeWalls(a, b) {
+  const x = a.i - b.i;
+  const y = a.j - b.j;
+
+  if (x === 1) {
+    a.walls[3] = false;
+    b.walls[1] = false;
+  } else if (x === -1) {
+    a.walls[1] = false;
+    b.walls[3] = false;
+  }
+
+  if (y === 1) {
+    a.walls[0] = false;
+    b.walls[2] = false;
+  } else if (y === -1) {
+    a.walls[2] = false;
+    b.walls[0] = false;
+  }
+}
+
+function line(x1, y1, x2, y2) {
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.stroke();
+}
+
+function generateMaze() {
+  speak("Generating maze");
+  const level = parseInt(document.getElementById('level').value);
+  cellSize = 500 / level;
+  cols = rows = level;
+
+  canvas.width = canvas.height = 500;
+
+  grid = [];
+  stack = [];
+
+  for (let j = 0; j < rows; j++) {
+    for (let i = 0; i < cols; i++) {
+      grid.push(new Cell(i, j));
+    }
+  }
+
+  current = grid[0];
+  mazeGenerated = true;
+  drawMazeStep();
+}
+
+function drawMazeStep() {
+  if (!mazeGenerated) return;
+  for (const cell of grid) {
+    cell.draw();
+  }
+
+  current.visited = true;
+  const next = current.checkNeighbors();
+  if (next) {
+    next.visited = true;
+    stack.push(current);
+    removeWalls(current, next);
+    current = next;
+    requestAnimationFrame(drawMazeStep);
+  } else if (stack.length > 0) {
+    current = stack.pop();
+    requestAnimationFrame(drawMazeStep);
+  }
+}
+
+function solveMaze() {
+  if (!mazeGenerated) {
+    speak("Please generate a maze first");
+    return;
+  }
+  speak("Solving maze");
+
+  const visited = new Set();
+  const path = [];
+  const start = grid[0];
+  const end = grid[grid.length - 1];
+
+  function dfs(cell) {
+    if (!cell || visited.has(cell)) return false;
+    visited.add(cell);
+    path.push(cell);
+
+    if (cell === end) return true;
+
+    const neighbors = [];
+    const top = grid[index(cell.i, cell.j - 1)];
+    const right = grid[index(cell.i + 1, cell.j)];
+    const bottom = grid[index(cell.i, cell.j + 1)];
+    const left = grid[index(cell.i - 1, cell.j)];
+
+    if (top && !cell.walls[0]) neighbors.push(top);
+    if (right && !cell.walls[1]) neighbors.push(right);
+    if (bottom && !cell.walls[2]) neighbors.push(bottom);
+    if (left && !cell.walls[3]) neighbors.push(left);
+
+    for (const neighbor of neighbors) {
+      if (dfs(neighbor)) return true;
+    }
+
+    path.pop();
+    return false;
+  }
+
+  dfs(start);
+  solverPath = path;
+  drawSolutionPath();
+}
+
+function drawSolutionPath(i = 0) {
+  if (i >= solverPath.length) {
+    speak("Maze solved!");
+    return;
+  }
+
+  const cell = solverPath[i];
+  ctx.fillStyle = "lime";
+  ctx.fillRect(cell.i * cellSize + 5, cell.j * cellSize + 5, cellSize - 10, cellSize - 10);
+  setTimeout(() => drawSolutionPath(i + 1), 100);
+}
+
+function speak(text) {
+  const msg = new SpeechSynthesisUtterance(text);
+  msg.lang = "en-US";
+  speechSynthesis.speak(msg);
+}
+
+  </script>
+</body>
+</html>

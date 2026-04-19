@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Archery Aim Game</title>
+</head>
+<style>body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(to right, #a1c4fd, #c2e9fb);
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+
+.game-container {
+    padding: 20px;
+}
+
+#gameCanvas {
+    background-color: #f0f0f0;
+    border: 2px solid #333;
+    margin-top: 20px;
+}
+
+button {
+    padding: 10px 20px;
+    margin-top: 10px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 8px;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+.hidden {
+    display: none;
+}
+
+#scoreBoard {
+    margin-top: 10px;
+}
+</style>
+<body>
+
+<div class="game-container">
+    <h1>🏹 Archery Aim Game</h1>
+
+    <div id="menu">
+        <label for="level">Choose Level:</label>
+        <select id="level">
+            <option value="easy">Easy 🎯</option>
+            <option value="medium">Medium 🎯🎯</option>
+            <option value="hard">Hard 🎯🎯🎯</option>
+        </select>
+        <button id="startBtn">Start Game</button>
+    </div>
+
+    <div id="instructions" class="hidden">
+        <h2>Instructions</h2>
+        <p>Aim carefully and click on the moving target to score!<br>Targets get smaller and faster as you increase the difficulty. Good luck!</p>
+        <button id="playBtn">Play Now</button>
+    </div>
+
+    <canvas id="gameCanvas" class="hidden"></canvas>
+
+    <div id="scoreBoard" class="hidden">
+        <h3>Score: <span id="score">0</span></h3>
+    </div>
+</div>
+
+<script>
+    const startBtn = document.getElementById('startBtn');
+const playBtn = document.getElementById('playBtn');
+const menu = document.getElementById('menu');
+const instructions = document.getElementById('instructions');
+const gameCanvas = document.getElementById('gameCanvas');
+const scoreBoard = document.getElementById('scoreBoard');
+const scoreEl = document.getElementById('score');
+const levelSelect = document.getElementById('level');
+
+let ctx;
+let target = { x: 100, y: 100, radius: 30, speedX: 2, speedY: 2 };
+let score = 0;
+let level = 'easy';
+let gameRunning = false;
+
+startBtn.addEventListener('click', () => {
+    level = levelSelect.value;
+    menu.classList.add('hidden');
+    instructions.classList.remove('hidden');
+});
+
+playBtn.addEventListener('click', startGame);
+
+function startGame() {
+    instructions.classList.add('hidden');
+    gameCanvas.classList.remove('hidden');
+    scoreBoard.classList.remove('hidden');
+    gameCanvas.width = 800;
+    gameCanvas.height = 500;
+    ctx = gameCanvas.getContext('2d');
+    score = 0;
+    scoreEl.textContent = score;
+    setupLevel();
+    gameRunning = true;
+    gameLoop();
+}
+
+function setupLevel() {
+    if (level === 'easy') {
+        target.radius = 30;
+        target.speedX = 2;
+        target.speedY = 2;
+    } else if (level === 'medium') {
+        target.radius = 20;
+        target.speedX = 4;
+        target.speedY = 4;
+    } else if (level === 'hard') {
+        target.radius = 15;
+        target.speedX = 6;
+        target.speedY = 6;
+    }
+}
+
+function gameLoop() {
+    if (!gameRunning) return;
+
+    ctx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
+
+    // Move target
+    target.x += target.speedX;
+    target.y += target.speedY;
+
+    // Bounce off walls
+    if (target.x + target.radius > gameCanvas.width || target.x - target.radius < 0) {
+        target.speedX *= -1;
+    }
+    if (target.y + target.radius > gameCanvas.height || target.y - target.radius < 0) {
+        target.speedY *= -1;
+    }
+
+    // Draw target
+    ctx.beginPath();
+    ctx.arc(target.x, target.y, target.radius, 0, Math.PI * 2);
+    ctx.fillStyle = 'red';
+    ctx.fill();
+    ctx.stroke();
+
+    requestAnimationFrame(gameLoop);
+}
+
+gameCanvas.addEventListener('click', (e) => {
+    if (!gameRunning) return;
+
+    const rect = gameCanvas.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    const dist = Math.sqrt((mouseX - target.x) ** 2 + (mouseY - target.y) ** 2);
+
+    if (dist < target.radius) {
+        score += 10;
+        scoreEl.textContent = score;
+        // Move target randomly after a hit
+        target.x = Math.random() * (gameCanvas.width - 2 * target.radius) + target.radius;
+        target.y = Math.random() * (gameCanvas.height - 2 * target.radius) + target.radius;
+    }
+});
+
+</script>
+</body>
+</html>

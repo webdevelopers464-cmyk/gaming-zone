@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Word Spot Game</title>
+</head>
+<style>
+    body {
+  font-family: 'Segoe UI', sans-serif;
+  background: #fdf6e3;
+  text-align: center;
+  padding: 20px;
+}
+
+.game-header {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 10px;
+  font-size: 1.4em;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 60px);
+  gap: 10px;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+.grid div {
+  width: 60px;
+  height: 60px;
+  background-color: #ffe680;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  border-radius: 10px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.word-list {
+  margin-top: 20px;
+  font-size: 18px;
+}
+
+.controls button {
+  margin: 10px;
+  padding: 10px 20px;
+  font-size: 1em;
+}
+
+</style>
+<body>
+  <div class="game-header">
+    <h1>Word Spot</h1>
+    <div class="coins">💰 <span id="coinCount">500</span></div>
+  </div>
+
+  <div class="level-info">
+    <span id="level">Level 1</span>
+    <button onclick="nextLevel()">Next ▶️</button>
+  </div>
+
+  <div id="grid" class="grid"></div>
+
+  <div class="word-list" id="wordList"></div>
+
+  <div class="controls">
+    <button onclick="useHint()">💡 Hint</button>
+    <button onclick="shuffleLetters()">🔀 Shuffle</button>
+  </div>
+
+  <audio id="correctSound" src="sounds/correct.mp3"></audio>
+  <audio id="winSound" src="sounds/win.mp3"></audio>
+
+  <script>
+    const levels = [
+  { letters: "WORDSPOT", words: ["WORD", "SPOT", "TOP", "POT", "STOP"] },
+  { letters: "SMARTFUN", words: ["SMART", "FUN", "ART", "RAT", "TAN"] },
+  { letters: "PLANETSKY", words: ["PLAN", "SKY", "NET", "YET", "KEY", "TANK"] },
+];
+
+let currentLevel = 0;
+let coins = 500;
+
+const grid = document.getElementById("grid");
+const wordList = document.getElementById("wordList");
+const coinCount = document.getElementById("coinCount");
+const correctSound = document.getElementById("correctSound");
+const winSound = document.getElementById("winSound");
+
+let selected = "";
+let foundWords = [];
+
+function initLevel() {
+  const level = levels[currentLevel];
+  document.getElementById("level").textContent = `Level ${currentLevel + 1}`;
+  grid.innerHTML = "";
+  wordList.innerHTML = level.words.map(word => `<div>${word}</div>`).join("");
+  foundWords = [];
+  selected = "";
+
+  [...level.letters].sort(() => 0.5 - Math.random()).forEach(letter => {
+    const tile = document.createElement("div");
+    tile.textContent = letter;
+    tile.addEventListener("click", () => selectLetter(letter, tile));
+    grid.appendChild(tile);
+  });
+}
+
+function selectLetter(letter, tile) {
+  selected += letter;
+  tile.style.backgroundColor = "#d1ffd1";
+
+  const levelWords = levels[currentLevel].words;
+
+  if (levelWords.includes(selected) && !foundWords.includes(selected)) {
+    correctSound.play();
+    foundWords.push(selected);
+    updateWordList();
+
+    if (foundWords.length === levelWords.length) {
+      winSound.play();
+      coins += 50;
+      coinCount.textContent = coins;
+      alert("🎉 Level Complete!");
+    }
+  }
+}
+
+function updateWordList() {
+  const level = levels[currentLevel];
+  wordList.innerHTML = level.words.map(word => 
+    `<div style="color:${foundWords.includes(word) ? 'green' : 'black'}">${word}</div>`
+  ).join("");
+}
+
+function useHint() {
+  if (coins < 50) return alert("Not enough coins!");
+  for (let word of levels[currentLevel].words) {
+    if (!foundWords.includes(word)) {
+      selected = word;
+      updateWordList();
+      foundWords.push(word);
+      coins -= 50;
+      coinCount.textContent = coins;
+      correctSound.play();
+      break;
+    }
+  }
+}
+
+function nextLevel() {
+  currentLevel = (currentLevel + 1) % levels.length;
+  initLevel();
+}
+
+function shuffleLetters() {
+  initLevel(); // Simple shuffle by reinitializing
+}
+
+window.onload = () => {
+  initLevel();
+};
+
+  </script>
+</body>
+</html>

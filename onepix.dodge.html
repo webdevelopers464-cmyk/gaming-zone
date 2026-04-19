@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>One Pixel Dodge</title>
+</head>
+<style>
+    body {
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(to right, #00c6ff, #0072ff);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+#gameContainer {
+  text-align: center;
+  background: white;
+  padding: 20px;
+  border-radius: 20px;
+  box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.3);
+}
+
+h1 {
+  color: #333;
+}
+
+#menu {
+  margin-bottom: 20px;
+}
+
+#levelSelect, #startButton {
+  padding: 10px 20px;
+  margin: 10px;
+  font-size: 16px;
+  border: none;
+  border-radius: 10px;
+  background: #0072ff;
+  color: white;
+  cursor: pointer;
+}
+
+#levelSelect {
+  background: #00c6ff;
+}
+
+#gameCanvas {
+  background: #f0f0f0;
+  border: 3px solid #0072ff;
+  border-radius: 10px;
+  margin-top: 20px;
+}
+
+#status {
+  margin-top: 20px;
+  font-size: 20px;
+  font-weight: bold;
+  color: #0072ff;
+}
+
+</style>
+<body>
+  <div id="gameContainer">
+    <h1>One Pixel Dodge</h1>
+    <div id="menu">
+      <select id="levelSelect">
+        <option value="easy">Easy</option>
+        <option value="medium">Medium</option>
+        <option value="hard">Hard</option>
+      </select>
+      <button id="startButton">Start Game</button>
+    </div>
+    <canvas id="gameCanvas" width="400" height="600"></canvas>
+    <div id="status"></div>
+  </div>
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const startButton = document.getElementById('startButton');
+const levelSelect = document.getElementById('levelSelect');
+const statusDiv = document.getElementById('status');
+
+let player, obstacles, speed, animationId, level, gameStarted = false;
+
+function speak(message) {
+  const speech = new SpeechSynthesisUtterance(message);
+  speech.volume = 1;
+  speech.pitch = 1;
+  speech.rate = 1;
+  window.speechSynthesis.speak(speech);
+}
+
+function startGame() {
+  statusDiv.innerHTML = '';
+  gameStarted = true;
+  player = { x: canvas.width / 2 - 5, y: canvas.height - 20, size: 10, color: '#0072ff' };
+  obstacles = [];
+  level = levelSelect.value;
+
+  // Set speed based on level
+  switch (level) {
+    case 'easy':
+      speed = 2;
+      break;
+    case 'medium':
+      speed = 4;
+      break;
+    case 'hard':
+      speed = 6;
+      break;
+  }
+
+  speak(`Starting ${level} level! Good luck!`);
+  animate();
+}
+
+function animate() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Draw player
+  ctx.fillStyle = player.color;
+  ctx.fillRect(player.x, player.y, player.size, player.size);
+
+  // Move and draw obstacles
+  for (let i = 0; i < obstacles.length; i++) {
+    obstacles[i].y += speed;
+    ctx.fillStyle = obstacles[i].color;
+    ctx.fillRect(obstacles[i].x, obstacles[i].y, obstacles[i].size, obstacles[i].size);
+
+    // Check collision
+    if (
+      player.x < obstacles[i].x + obstacles[i].size &&
+      player.x + player.size > obstacles[i].x &&
+      player.y < obstacles[i].y + obstacles[i].size &&
+      player.y + player.size > obstacles[i].y
+    ) {
+      cancelAnimationFrame(animationId);
+      gameStarted = false;
+      speak('Game Over!');
+      statusDiv.innerHTML = "Game Over!";
+      return;
+    }
+  }
+
+  // Remove obstacles out of screen
+  obstacles = obstacles.filter(o => o.y < canvas.height);
+
+  // Randomly add new obstacles
+  if (Math.random() < 0.03) { // spawn rate
+    obstacles.push({
+      x: Math.random() * (canvas.width - 10),
+      y: -10,
+      size: 10,
+      color: '#ff4c4c'
+    });
+  }
+
+  animationId = requestAnimationFrame(animate);
+}
+
+// Move player
+window.addEventListener('keydown', (e) => {
+  if (!gameStarted) return;
+  if (e.key === 'ArrowLeft' && player.x > 0) {
+    player.x -= 20;
+  } else if (e.key === 'ArrowRight' && player.x < canvas.width - player.size) {
+    player.x += 20;
+  }
+});
+
+startButton.addEventListener('click', startGame);
+
+  </script>
+</body>
+</html>
+

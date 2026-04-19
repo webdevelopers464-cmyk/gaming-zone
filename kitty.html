@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Talking Kitty — Home Life</title>
+<style>
+  :root{
+    --bg:#0f1226; --panel:#1b1f3b; --text:#e9ecff; --accent:#6cf1ff; --danger:#ff4d6d;
+    --green:#06d6a0; --yellow:#ffd166; --blue:#118ab2; --pink:#ef476f; 
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; min-height:100vh; display:grid; grid-template-rows:auto 1fr auto;
+    background: radial-gradient(1200px 600px at 50% 0%, #15183a, var(--bg));
+    color:var(--text); font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  }
+  header,footer{display:flex; align-items:center; justify-content:space-between; gap:.75rem; padding:.75rem 1rem}
+  header{background:rgba(27,31,59,.6); border-bottom:1px solid #2a2f57; backdrop-filter:blur(6px)}
+  footer{background:rgba(27,31,59,.6); border-top:1px solid #2a2f57; backdrop-filter:blur(6px)}
+  h1{margin:0; font-size:1.1rem; letter-spacing:.4px}
+  .menu{display:flex; gap:.5rem; flex-wrap:wrap}
+  button{
+    background:var(--panel); color:var(--text); border:1px solid #2a2f57;
+    padding:.5rem .75rem; border-radius:10px; cursor:pointer;
+  }
+  button:hover{filter:brightness(1.08)}
+  .wrap{display:grid; grid-template-columns: 280px 1fr; gap:1rem; padding:1rem}
+  .sidebar{
+    background:var(--panel); border:1px solid #2a2f57; border-radius:12px; padding:.75rem;
+  }
+  .card{background:rgba(255,255,255,.04); border:1px solid #2a2f57; border-radius:12px; padding:.6rem .75rem; margin-bottom:.6rem}
+  .bar{height:10px; background:#222a4f; border-radius:8px; overflow:hidden; margin-top:.4rem}
+  .bar > span{display:block; height:100%; background:linear-gradient(90deg,#6cf1ff,#06d6a0)}
+  .room{
+    background:var(--panel); border:1px solid #2a2f57; border-radius:14px; padding:1rem; position:relative;
+    min-height:520px; display:grid; grid-template-columns: 1fr; place-items:center;
+  }
+  .room-title{position:absolute; top:.6rem; left:.8rem; font-weight:600; opacity:.85}
+  /* Kitty sprite (simple CSS) */
+  .kitty{
+    width:140px; height:140px; position:relative;
+    filter: drop-shadow(0 6px 12px rgba(0,0,0,.35));
+  }
+  .kitty .body{
+    width:100%; height:100%; background:#edecec; border-radius: 50%;
+    border:3px solid #8aa0ff;
+  }
+  .kitty .ear{position:absolute; width:36px; height:36px; background:#c7d2ff; border:3px solid #8aa0ff; top:-12px; border-radius:50%; transform:rotate(20deg)}
+  .kitty .ear.right{right:18px}
+  .kitty .ear.left{left:18px; transform:rotate(-20deg)}
+  .kitty .eye{position:absolute; width:18px; height:18px; background:#111; border-radius:50%; top:48px}
+  .kitty .eye.left{left:40px} .kitty .eye.right{right:40px}
+  .kitty .mouth{position:absolute; width:36px; height:18px; background:#f20232; border-radius:0 0 18px 18px; bottom:36px; left:calc(50% - 18px)}
+  .kitty.sleep .eye{height:6px; top:56px; background:#222}
+  .bubble{position:absolute; right:-10px; top:-10px; background:#fff; color:#111; border-radius:12px; padding:.35rem .5rem; font-size:.85rem}
+  .actions{display:flex; gap:.5rem; flex-wrap:wrap; margin-top:.75rem}
+  .actions button{background:#242a55}
+  /* Room themes */
+  .gaming{background:linear-gradient(#1a1f44,#0c0f24)}
+  .bedroom{background:linear-gradient(#0c0f24,#1a1f44)}
+  .bathroom{background:linear-gradient(#1e2a4f,#0c1633)}
+  .kitchen{background:linear-gradient(#1a2f2a,#0c1f18)}
+  /* Mini-game canvas */
+  canvas{border:2px solid #2a2f57; border-radius:12px; background:#0c0f24}
+  .timer{position:absolute; top:.6rem; right:.8rem; opacity:.85}
+</style>
+</head>
+<body>
+  <header>
+    <h1>Talking Kitty — Home Life</h1>
+    <div class="menu">
+      <button data-room="gaming">Gaming room</button>
+      <button data-room="bedroom">Sleeping room</button>
+      <button data-room="bathroom">Bath room</button>
+      <button data-room="kitchen">Kitchen</button>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <aside class="sidebar">
+      <div class="card">
+        <strong>Energy</strong>
+        <div class="bar"><span id="bar-energy" style="width:80%"></span></div>
+      </div>
+      <div class="card">
+        <strong>Hygiene</strong>
+        <div class="bar"><span id="bar-hygiene" style="width:80%"></span></div>
+      </div>
+      <div class="card">
+        <strong>Hunger</strong>
+        <div class="bar"><span id="bar-hunger" style="width:40%"></span></div>
+      </div>
+      <div class="card">
+        <strong>Fun</strong>
+        <div class="bar"><span id="bar-fun" style="width:60%"></span></div>
+      </div>
+      <div class="card">
+        <strong>Clock</strong>
+        <div id="clock">--:--</div>
+      </div>
+      <div class="card">
+        <strong>Status</strong>
+        <div id="status">Ready to play!</div>
+      </div>
+    </aside>
+
+    <main id="room" class="room gaming">
+      <div class="room-title">Gaming room</div>
+      <div class="timer" id="roomTimer"></div>
+
+      <div class="kitty" id="kitty">
+        <div class="body"></div>
+        <div class="ear left"></div><div class="ear right"></div>
+        <div class="eye left"></div><div class="eye right"></div>
+        <div class="mouth"></div>
+        <div class="bubble" id="bubble">Let’s play!</div>
+      </div>
+
+      <!-- Gaming room content -->
+      <div id="gamingContent">
+        <canvas id="gameCanvas" width="560" height="320" aria-label="Mini game"></canvas>
+        <div class="actions">
+          <button id="startMini">Start mini‑game</button>
+          <button id="stopMini">Stop</button>
+        </div>
+      </div>
+
+      <!-- Bedroom content -->
+      <div id="bedroomContent" style="display:none; text-align:center">
+        <p>Sleep timer: <strong id="sleepLeft">00:00</strong></p>
+        <div class="actions">
+          <button id="sleepBtn">Sleep (2 min)</button>
+          <button id="wakeBtn">Wake up</button>
+        </div>
+      </div>
+
+      <!-- Bathroom content -->
+      <div id="bathroomContent" style="display:none; text-align:center">
+        <p>Tap to wash: water + soap increases hygiene.</p>
+        <div class="actions">
+          <button id="waterBtn">Water</button>
+          <button id="soapBtn">Soap</button>
+          <button id="rinseBtn">Rinse</button>
+        </div>
+        <canvas id="bathCanvas" width="560" height="320" aria-label="Bath"></canvas>
+      </div>
+
+      <!-- Kitchen content -->
+      <div id="kitchenContent" style="display:none; text-align:center">
+        <p>Cook and eat to reduce hunger. Cooking takes time—don’t burn it!</p>
+        <div class="actions">
+          <button id="cookBtn">Cook</button>
+          <button id="eatBtn">Eat</button>
+        </div>
+        <canvas id="kitchenCanvas" width="560" height="320" aria-label="Kitchen"></canvas>
+      </div>
+    </main>
+  </div>
+
+  <footer>
+    <div>Tips: Keep Energy high for gaming, Hygiene high after bath, Hunger low after eating, Fun high by playing.</div>
+    <div><span class="accent">Rooms:</span> Gaming • Bedroom • Bathroom • Kitchen</div>
+  </footer>
+
+<script>
+/* --- Core state --- */
+const state = {
+  energy: 80, hygiene: 80, hunger: 40, fun: 60,
+  room: 'gaming',
+  miniRunning: false,
+  sleepUntil: null,
+  cooking: null, // {start, doneAt, burnedAt}
+};
+const ui = {
+  energy: document.getElementById('bar-energy'),
+  hygiene: document.getElementById('bar-hygiene'),
+  hunger: document.getElementById('bar-hunger'),
+  fun: document.getElementById('bar-fun'),
+  status: document.getElementById('status'),
+  clock: document.getElementById('clock'),
+  bubble: document.getElementById('bubble'),
+  roomTimer: document.getElementById('roomTimer'),
+  kitty: document.getElementById('kitty'),
+  room: document.getElementById('room'),
+  sleepLeft: document.getElementById('sleepLeft'),
+};
+function clamp(v){ return Math.max(0, Math.min(100, v)); }
+function setBar(el, val){ el.style.width = clamp(val) + '%'; }
+
+/* --- Global clock & passive needs --- */
+setInterval(()=>{
+  const now = new Date();
+  ui.clock.textContent = now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+  // Passive changes: hunger rises, energy slowly drops if awake, hygiene slowly drops, fun drifts down
+  if (!state.sleepUntil || Date.now() > state.sleepUntil) {
+    state.hunger = clamp(state.hunger + 0.15);
+    state.energy = clamp(state.energy - 0.08);
+    state.hygiene = clamp(state.hygiene - 0.05);
+    state.fun = clamp(state.fun - 0.04);
+  }
+  refreshHUD();
+  updateSleepTimer();
+  updateCooking();
+}, 1000);
+
+function refreshHUD(){
+  setBar(ui.energy, state.energy);
+  setBar(ui.hygiene, state.hygiene);
+  setBar(ui.hunger, state.hunger);
+  setBar(ui.fun, state.fun);
+  const mood = (state.energy>60 && state.hygiene>60 && state.hunger<50 && state.fun>60) ? 'Purr‑fect!' :
+               (state.hunger>80) ? 'So hungry…' :
+               (state.energy<30) ? 'Sleepy…' :
+               (state.hygiene<30) ? 'Needs a bath!' :
+               (state.fun<30) ? 'Bored…' : 'Ready to play!';
+  ui.status.textContent = mood;
+  ui.bubble.textContent = mood;
+  ui.kitty.classList.toggle('sleep', !!state.sleepUntil && Date.now() < state.sleepUntil);
+}
+
+/* --- Room switching --- */
+const roomButtons = document.querySelectorAll('header .menu button');
+roomButtons.forEach(b => b.addEventListener('click', () => switchRoom(b.dataset.room)));
+
+function switchRoom(name){
+  state.room = name;
+  ui.room.className = 'room ' + name;
+  document.querySelector('.room-title').textContent =
+    name === 'gaming' ? 'Gaming room' :
+    name === 'bedroom' ? 'Sleeping room' :
+    name === 'bathroom' ? 'Bath room' : 'Kitchen';
+
+  // Show/hide content
+  document.getElementById('gamingContent').style.display = name==='gaming' ? '' : 'none';
+  document.getElementById('bedroomContent').style.display = name==='bedroom' ? '' : 'none';
+  document.getElementById('bathroomContent').style.display = name==='bathroom' ? '' : 'none';
+  document.getElementById('kitchenContent').style.display = name==='kitchen' ? '' : 'none';
+
+  // Room entry effects
+  if (name==='gaming') ui.roomTimer.textContent = 'Play to raise Fun';
+  if (name==='bedroom') ui.roomTimer.textContent = 'Sleep restores Energy';
+  if (name==='bathroom') ui.roomTimer.textContent = 'Wash to raise Hygiene';
+  if (name==='kitchen') ui.roomTimer.textContent = 'Cook & eat to lower Hunger';
+}
+
+/* --- Gaming room: mini‑game (simple dodger) --- */
+const gCanvas = document.getElementById('gameCanvas');
+const gCtx = gCanvas.getContext('2d');
+let gLoop=null, player=null, blocks=null, gScore=0;
+
+document.getElementById('startMini').addEventListener('click', startMiniGame);
+document.getElementById('stopMini').addEventListener('click', stopMiniGame);
+
+function startMiniGame(){
+  if (state.miniRunning) return;
+  state.miniRunning = true;
+  player = {x:gCanvas.width/2-25, y:gCanvas.height-30, w:50, h:16};
+  blocks = []; gScore = 0;
+  gLoop = setInterval(()=>{
+    // spawn
+    if (Math.random()<0.06) blocks.push({x:Math.random()*(gCanvas.width-20), y:-20, w:20, h:20, vy:2+Math.random()*3});
+    // update
+    blocks.forEach(b=> b.y += b.vy);
+    blocks = blocks.filter(b=> b.y < gCanvas.height+30);
+    // collide
+    for (const b of blocks){
+      if (b.x < player.x+player.w && b.x+b.w > player.x && b.y < player.y+player.h && b.y+b.h > player.y){
+        gScore = Math.max(0, gScore-2);
+        state.fun = clamp(state.fun - 1);
+      }
+    }
+    // score & fun
+    gScore += 1; state.fun = clamp(state.fun + 0.4); state.energy = clamp(state.energy - 0.2);
+    // draw
+    gCtx.clearRect(0,0,gCanvas.width,gCanvas.height);
+    gCtx.fillStyle='#6cf1ff'; gCtx.fillRect(player.x, player.y, player.w, player.h);
+    gCtx.fillStyle='#ff4d6d'; blocks.forEach(b=> gCtx.fillRect(b.x,b.y,b.w,b.h));
+    gCtx.fillStyle='#fff'; gCtx.fillText('Score: '+gScore, 10, 18);
+  }, 33);
+  window.addEventListener('keydown', miniKeys);
+}
+function miniKeys(e){
+  if (!state.miniRunning) return;
+  if (e.key==='ArrowLeft') player.x = Math.max(0, player.x-18);
+  if (e.key==='ArrowRight') player.x = Math.min(gCanvas.width-player.w, player.x+18);
+}
+function stopMiniGame(){
+  if (!state.miniRunning) return;
+  clearInterval(gLoop); gLoop=null; state.miniRunning=false;
+  window.removeEventListener('keydown', miniKeys);
+  ui.status.textContent = 'Finished playing';
+}
+
+/* --- Bedroom: sleep timer --- */
+document.getElementById('sleepBtn').addEventListener('click', ()=>{
+  const minutes = 2;
+  state.sleepUntil = Date.now() + minutes*60*1000;
+  ui.status.textContent = 'Sleeping…';
+});
+document.getElementById('wakeBtn').addEventListener('click', ()=>{
+  state.sleepUntil = null;
+  ui.status.textContent = 'Awake!';
+});
+
+function updateSleepTimer(){
+  if (!state.sleepUntil) { ui.sleepLeft.textContent = '00:00'; return; }
+  const left = Math.max(0, state.sleepUntil - Date.now());
+  const m = Math.floor(left/60000), s = Math.floor((left%60000)/1000);
+  ui.sleepLeft.textContent = String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  // Restore energy while sleeping, reduce hunger a bit slower, hygiene slightly down
+  state.energy = clamp(state.energy + 0.8);
+  state.hunger = clamp(state.hunger + 0.05);
+  state.hygiene = clamp(state.hygiene - 0.02);
+  if (left<=0){ state.sleepUntil=null; ui.status.textContent='Well rested!'; }
+}
+
+/* --- Bathroom: wash interactions --- */
+const bCanvas = document.getElementById('bathCanvas');
+const bCtx = bCanvas.getContext('2d');
+let bubbles = [];
+function drawBath(){
+  bCtx.clearRect(0,0,bCanvas.width,bCanvas.height);
+  // tub
+  bCtx.fillStyle='#1e2a4f'; bCtx.fillRect(40,200,480,100);
+  // water
+  bCtx.fillStyle='rgba(108,241,255,.35)'; bCtx.fillRect(40,220,480,80);
+  // bubbles
+  bCtx.fillStyle='#e9ecff';
+  bubbles.forEach(b=> { b.y -= 0.8; bCtx.beginPath(); bCtx.arc(b.x,b.y,b.r,0,Math.PI*2); bCtx.fill(); });
+  bubbles = bubbles.filter(b=> b.y > 160);
+}
+setInterval(drawBath, 33);
+
+document.getElementById('waterBtn').addEventListener('click', ()=>{
+  for (let i=0;i<12;i++) bubbles.push({x:60+Math.random()*440, y:290, r:4+Math.random()*6});
+  state.hygiene = clamp(state.hygiene + 2);
+  ui.status.textContent = 'Splash splash!';
+});
+document.getElementById('soapBtn').addEventListener('click', ()=>{
+  for (let i=0;i<16;i++) bubbles.push({x:60+Math.random()*440, y:290, r:6+Math.random()*8});
+  state.hygiene = clamp(state.hygiene + 4);
+  state.fun = clamp(state.fun + 0.6);
+  ui.status.textContent = 'Soapy bubbles!';
+});
+document.getElementById('rinseBtn').addEventListener('click', ()=>{
+  for (let i=0;i<10;i++) bubbles.push({x:60+Math.random()*440, y:290, r:5+Math.random()*5});
+  state.hygiene = clamp(state.hygiene + 3);
+  ui.status.textContent = 'Rinsed clean!';
+});
+
+/* --- Kitchen: cooking & eating --- */
+const kCanvas = document.getElementById('kitchenCanvas');
+const kCtx = kCanvas.getContext('2d');
+function drawKitchen(){
+  kCtx.clearRect(0,0,kCanvas.width,kCanvas.height);
+  // counter & stove
+  kCtx.fillStyle='#243a33'; kCtx.fillRect(40,220,480,80);
+  kCtx.fillStyle='#333'; kCtx.fillRect(360,200,120,40); // stove top
+  // pot
+  const cooking = state.cooking;
+  const potColor = cooking ? (Date.now() < cooking.doneAt ? '#6cf1ff' : (Date.now() < cooking.burnedAt ? '#ffd166' : '#ff4d6d')) : '#888';
+  kCtx.fillStyle=potColor; kCtx.fillRect(390,180,60,30);
+  // steam if cooking
+  if (cooking && Date.now() < cooking.doneAt){
+    kCtx.fillStyle='rgba(255,255,255,.6)';
+    for (let i=0;i<3;i++){
+      const x = 410 + Math.sin(Date.now()/300 + i)*10;
+      const y = 170 - (Date.now()/20 % 20);
+      kCtx.fillRect(x, y, 6, 12);
+    }
+  }
+  // plate
+  kCtx.fillStyle='#ddd'; kCtx.beginPath(); kCtx.arc(140,240,28,0,Math.PI*2); kCtx.fill();
+}
+setInterval(drawKitchen, 33);
+
+document.getElementById('cookBtn').addEventListener('click', ()=>{
+  if (state.cooking) { ui.status.textContent='Already cooking…'; return; }
+  const now = Date.now();
+  state.cooking = { start: now, doneAt: now + 15000, burnedAt: now + 30000 }; // 15s done, 30s burned
+  ui.status.textContent = 'Cooking… wait for it to finish!';
+});
+document.getElementById('eatBtn').addEventListener('click', ()=>{
+  if (!state.cooking){ ui.status.textContent='Nothing cooked yet.'; return; }
+  const now = Date.now();
+  if (now < state.cooking.doneAt){ ui.status.textContent='Too early—still raw!'; state.hunger = clamp(state.hunger - 5); }
+  else if (now < state.cooking.burnedAt){ ui.status.textContent='Yum! Perfect meal.'; state.hunger = clamp(state.hunger - 25); state.energy = clamp(state.energy + 6); state.fun = clamp(state.fun + 2); }
+  else { ui.status.textContent='Oops, burned…'; state.hunger = clamp(state.hunger - 10); state.fun = clamp(state.fun - 2); }
+  state.cooking = null;
+});
+
+function updateCooking(){
+  if (!state.cooking) return;
+  const now = Date.now();
+  const left = Math.max(0, state.cooking.doneAt - now);
+  const phase = now < state.cooking.doneAt ? 'Cooking' : (now < state.cooking.burnedAt ? 'Ready to eat' : 'Burning!');
+  if (state.room==='kitchen') ui.roomTimer.textContent = `${phase} — ${Math.ceil(left/1000)}s`;
+}
+
+/* --- Init --- */
+switchRoom('gaming');
+refreshHUD();
+</script>
+</body>
+</html>

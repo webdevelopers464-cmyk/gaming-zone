@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Fun Box Game</title>
+</head>
+<style>
+    body {
+  margin: 0;
+  font-family: 'Comic Sans MS', cursive;
+  background: linear-gradient(to right, #f9d423, #ff4e50);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.game-container {
+  text-align: center;
+  background: white;
+  padding: 20px;
+  border-radius: 20px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+canvas {
+  background: #eee;
+  border: 2px solid #333;
+  margin-top: 20px;
+}
+
+</style>
+<body>
+  <div class="game-container">
+    <h1>🎮 Fun Box Game 🎮</h1>
+    <p id="instructions">Click start to hear how to play.</p>
+    <div class="controls">
+      <select id="level">
+        <option value="easy">Easy</option>
+        <option value="medium">Medium</option>
+        <option value="hard">Hard</option>
+      </select>
+      <button onclick="startGame()">Start Game</button>
+    </div>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+const popSound = new Audio("https://www.soundjay.com/buttons/sounds/button-3.mp3");
+
+function speakInstructions() {
+  const msg = new SpeechSynthesisUtterance(
+    "Welcome to the Fun Box Game! Your goal is to click as many boxes as you can before time runs out. Select a level and click Start Game to begin!"
+  );
+  window.speechSynthesis.speak(msg);
+}
+
+let box = { x: 50, y: 50, size: 50 };
+let score = 0;
+let gameActive = false;
+
+canvas.addEventListener("click", (e) => {
+  if (!gameActive) return;
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+
+  if (
+    mx >= box.x && mx <= box.x + box.size &&
+    my >= box.y && my <= box.y + box.size
+  ) {
+    popSound.play();
+    score++;
+    moveBox();
+  }
+});
+
+function moveBox() {
+  box.x = Math.random() * (canvas.width - box.size);
+  box.y = Math.random() * (canvas.height - box.size);
+  draw();
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "#ff4e50";
+  ctx.fillRect(box.x, box.y, box.size, box.size);
+}
+
+function startGame() {
+  speakInstructions();
+  const level = document.getElementById("level").value;
+  let interval;
+
+  switch (level) {
+    case "easy": interval = 1500; break;
+    case "medium": interval = 1000; break;
+    case "hard": interval = 600; break;
+  }
+
+  gameActive = true;
+  score = 0;
+  moveBox();
+
+  let timer = setInterval(() => {
+    moveBox();
+  }, interval);
+
+  // End game after 30 seconds
+  setTimeout(() => {
+    clearInterval(timer);
+    gameActive = false;
+    alert(`Game Over! Your score is ${score}`);
+  }, 30000);
+}
+
+  </script>
+</body>
+</html>

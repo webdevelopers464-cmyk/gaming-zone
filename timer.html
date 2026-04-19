@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Reaction Timer Game</title>
+</head>
+<style>
+    body {
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #f4f4f4;
+  text-align: center;
+  margin-top: 50px;
+}
+
+.container {
+  max-width: 600px;
+  margin: auto;
+  background: #fff;
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.2);
+}
+
+#reactionBox {
+  width: 100%;
+  height: 200px;
+  margin-top: 30px;
+  background-color: #ccc;
+  border-radius: 15px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+#message {
+  font-size: 1.2em;
+  margin-top: 20px;
+}
+
+#result {
+  margin-top: 20px;
+  font-weight: bold;
+  font-size: 1.5em;
+  color: #333;
+}
+
+button, select {
+  padding: 10px 20px;
+  font-size: 1em;
+  margin-top: 10px;
+  border-radius: 10px;
+  border: none;
+  background-color: #1abc9c;
+  color: white;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #16a085;
+}
+
+</style>
+<body>
+  <div class="container">
+    <h1>Reaction Timer Game</h1>
+    <select id="level">
+      <option value="easy">Easy</option>
+      <option value="medium">Medium</option>
+      <option value="hard">Hard</option>
+    </select>
+    <button id="startBtn">Start</button>
+    <div id="message">Click when the screen turns green!</div>
+    <div id="reactionBox"></div>
+    <div id="result"></div>
+  </div>
+
+  <script>
+    const startBtn = document.getElementById("startBtn");
+const reactionBox = document.getElementById("reactionBox");
+const message = document.getElementById("message");
+const result = document.getElementById("result");
+const levelSelect = document.getElementById("level");
+
+let timeoutId, startTime, clickedTooSoon = false;
+
+const voices = {
+  ready: new SpeechSynthesisUtterance("Get ready..."),
+  clickNow: new SpeechSynthesisUtterance("Click now!"),
+  tooSoon: new SpeechSynthesisUtterance("Too soon! Wait for green."),
+  success: new SpeechSynthesisUtterance("Good job!"),
+};
+
+function speak(text) {
+  voices.ready.text = text;
+  speechSynthesis.speak(voices.ready);
+}
+
+function getDelay(level) {
+  switch(level) {
+    case 'easy': return Math.random() * 2000 + 2000; // 2-4s
+    case 'medium': return Math.random() * 2000 + 1000; // 1-3s
+    case 'hard': return Math.random() * 1000 + 500; // 0.5-1.5s
+  }
+}
+
+startBtn.addEventListener("click", () => {
+  clickedTooSoon = false;
+  reactionBox.style.backgroundColor = "#ccc";
+  result.textContent = "";
+  message.textContent = "Wait for green...";
+  speak("Get ready");
+
+  const delay = getDelay(levelSelect.value);
+  timeoutId = setTimeout(() => {
+    if (!clickedTooSoon) {
+      reactionBox.style.backgroundColor = "green";
+      startTime = Date.now();
+      message.textContent = "CLICK!";
+      speak("Click now!");
+    }
+  }, delay);
+});
+
+reactionBox.addEventListener("click", () => {
+  if (reactionBox.style.backgroundColor === "green") {
+    const reactionTime = Date.now() - startTime;
+    result.textContent = `Your reaction time: ${reactionTime} ms`;
+    speak("Good job!");
+  } else if (message.textContent !== "CLICK!") {
+    clearTimeout(timeoutId);
+    message.textContent = "Too soon!";
+    result.textContent = "";
+    clickedTooSoon = true;
+    reactionBox.style.backgroundColor = "#ccc";
+    speak("Too soon! Wait for green.");
+  }
+});
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Human Body Parts Game</title>
+</head>
+<style>body {
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #e3f2fd;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+  }
+  
+  .game-container {
+    margin-top: 50px;
+    padding: 20px;
+  }
+  
+  #options button {
+    margin: 10px;
+    padding: 10px 20px;
+    font-size: 18px;
+    cursor: pointer;
+  }
+  
+  #instruction {
+    background-color: #fff3cd;
+    color: #856404;
+    margin: 20px;
+    padding: 10px;
+    border: 1px solid #ffeeba;
+    display: inline-block;
+  }
+  
+  .hidden {
+    display: none;
+  }
+  </style>
+<body>
+  <div class="game-container">
+    <h1>Human Body Parts Game</h1>
+
+    <div class="controls">
+      <label for="level">Select Level:</label>
+      <select id="level">
+        <option value="easy">Easy</option>
+        <option value="medium">Medium</option>
+        <option value="hard">Hard</option>
+      </select>
+      <button id="startBtn">Start Game</button>
+    </div>
+
+    <div id="instruction" class="hidden"></div>
+    <div id="question"></div>
+    <div id="options"></div>
+    <div id="result"></div>
+  </div>
+
+  <audio id="correctSound" src="correct.mp3"></audio>
+  <audio id="wrongSound" src="wrong.mp3"></audio>
+
+  <script>
+    const questions = {
+  easy: [
+    { question: "Which part do we use to see?", answer: "Eyes", options: ["Legs", "Eyes", "Nose", "Hands"] },
+    { question: "Which part do we use to hear?", answer: "Ears", options: ["Ears", "Feet", "Hands", "Mouth"] }
+  ],
+  medium: [
+    { question: "Which part helps us to digest food?", answer: "Stomach", options: ["Heart", "Lungs", "Stomach", "Brain"] },
+    { question: "Which part controls the body?", answer: "Brain", options: ["Brain", "Kidney", "Hand", "Liver"] }
+  ],
+  hard: [
+    { question: "Which part pumps blood?", answer: "Heart", options: ["Heart", "Liver", "Lungs", "Skin"] },
+    { question: "Which organ filters blood?", answer: "Kidney", options: ["Kidney", "Brain", "Stomach", "Eye"] }
+  ]
+};
+
+const startBtn = document.getElementById('startBtn');
+const levelSelect = document.getElementById('level');
+const questionBox = document.getElementById('question');
+const optionsBox = document.getElementById('options');
+const resultBox = document.getElementById('result');
+const instructionBox = document.getElementById('instruction');
+const correctSound = document.getElementById('correctSound');
+const wrongSound = document.getElementById('wrongSound');
+
+let currentQuestions = [];
+let currentQuestionIndex = 0;
+
+function speakInstruction(text) {
+  const utterance = new SpeechSynthesisUtterance(text);
+  speechSynthesis.speak(utterance);
+}
+
+function showInstruction() {
+  const text = "Welcome! In this game, you will be asked about human body parts. Click on the correct answer. Good luck!";
+  instructionBox.textContent = text;
+  instructionBox.classList.remove('hidden');
+  speakInstruction(text);
+}
+
+function startGame() {
+  const level = levelSelect.value;
+  currentQuestions = [...questions[level]];
+  currentQuestionIndex = 0;
+  instructionBox.classList.add('hidden');
+  resultBox.textContent = '';
+  showInstruction();
+  setTimeout(() => {
+    showQuestion();
+  }, 6000); // Delay to allow instruction to finish
+}
+
+function showQuestion() {
+  if (currentQuestionIndex >= currentQuestions.length) {
+    resultBox.textContent = "Great job! You've completed this level!";
+    return;
+  }
+
+  const q = currentQuestions[currentQuestionIndex];
+  questionBox.textContent = q.question;
+  optionsBox.innerHTML = '';
+
+  q.options.forEach(option => {
+    const btn = document.createElement('button');
+    btn.textContent = option;
+    btn.onclick = () => checkAnswer(option);
+    optionsBox.appendChild(btn);
+  });
+}
+
+function checkAnswer(selected) {
+  const q = currentQuestions[currentQuestionIndex];
+  if (selected === q.answer) {
+    correctSound.play();
+    resultBox.textContent = "Correct!";
+  } else {
+    wrongSound.play();
+    resultBox.textContent = `Wrong! Correct answer: ${q.answer}`;
+  }
+
+  currentQuestionIndex++;
+  setTimeout(() => {
+    resultBox.textContent = '';
+    showQuestion();
+  }, 2000);
+}
+
+startBtn.addEventListener('click', startGame);
+
+  </script>
+</body>
+</html>

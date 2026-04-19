@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Puzzle Slider Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f8ff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    h1 {
+      margin-bottom: 10px;
+    }
+    #game {
+      display: grid;
+      gap: 5px;
+      margin: 20px auto;
+    }
+    .tile {
+      width: 80px;
+      height: 80px;
+      background-color: #add8e6;
+      font-size: 24px;
+      color: #333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border-radius: 10px;
+      user-select: none;
+      transition: background-color 0.2s;
+    }
+    .tile.empty {
+      background-color: transparent;
+      cursor: default;
+    }
+    #controls {
+      margin-top: 10px;
+    }
+    select, button {
+      padding: 8px;
+      font-size: 16px;
+      margin: 5px;
+    }
+    #status {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>Puzzle Slider Game</h1>
+  <div id="controls">
+    <label>Level: </label>
+    <select id="levelSelect">
+      <option value="3">Easy (3x3)</option>
+      <option value="4">Medium (4x4)</option>
+      <option value="5">Hard (5x5)</option>
+    </select>
+    <button onclick="startGame()">Start</button>
+  </div>
+  <div id="game"></div>
+  <div id="status"></div>
+  <audio id="moveSound" src="https://cdn.pixabay.com/audio/2021/08/04/audio_6c1780ba5f.mp3"></audio>
+  <audio id="winSound" src="https://cdn.pixabay.com/audio/2021/08/04/audio_cdf785d236.mp3"></audio>
+  <script>
+    let size = 3;
+    let tiles = [];
+    let emptyIndex;
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function createTiles() {
+      const game = document.getElementById('game');
+      game.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+      game.innerHTML = '';
+
+      tiles = Array.from({ length: size * size }, (_, i) => i);
+      shuffle(tiles);
+
+      tiles.forEach((tile, i) => {
+        const div = document.createElement('div');
+        div.className = 'tile';
+        if (tile === 0) {
+          div.classList.add('empty');
+          emptyIndex = i;
+        } else {
+          div.textContent = tile;
+        }
+        div.addEventListener('click', () => moveTile(i));
+        game.appendChild(div);
+      });
+    }
+
+    function moveTile(index) {
+      const moveSound = document.getElementById('moveSound');
+      const row1 = Math.floor(emptyIndex / size);
+      const col1 = emptyIndex % size;
+      const row2 = Math.floor(index / size);
+      const col2 = index % size;
+
+      const dx = Math.abs(row1 - row2);
+      const dy = Math.abs(col1 - col2);
+
+      if ((dx + dy) === 1) {
+        [tiles[emptyIndex], tiles[index]] = [tiles[index], tiles[emptyIndex]];
+        emptyIndex = index;
+        moveSound.play();
+        renderTiles();
+        checkWin();
+      }
+    }
+
+    function renderTiles() {
+      const game = document.getElementById('game');
+      Array.from(game.children).forEach((div, i) => {
+        const tile = tiles[i];
+        if (tile === 0) {
+          div.className = 'tile empty';
+          div.textContent = '';
+        } else {
+          div.className = 'tile';
+          div.textContent = tile;
+        }
+      });
+    }
+
+    function checkWin() {
+      for (let i = 0; i < tiles.length - 1; i++) {
+        if (tiles[i] !== i + 1) return;
+      }
+      if (tiles[tiles.length - 1] === 0) {
+        document.getElementById('status').textContent = 'You Win! 🎉';
+        document.getElementById('winSound').play();
+      }
+    }
+
+    function startGame() {
+      size = parseInt(document.getElementById('levelSelect').value);
+      document.getElementById('status').textContent = '';
+      createTiles();
+    }
+
+    window.onload = startGame;
+  </script>
+</body>
+</html>

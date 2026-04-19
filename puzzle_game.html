@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Water Sort Puzzle</title>
+</head>
+<style>
+    body {
+  font-family: sans-serif;
+  background: #f0f0f0;
+  text-align: center;
+  padding: 30px;
+}
+
+#game {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-top: 30px;
+}
+
+.tube {
+  width: 60px;
+  height: 240px;
+  border: 2px solid #555;
+  border-radius: 10px;
+  background: #fff;
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: flex-start;
+  cursor: pointer;
+}
+
+.layer {
+  height: 25%;
+  width: 100%;
+  transition: background 0.3s;
+}
+
+</style>
+<body>
+  <h1>Water Sort Puzzle</h1>
+  <div id="game"></div>
+  <button onclick="resetGame()">Reset</button>
+  <script>
+    const colors = ['red', 'blue', 'green', 'yellow'];
+let tubes = [];
+let selectedTube = null;
+
+function resetGame() {
+  // Clear previous game
+  document.getElementById('game').innerHTML = '';
+  tubes = [];
+
+  // Create shuffled layers
+  const allLayers = [];
+  colors.forEach(color => {
+    for (let i = 0; i < 4; i++) {
+      allLayers.push(color);
+    }
+  });
+
+  // Shuffle
+  allLayers.sort(() => Math.random() - 0.5);
+
+  // Create tubes with shuffled layers
+  for (let i = 0; i < 6; i++) {
+    let tube = [];
+    for (let j = 0; j < 4; j++) {
+      if (allLayers.length > 0) {
+        tube.push(allLayers.pop());
+      }
+    }
+    tubes.push(tube);
+  }
+
+  // Add two empty tubes
+  tubes.push([]);
+  tubes.push([]);
+
+  render();
+}
+
+function render() {
+  const game = document.getElementById('game');
+  game.innerHTML = '';
+
+  tubes.forEach((tube, index) => {
+    const tubeDiv = document.createElement('div');
+    tubeDiv.className = 'tube';
+    tubeDiv.onclick = () => handleTubeClick(index);
+
+    for (let i = 0; i < 4; i++) {
+      const layerDiv = document.createElement('div');
+      layerDiv.className = 'layer';
+      layerDiv.style.background = tube[i] || '#eee';
+      tubeDiv.appendChild(layerDiv);
+    }
+
+    game.appendChild(tubeDiv);
+  });
+}
+
+function handleTubeClick(index) {
+  if (selectedTube === null) {
+    selectedTube = index;
+  } else {
+    if (selectedTube !== index) {
+      pour(selectedTube, index);
+    }
+    selectedTube = null;
+  }
+  render();
+  checkWin();
+}
+
+function pour(from, to) {
+  if (tubes[from].length === 0 || tubes[to].length === 4) return;
+
+  const fromTube = tubes[from];
+  const toTube = tubes[to];
+  const movingColor = fromTube[fromTube.length - 1];
+
+  // Check if move is valid
+  if (toTube.length === 0 || toTube[toTube.length - 1] === movingColor) {
+    let count = 0;
+
+    // Count how many layers of same color are on top
+    for (let i = fromTube.length - 1; i >= 0; i--) {
+      if (fromTube[i] === movingColor) {
+        count++;
+      } else {
+        break;
+      }
+    }
+
+    // Pour into available space
+    const space = 4 - toTube.length;
+    const pourCount = Math.min(count, space);
+
+    for (let i = 0; i < pourCount; i++) {
+      toTube.push(fromTube.pop());
+    }
+  }
+}
+
+function checkWin() {
+  const isSolved = tubes.every(tube => {
+    return tube.length === 0 || (tube.length === 4 && new Set(tube).size === 1);
+  });
+
+  if (isSolved) {
+    setTimeout(() => alert('🎉 Puzzle Solved!'), 100);
+  }
+}
+
+resetGame();
+
+  </script>
+</body>
+</html>
+

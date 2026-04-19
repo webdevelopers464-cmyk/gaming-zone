@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whack-a-Mole</title>
+</head>
+<style>
+    body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-color: #f0f0f0;
+}
+
+.container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+button {
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.game-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.hole {
+    width: 100px;
+    height: 100px;
+    background-color: #a52a2a;
+    border-radius: 50%;
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+}
+
+.hole.active {
+    background-color: #008000;
+}
+
+#score, #level, #timer {
+    margin-top: 20px;
+}
+
+.instructions {
+    font-size: 18px;
+    margin-top: 20px;
+    display: none;
+}
+
+</style>
+<body>
+    <div class="container">
+        <button id="startBtn">Start Game</button>
+        <div id="instructions" class="instructions">Click "Start Game" to begin. Whack the moles as they pop up!</div>
+        <div class="game-container" id="gameContainer">
+            <div class="hole" id="hole1"></div>
+            <div class="hole" id="hole2"></div>
+            <div class="hole" id="hole3"></div>
+            <div class="hole" id="hole4"></div>
+            <div class="hole" id="hole5"></div>
+            <div class="hole" id="hole6"></div>
+            <div class="hole" id="hole7"></div>
+            <div class="hole" id="hole8"></div>
+            <div class="hole" id="hole9"></div>
+        </div>
+        <div id="score">Score: 0</div>
+        <div id="level">Level: 1</div>
+        <div id="timer">Time Left: 30</div>
+    </div>
+
+    <script>
+     let score = 0;
+        let level = 1;
+        let timeLeft = 30;
+        let gameInterval;
+        let moleInterval;
+        let activeMole;
+        let moles = [];
+        let gameStarted = false;
+        
+        const startBtn = document.getElementById('startBtn');
+        const scoreDisplay = document.getElementById('score');
+        const levelDisplay = document.getElementById('level');
+        const timerDisplay = document.getElementById('timer');
+        const gameContainer = document.getElementById('gameContainer');
+        const instructions = document.getElementById('instructions');
+        
+        startBtn.addEventListener('click', startGame);
+        
+        function startGame() {
+            if (gameStarted) return;  // Prevent starting the game if it's already running
+        
+            gameStarted = true;
+            score = 0;
+            level = 1;
+            timeLeft = 30;
+            instructions.style.display = 'none';  // Hide instructions after the game starts
+        
+            scoreDisplay.textContent = `Score: ${score}`;
+            levelDisplay.textContent = `Level: ${level}`;
+            timerDisplay.textContent = `Time Left: ${timeLeft}`;
+            
+            gameContainer.classList.remove('hidden');
+            startBtn.disabled = true;
+        
+            // Start the game loop
+            gameInterval = setInterval(updateGame, 1000);
+        
+            // Start mole popping at intervals
+            moleInterval = setInterval(popMole, 1000);
+            
+            // Show instructions
+            setTimeout(() => {
+                instructions.style.display = 'block';
+            }, 0);
+        }
+        
+        function updateGame() {
+            if (timeLeft <= 0) {
+                clearInterval(gameInterval);
+                clearInterval(moleInterval);
+                alert(`Game Over! Final Score: ${score}`);
+                startBtn.disabled = false;
+                gameStarted = false;
+                gameContainer.classList.add('hidden');
+                return;
+            }
+            timeLeft--;
+            timerDisplay.textContent = `Time Left: ${timeLeft}`;
+        }
+        
+        function popMole() {
+            const randomHoleIndex = Math.floor(Math.random() * 9) + 1;
+            const mole = document.getElementById(`hole${randomHoleIndex}`);
+        
+            // Add the active class to make the mole appear
+            mole.classList.add('active');
+            moles.push(mole);
+        
+            setTimeout(() => {
+                mole.classList.remove('active');
+                moles = moles.filter(m => m !== mole);
+            }, 1000);
+        }
+        
+        gameContainer.addEventListener('click', (event) => {
+            if (!event.target.classList.contains('hole') || !event.target.classList.contains('active')) return;
+        
+            score++;
+            scoreDisplay.textContent = `Score: ${score}`;
+        
+            // Increase level after every 5 points
+            if (score % 5 === 0) {
+                level++;
+                levelDisplay.textContent = `Level: ${level}`;
+            }
+        });
+   </script>
+</body>
+</html>

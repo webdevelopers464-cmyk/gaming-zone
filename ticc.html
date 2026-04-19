@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tic Tac Toe ✦ by Maryam</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0a1a;
+      --surface: #0f0f2e;
+      --card: #141430;
+      --x-color: #ff2d78;
+      --o-color: #00f5ff;
+      --accent: #7c3aed;
+      --text: #e8e8ff;
+      --muted: #6b7280;
+      --glow-x: 0 0 20px #ff2d7880, 0 0 40px #ff2d7840;
+      --glow-o: 0 0 20px #00f5ff80, 0 0 40px #00f5ff40;
+      --border: #ffffff15;
+      --win-bg: linear-gradient(135deg, #ff2d7820, #7c3aed20);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Rajdhani', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-x: hidden;
+    }
+    /* Animated star background */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background: radial-gradient(ellipse at 20% 20%, #7c3aed15 0%, transparent 60%),
+                  radial-gradient(ellipse at 80% 80%, #ff2d7815 0%, transparent 60%),
+                  radial-gradient(ellipse at 50% 50%, #00f5ff08 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .stars {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      overflow: hidden;
+    }
+    .star {
+      position: absolute;
+      background: white;
+      border-radius: 50%;
+      animation: twinkle var(--dur, 3s) ease-in-out infinite var(--delay, 0s);
+    }
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.1; transform: scale(1); }
+      50% { opacity: 0.8; transform: scale(1.3); }
+    }
+
+    .container {
+      position: relative; z-index: 1;
+      width: 100%; max-width: 520px;
+      padding: 24px 16px 48px;
+      display: flex; flex-direction: column; align-items: center; gap: 20px;
+    }
+
+    /* Header */
+    header { text-align: center; }
+    header h1 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(28px, 7vw, 42px);
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--x-color), var(--accent), var(--o-color));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: 3px;
+      text-shadow: none;
+      animation: hueShift 6s linear infinite;
+    }
+    @keyframes hueShift {
+      0% { filter: hue-rotate(0deg); }
+      100% { filter: hue-rotate(360deg); }
+    }
+    header p {
+      font-size: 12px; color: var(--muted); letter-spacing: 2px;
+      text-transform: uppercase; margin-top: 4px;
+    }
+
+    /* Controls bar */
+    .controls {
+      display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: center;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 12px 16px; width: 100%;
+    }
+    select {
+      background: var(--surface); color: var(--text);
+      border: 1px solid var(--border); border-radius: 10px;
+      padding: 8px 12px; font-family: 'Rajdhani', sans-serif;
+      font-size: 14px; cursor: pointer; outline: none;
+      flex: 1; min-width: 140px;
+    }
+    select:focus { border-color: var(--accent); }
+    .btn {
+      background: linear-gradient(135deg, var(--accent), #5b21b6);
+      color: white; border: none; border-radius: 10px;
+      padding: 8px 18px; font-family: 'Orbitron', sans-serif;
+      font-size: 11px; font-weight: 700; letter-spacing: 1px;
+      cursor: pointer; transition: all 0.2s;
+      text-transform: uppercase;
+    }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 20px #7c3aed60; }
+    .btn:active { transform: translateY(0); }
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 11px;
+    }
+    .btn-secondary:hover { border-color: var(--text); color: var(--text); box-shadow: none; }
+
+    /* Name inputs */
+    .name-inputs {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%;
+    }
+    .name-group {
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .name-group label {
+      font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted);
+    }
+    .name-group label span.x-label { color: var(--x-color); }
+    .name-group label span.o-label { color: var(--o-color); }
+    .name-group input {
+      background: var(--surface); color: var(--text);
+      border: 1px solid var(--border); border-radius: 10px;
+      padding: 8px 12px; font-family: 'Rajdhani', sans-serif; font-size: 15px;
+      outline: none; width: 100%; transition: border-color 0.2s;
+    }
+    .name-group input:focus { border-color: var(--accent); }
+
+    /* Score board */
+    .scoreboard {
+      display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; width: 100%;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 14px 16px; align-items: center;
+    }
+    .score-player {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+    }
+    .score-player .name {
+      font-size: 13px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
+      max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .score-player.x-player .name { color: var(--x-color); }
+    .score-player.o-player .name { color: var(--o-color); }
+    .score-number {
+      font-family: 'Orbitron', sans-serif; font-size: 32px; font-weight: 900; line-height: 1;
+    }
+    .x-player .score-number { color: var(--x-color); text-shadow: var(--glow-x); }
+    .o-player .score-number { color: var(--o-color); text-shadow: var(--glow-o); }
+    .score-divider {
+      font-family: 'Orbitron', sans-serif; font-size: 20px; color: var(--muted);
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+    }
+    .score-divider .ties-label { font-size: 9px; letter-spacing: 1px; color: var(--muted); }
+    .score-divider .ties-num { font-size: 18px; color: var(--muted); }
+
+    /* Status */
+    .status {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(13px, 3.5vw, 16px);
+      font-weight: 700; letter-spacing: 2px;
+      text-align: center; min-height: 32px;
+      transition: color 0.3s;
+    }
+
+    /* Timer */
+    .timer-bar {
+      width: 100%; height: 4px;
+      background: var(--surface); border-radius: 2px; overflow: hidden;
+    }
+    .timer-fill {
+      height: 100%; border-radius: 2px;
+      background: linear-gradient(90deg, var(--x-color), var(--accent));
+      transition: width 1s linear, background 0.5s;
+    }
+    .timer-text {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 11px; color: var(--muted); letter-spacing: 1px;
+      text-align: right; width: 100%;
+    }
+
+    /* Board */
+    .board-wrap {
+      position: relative; width: 100%;
+    }
+    .board {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 10px; width: 100%;
+    }
+    .cell {
+      aspect-ratio: 1;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(36px, 11vw, 70px);
+      font-weight: 900;
+      transition: background 0.2s, border-color 0.2s, transform 0.15s;
+      position: relative; overflow: hidden;
+      user-select: none;
+    }
+    .cell::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(circle at center, white 0%, transparent 70%);
+      opacity: 0; transition: opacity 0.2s;
+      pointer-events: none;
+    }
+    .cell:not(.taken):hover { background: #1a1a40; border-color: #ffffff25; transform: scale(1.03); }
+    .cell:not(.taken):hover::before { opacity: 0.04; }
+    .cell.x {
+      color: var(--x-color); border-color: #ff2d7830;
+      background: #ff2d780a;
+      animation: popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .cell.o {
+      color: var(--o-color); border-color: #00f5ff30;
+      background: #00f5ff0a;
+      animation: popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .cell.win {
+      animation: winPulse 0.6s ease forwards;
+      border-color: currentColor !important;
+    }
+    .cell.x.win { box-shadow: var(--glow-x), inset 0 0 30px #ff2d7820; background: #ff2d7818; }
+    .cell.o.win { box-shadow: var(--glow-o), inset 0 0 30px #00f5ff20; background: #00f5ff18; }
+    .cell.taken { cursor: default; }
+
+    @keyframes popIn {
+      0% { transform: scale(0.4) rotate(-15deg); opacity: 0; }
+      100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+    @keyframes winPulse {
+      0% { transform: scale(1); }
+      30% { transform: scale(1.12); }
+      60% { transform: scale(0.96); }
+      100% { transform: scale(1.05); }
+    }
+
+    /* Win line overlay */
+    .win-line {
+      position: absolute; pointer-events: none; z-index: 10;
+      background: linear-gradient(90deg, transparent, var(--x-color), transparent);
+      border-radius: 4px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .win-line.visible { opacity: 1; animation: lineGrow 0.4s ease; }
+    @keyframes lineGrow {
+      from { transform: scaleX(0); } to { transform: scaleX(1); }
+    }
+
+    /* POPUP */
+    .popup-overlay {
+      position: fixed; inset: 0; z-index: 100;
+      background: #00000080; backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    .popup-overlay.show { opacity: 1; pointer-events: all; }
+    .popup {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 40px 32px;
+      text-align: center;
+      max-width: 360px; width: 90%;
+      transform: scale(0.8) translateY(20px);
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      position: relative; overflow: hidden;
+    }
+    .popup-overlay.show .popup { transform: scale(1) translateY(0); }
+    .popup::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: var(--win-bg);
+      pointer-events: none;
+    }
+    .popup-emoji { font-size: 64px; display: block; margin-bottom: 12px;
+      animation: bounceEmoji 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.3s both; }
+    @keyframes bounceEmoji {
+      0% { transform: scale(0) rotate(-20deg); }
+      100% { transform: scale(1) rotate(0deg); }
+    }
+    .popup-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 28px; font-weight: 900;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, var(--x-color), var(--o-color));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .popup-subtitle { color: var(--muted); font-size: 15px; margin-bottom: 28px; letter-spacing: 1px; }
+    .popup-buttons { display: flex; gap: 10px; justify-content: center; }
+
+    /* Confetti canvas */
+    #confetti-canvas {
+      position: fixed; inset: 0; z-index: 99; pointer-events: none;
+    }
+
+    /* Mode indicator dots */
+    .turn-indicator {
+      display: flex; gap: 8px; align-items: center; justify-content: center;
+    }
+    .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      transition: all 0.3s;
+    }
+    .dot.x-dot { background: var(--x-color); box-shadow: 0 0 8px var(--x-color); }
+    .dot.o-dot { background: var(--muted); }
+    .dot.active-o { background: var(--o-color); box-shadow: 0 0 8px var(--o-color); }
+    .dot.active-o.x-dot { background: var(--muted); box-shadow: none; }
+
+    /* Ripple */
+    .ripple {
+      position: absolute; border-radius: 50%;
+      background: white; opacity: 0.15;
+      pointer-events: none;
+      animation: rippleAnim 0.5s ease-out forwards;
+    }
+    @keyframes rippleAnim {
+      0% { transform: scale(0); opacity: 0.15; }
+      100% { transform: scale(3); opacity: 0; }
+    }
+
+    /* Theme toggle */
+    .theme-toggle {
+      position: fixed; top: 16px; right: 16px; z-index: 50;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 50%; width: 40px; height: 40px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 18px; transition: transform 0.3s;
+    }
+    .theme-toggle:hover { transform: rotate(20deg); }
+
+    /* Light theme */
+    body.light {
+      --bg: #f0f0ff;
+      --surface: #e8e8f8;
+      --card: #ffffff;
+      --text: #1a1a3e;
+      --muted: #6b6b8a;
+      --border: #00000015;
+    }
+    body.light::before {
+      background: radial-gradient(ellipse at 20% 20%, #7c3aed10 0%, transparent 60%),
+                  radial-gradient(ellipse at 80% 80%, #ff2d7810 0%, transparent 60%);
+    }
+    body.light .star { background: var(--accent); }
+
+    @media (max-width: 380px) {
+      .name-inputs { grid-template-columns: 1fr; }
+      .scoreboard { gap: 4px; padding: 10px; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="confetti-canvas"></canvas>
+  <div class="stars" id="stars"></div>
+  <button class="theme-toggle" id="themeBtn" title="Toggle theme">🌙</button>
+
+  <div class="container">
+    <header>
+      <h1>TIC TAC TOE</h1>
+      <p>Designed & Developed by Maryam</p>
+    </header>
+
+    <!-- Name Inputs -->
+    <div class="name-inputs">
+      <div class="name-group">
+        <label><span class="x-label">✕</span> Player X</label>
+        <input type="text" id="nameX" placeholder="Player 1" maxlength="12" />
+      </div>
+      <div class="name-group">
+        <label><span class="o-label">○</span> Player O</label>
+        <input type="text" id="nameO" placeholder="Player 2 / AI" maxlength="12" />
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+      <select id="mode" onchange="restartGame()">
+        <optgroup label="Multiplayer">
+          <option value="pvp">⚔️ Player vs Player</option>
+        </optgroup>
+        <optgroup label="vs Computer">
+          <option value="easy">🤖 vs Computer — Easy</option>
+          <option value="medium">🧠 vs Computer — Medium</option>
+          <option value="hard">💀 vs Computer — Hard (Unbeatable)</option>
+        </optgroup>
+      </select>
+      <select id="timerMode" onchange="restartGame()">
+        <option value="0">⏳ No Timer</option>
+        <option value="10">⏱ 10s / turn</option>
+        <option value="15">⏱ 15s / turn</option>
+        <option value="30">⏱ 30s / turn</option>
+      </select>
+      <button class="btn" onclick="restartGame()">↺ New Game</button>
+      <button class="btn btn-secondary" onclick="resetScores()">Reset Scores</button>
+    </div>
+
+    <!-- Scoreboard -->
+    <div class="scoreboard">
+      <div class="score-player x-player">
+        <div class="name" id="scoreNameX">Player X</div>
+        <div class="score-number" id="scoreX">0</div>
+      </div>
+      <div class="score-divider">
+        <span>VS</span>
+        <span class="ties-label">Ties</span>
+        <span class="ties-num" id="scoreTies">0</span>
+      </div>
+      <div class="score-player o-player">
+        <div class="name" id="scoreNameO">Player O</div>
+        <div class="score-number" id="scoreO">0</div>
+      </div>
+    </div>
+
+    <!-- Status & Timer -->
+    <div class="status" id="status">Let's Play!</div>
+    <div class="turn-indicator">
+      <div class="dot x-dot" id="dotX"></div>
+      <div class="dot o-dot" id="dotO"></div>
+    </div>
+    <div class="timer-bar" id="timerBarWrap" style="display:none">
+      <div class="timer-fill" id="timerFill" style="width:100%"></div>
+    </div>
+    <div class="timer-text" id="timerText"></div>
+
+    <!-- Board -->
+    <div class="board-wrap">
+      <div class="board" id="board">
+        <div class="cell" id="c0" onclick="cellClick(0)"></div>
+        <div class="cell" id="c1" onclick="cellClick(1)"></div>
+        <div class="cell" id="c2" onclick="cellClick(2)"></div>
+        <div class="cell" id="c3" onclick="cellClick(3)"></div>
+        <div class="cell" id="c4" onclick="cellClick(4)"></div>
+        <div class="cell" id="c5" onclick="cellClick(5)"></div>
+        <div class="cell" id="c6" onclick="cellClick(6)"></div>
+        <div class="cell" id="c7" onclick="cellClick(7)"></div>
+        <div class="cell" id="c8" onclick="cellClick(8)"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WIN / TIE POPUP -->
+  <div class="popup-overlay" id="popup">
+    <div class="popup">
+      <span class="popup-emoji" id="popupEmoji">🏆</span>
+      <div class="popup-title" id="popupTitle">Player X Wins!</div>
+      <div class="popup-subtitle" id="popupSubtitle">Congratulations!</div>
+      <div class="popup-buttons">
+        <button class="btn" onclick="closePopup(); restartGame()">Play Again</button>
+        <button class="btn btn-secondary" onclick="closePopup(); resetAll()">Reset All</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ─── Stars ───────────────────────────────────────────────────────────────
+    const starsEl = document.getElementById('stars');
+    for (let i = 0; i < 60; i++) {
+      const s = document.createElement('div');
+      s.className = 'star';
+      const sz = Math.random() * 2.5 + 0.5;
+      s.style.cssText = `width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;
+        --dur:${2+Math.random()*4}s;--delay:${Math.random()*4}s`;
+      starsEl.appendChild(s);
+    }
+
+    // ─── Theme ───────────────────────────────────────────────────────────────
+    const themeBtn = document.getElementById('themeBtn');
+    let dark = true;
+    themeBtn.onclick = () => {
+      dark = !dark;
+      document.body.classList.toggle('light', !dark);
+      themeBtn.textContent = dark ? '🌙' : '☀️';
+    };
+
+    // ─── Game State ──────────────────────────────────────────────────────────
+    let board = Array(9).fill('');
+    let currentSign = 'X';
+    let gameOver = false;
+    let scores = { X: 0, O: 0, T: 0 };
+    let timerInterval = null;
+    let timerSeconds = 0;
+
+    const WINS = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+
+    function getNames() {
+      return {
+        X: document.getElementById('nameX').value.trim() || 'Player X',
+        O: document.getElementById('nameO').value.trim() || (getMode().includes('Computer') ? 'Computer' : 'Player O')
+      };
+    }
+    function getMode() { return document.getElementById('mode').value; }
+    function getTimerSecs() { return parseInt(document.getElementById('timerMode').value); }
+
+    // ─── Score display ───────────────────────────────────────────────────────
+    function updateScoreDisplay() {
+      const n = getNames();
+      document.getElementById('scoreNameX').textContent = n.X;
+      document.getElementById('scoreNameO').textContent = n.O;
+      document.getElementById('scoreX').textContent = scores.X;
+      document.getElementById('scoreO').textContent = scores.O;
+      document.getElementById('scoreTies').textContent = scores.T;
+    }
+
+    // ─── Status ──────────────────────────────────────────────────────────────
+    function setStatus(msg) { document.getElementById('status').textContent = msg; }
+    function updateTurnIndicator() {
+      document.getElementById('dotX').className = `dot x-dot ${currentSign === 'X' ? '' : 'active-o'}`;
+      document.getElementById('dotO').className = `dot o-dot ${currentSign === 'O' ? 'active-o' : ''}`;
+    }
+
+    // ─── Timer ───────────────────────────────────────────────────────────────
+    function startTimer() {
+      const total = getTimerSecs();
+      if (!total) { document.getElementById('timerBarWrap').style.display = 'none'; return; }
+      document.getElementById('timerBarWrap').style.display = '';
+      timerSeconds = total;
+      clearInterval(timerInterval);
+      updateTimerUI(total, total);
+      timerInterval = setInterval(() => {
+        timerSeconds--;
+        updateTimerUI(timerSeconds, total);
+        if (timerSeconds <= 0) {
+          clearInterval(timerInterval);
+          if (!gameOver) timeOut();
+        }
+      }, 1000);
+    }
+    function updateTimerUI(remaining, total) {
+      const pct = (remaining / total) * 100;
+      document.getElementById('timerFill').style.width = pct + '%';
+      document.getElementById('timerFill').style.background =
+        pct > 50 ? 'linear-gradient(90deg, #00f5ff, #7c3aed)' :
+        pct > 25 ? 'linear-gradient(90deg, #ff9500, #ff6b00)' :
+        'linear-gradient(90deg, #ff2d78, #ff0000)';
+      document.getElementById('timerText').textContent = remaining > 0 ? `${remaining}s remaining` : '';
+    }
+    function stopTimer() {
+      clearInterval(timerInterval);
+      document.getElementById('timerText').textContent = '';
+    }
+    function timeOut() {
+      // Auto-play random move on timeout
+      const empties = board.map((v,i) => v==='' ? i : null).filter(i=>i!==null);
+      if (empties.length) makeMove(empties[Math.floor(Math.random()*empties.length)]);
+    }
+
+    // ─── Move Logic ──────────────────────────────────────────────────────────
+    function cellClick(idx) {
+      if (gameOver || board[idx]) return;
+      const mode = getMode();
+      if ((mode === 'easy' || mode === 'medium' || mode === 'hard') && currentSign === 'O') return;
+      makeMove(idx);
+    }
+
+    function makeMove(idx) {
+      if (gameOver || board[idx]) return;
+      stopTimer();
+      board[idx] = currentSign;
+      const cell = document.getElementById('c' + idx);
+      cell.textContent = currentSign === 'X' ? '✕' : '○';
+      cell.classList.add(currentSign.toLowerCase(), 'taken');
+      ripple(cell);
+
+      const winLine = checkWinner(board, currentSign);
+      if (winLine) { endGame('win', currentSign, winLine); return; }
+      if (board.every(v => v)) { endGame('tie'); return; }
+
+      currentSign = currentSign === 'X' ? 'O' : 'X';
+      const n = getNames();
+      setStatus(`${n[currentSign]}'s Turn`);
+      updateTurnIndicator();
+      startTimer();
+
+      const mode = getMode();
+      if ((mode === 'easy' || mode === 'medium' || mode === 'hard') && currentSign === 'O') {
+        setTimeout(() => { if (!gameOver) computerMove(mode); }, 500);
+      }
+    }
+
+    function ripple(el) {
+      const r = document.createElement('div');
+      r.className = 'ripple';
+      r.style.cssText = 'width:40px;height:40px;left:calc(50% - 20px);top:calc(50% - 20px)';
+      el.appendChild(r);
+      setTimeout(() => r.remove(), 600);
+    }
+
+    // ─── Win check ───────────────────────────────────────────────────────────
+    function checkWinner(b, p) {
+      for (const line of WINS) {
+        if (line.every(i => b[i] === p)) return line;
+      }
+      return null;
+    }
+
+    function endGame(type, sign, winLine) {
+      gameOver = true; stopTimer();
+      const n = getNames();
+      if (type === 'win') {
+        scores[sign]++;
+        winLine.forEach(i => document.getElementById('c'+i).classList.add('win'));
+        const isComputer = getMode() !== 'pvp' && sign === 'O';
+        showPopup(
+          isComputer ? '😱' : '🏆',
+          `${n[sign]} Wins!`,
+          isComputer ? 'The computer beat you!' : 'Outstanding play!'
+        );
+        launchConfetti(sign);
+      } else {
+        scores.T++;
+        showPopup('🤝', "It's a Tie!", 'Great match, evenly matched!');
+      }
+      updateScoreDisplay();
+    }
+
+    // ─── Popup ───────────────────────────────────────────────────────────────
+    function showPopup(emoji, title, sub) {
+      document.getElementById('popupEmoji').textContent = emoji;
+      document.getElementById('popupTitle').textContent = title;
+      document.getElementById('popupSubtitle').textContent = sub;
+      document.getElementById('popup').classList.add('show');
+    }
+    function closePopup() { document.getElementById('popup').classList.remove('show'); }
+
+    // ─── Confetti ────────────────────────────────────────────────────────────
+    function launchConfetti(sign) {
+      const canvas = document.getElementById('confetti-canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = innerWidth; canvas.height = innerHeight;
+      const color1 = sign === 'X' ? '#ff2d78' : '#00f5ff';
+      const pieces = Array.from({length: 80}, () => ({
+        x: Math.random() * canvas.width,
+        y: -10 - Math.random() * 100,
+        vx: (Math.random() - 0.5) * 4,
+        vy: 2 + Math.random() * 4,
+        r: 4 + Math.random() * 6,
+        color: Math.random() > 0.5 ? color1 : '#7c3aed',
+        angle: Math.random() * Math.PI * 2,
+        spin: (Math.random() - 0.5) * 0.3,
+      }));
+      let frame = 0;
+      function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        pieces.forEach(p => {
+          p.x += p.vx; p.y += p.vy; p.vy += 0.1; p.angle += p.spin;
+          ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.angle);
+          ctx.fillStyle = p.color; ctx.globalAlpha = Math.max(0, 1 - frame/120);
+          ctx.fillRect(-p.r/2, -p.r/2, p.r, p.r * 1.6);
+          ctx.restore();
+        });
+        frame++;
+        if (frame < 150) requestAnimationFrame(animate);
+        else ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+      animate();
+    }
+
+    // ─── AI ──────────────────────────────────────────────────────────────────
+    function computerMove(mode) {
+      const empties = board.map((v,i) => v==='' ? i : null).filter(i=>i!==null);
+      if (!empties.length) return;
+      let move;
+      if (mode === 'easy') {
+        move = empties[Math.floor(Math.random() * empties.length)];
+      } else if (mode === 'medium') {
+        // Win if possible, block if needed, else random
+        move = findWinOrBlock('O') ?? findWinOrBlock('X') ?? empties[Math.floor(Math.random()*empties.length)];
+      } else {
+        move = bestMove();
+      }
+      makeMove(move);
+    }
+
+    function findWinOrBlock(p) {
+      for (const [a,b,c] of WINS) {
+        const line = [board[a],board[b],board[c]];
+        const cells = [a,b,c];
+        if (line.filter(v=>v===p).length===2 && line.includes('')) {
+          return cells[line.indexOf('')];
+        }
+      }
+      return null;
+    }
+
+    function bestMove() {
+      let best = -Infinity, move;
+      for (let i = 0; i < 9; i++) {
+        if (!board[i]) {
+          board[i] = 'O';
+          const s = minimax(board, 0, false);
+          board[i] = '';
+          if (s > best) { best = s; move = i; }
+        }
+      }
+      return move;
+    }
+
+    function minimax(b, depth, isMax) {
+      if (checkWinner(b, 'O')) return 10 - depth;
+      if (checkWinner(b, 'X')) return depth - 10;
+      if (b.every(v=>v)) return 0;
+      if (isMax) {
+        let best = -Infinity;
+        for (let i=0;i<9;i++) if (!b[i]) { b[i]='O'; best=Math.max(best,minimax(b,depth+1,false)); b[i]=''; }
+        return best;
+      } else {
+        let best = Infinity;
+        for (let i=0;i<9;i++) if (!b[i]) { b[i]='X'; best=Math.min(best,minimax(b,depth+1,true)); b[i]=''; }
+        return best;
+      }
+    }
+
+    // ─── Restart / Reset ─────────────────────────────────────────────────────
+    function restartGame() {
+      closePopup(); stopTimer();
+      board = Array(9).fill('');
+      currentSign = 'X'; gameOver = false;
+      for (let i=0;i<9;i++) {
+        const c = document.getElementById('c'+i);
+        c.textContent = ''; c.className = 'cell';
+      }
+      const n = getNames();
+      setStatus(`${n.X}'s Turn — Let's Go!`);
+      updateTurnIndicator(); updateScoreDisplay();
+      startTimer();
+    }
+
+    function resetScores() { scores = {X:0,O:0,T:0}; updateScoreDisplay(); }
+    function resetAll() { resetScores(); restartGame(); }
+
+    // ─── Init ─────────────────────────────────────────────────────────────────
+    // Update names live
+    document.getElementById('nameX').addEventListener('input', updateScoreDisplay);
+    document.getElementById('nameO').addEventListener('input', () => {
+      updateScoreDisplay();
+      setStatus(`${getNames().X}'s Turn — Let's Go!`);
+    });
+
+    updateScoreDisplay();
+    setStatus("Choose mode and start!");
+  </script>
+</body>
+</html>

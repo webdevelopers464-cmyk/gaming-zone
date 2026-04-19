@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Don't Touch the Red</title>
+</head>
+<style>
+    body {
+  font-family: 'Arial', sans-serif;
+  background: linear-gradient(to right, #83a4d4, #b6fbff);
+  text-align: center;
+  padding: 20px;
+}
+
+h1 {
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.controls {
+  margin-bottom: 20px;
+}
+
+#level-select, #start-button {
+  padding: 10px 20px;
+  font-size: 16px;
+  margin: 5px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+}
+
+#start-button {
+  background-color: #28a745;
+  color: white;
+}
+
+#game-area {
+  margin: 0 auto;
+  margin-top: 20px;
+  width: 300px;
+  height: 400px;
+  background-color: #f0f0f0;
+  position: relative;
+  overflow: hidden;
+  border: 3px solid #333;
+  border-radius: 10px;
+}
+
+.block {
+  width: 50px;
+  height: 50px;
+  background-color: red;
+  position: absolute;
+  cursor: pointer;
+}
+
+</style>
+<body>
+
+  <div class="game-container">
+    <h1>Don't Touch the Red!</h1>
+    
+    <div class="controls">
+      <select id="level-select">
+        <option value="easy">Easy</option>
+        <option value="medium">Medium</option>
+        <option value="hard">Hard</option>
+      </select>
+      <button id="start-button">Start Game</button>
+    </div>
+
+    <div id="game-area"></div>
+  </div>
+
+  <script>
+    const gameArea = document.getElementById('game-area');
+const startButton = document.getElementById('start-button');
+const levelSelect = document.getElementById('level-select');
+
+let gameInterval;
+let spawnRate = 1500; // default for easy
+
+startButton.addEventListener('click', startGame);
+
+function startGame() {
+  clearInterval(gameInterval);
+  gameArea.innerHTML = ''; // Clear previous game
+  
+  let level = levelSelect.value;
+  
+  if (level === 'easy') {
+    spawnRate = 1500;
+  } else if (level === 'medium') {
+    spawnRate = 1000;
+  } else if (level === 'hard') {
+    spawnRate = 600;
+  }
+
+  gameInterval = setInterval(spawnRedBlock, spawnRate);
+}
+
+function spawnRedBlock() {
+  const block = document.createElement('div');
+  block.classList.add('block');
+  
+  // Random position
+  block.style.top = Math.random() * (gameArea.clientHeight - 50) + 'px';
+  block.style.left = Math.random() * (gameArea.clientWidth - 50) + 'px';
+  
+  block.addEventListener('click', function() {
+    alert('Game Over! You touched the red block.');
+    clearInterval(gameInterval);
+    gameArea.innerHTML = '';
+  });
+
+  gameArea.appendChild(block);
+
+  // Remove block after some time to prevent too many blocks
+  setTimeout(() => {
+    if (gameArea.contains(block)) {
+      block.remove();
+    }
+  }, 3000);
+}
+
+  </script>
+</body>
+</html>

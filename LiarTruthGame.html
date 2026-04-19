@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liar Truth Game</title>
+</head>
+<style>
+    body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #f90670;
+}
+
+.game-container {
+    text-align: center;
+    background-color: rgb(251, 3, 3);
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    width: 80%;
+    max-width: 500px;
+}
+
+button {
+    padding: 10px 20px;
+    margin: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #0f0e0f;
+    color: white;
+}
+
+.hidden {
+    display: none;
+}
+
+#game {
+    margin-top: 20px;
+}
+
+#statement {
+    font-size: 24px;
+    margin: 20px 0;
+}
+
+#feedback {
+    font-size: 18px;
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+#score {
+    font-weight: bold;
+    color: rgb(63, 5, 252);
+}
+
+</style>
+<body>
+    <div class="game-container">
+        <h1>Liar Truth Game</h1>
+        <button id="start-btn">Start Game</button>
+
+        <div id="game-instructions" class="hidden">
+            <h2>How to Play:</h2>
+            <p>In this game, you will be presented with a statement. You need to decide if it is TRUE or a LIAR.</p>
+            <ul>
+                <li><strong>Easy:</strong> Simple statements.</li>
+                <li><strong>Medium:</strong> Slightly tricky statements.</li>
+                <li><strong>Hard:</strong> Complex statements.</li>
+            </ul>
+            <label for="level">Choose Level: </label>
+            <select id="level">
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
+            </select>
+            <button id="start-game">Start Game</button>
+        </div>
+
+        <div id="game" class="hidden">
+            <h2 id="statement"></h2>
+            <button id="true-btn">True</button>
+            <button id="liar-btn">Liar</button>
+            <p id="feedback"></p>
+            <p>Score: <span id="score">0</span></p>
+        </div>
+    </div>
+
+    <script>
+        // Game Variables
+let statements = {
+    easy: [
+        { text: "The sky is blue.", answer: "true" },
+        { text: "Fish can fly.", answer: "liar" }
+    ],
+    medium: [
+        { text: "The moon is made of cheese.", answer: "liar" },
+        { text: "Cats can see in the dark.", answer: "true" }
+    ],
+    hard: [
+        { text: "The Earth revolves around the Sun.", answer: "true" },
+        { text: "Humans can breathe underwater without equipment.", answer: "liar" }
+    ]
+};
+
+// Game Elements
+const startBtn = document.getElementById("start-btn");
+const startGameBtn = document.getElementById("start-game");
+const gameContainer = document.getElementById("game");
+const gameInstructions = document.getElementById("game-instructions");
+const statementElement = document.getElementById("statement");
+const trueBtn = document.getElementById("true-btn");
+const liarBtn = document.getElementById("liar-btn");
+const feedbackElement = document.getElementById("feedback");
+const scoreElement = document.getElementById("score");
+const levelSelect = document.getElementById("level");
+
+let level = 'easy';  // default level
+let currentStatement = {};
+let score = 0;
+
+// Start Game Button - Show Instructions
+startBtn.addEventListener('click', () => {
+    gameInstructions.classList.remove('hidden');
+});
+
+// Start Game After Instructions
+startGameBtn.addEventListener('click', () => {
+    level = levelSelect.value;  // Get selected level
+    gameInstructions.classList.add('hidden');
+    gameContainer.classList.remove('hidden');
+    startNewRound();
+});
+
+// Set Level (For simplicity, this logic is included in the above part)
+function startNewRound() {
+    currentStatement = getStatement(level);
+    statementElement.textContent = currentStatement.text;
+    feedbackElement.textContent = '';
+}
+
+// Get Random Statement Based on Level
+function getStatement(level) {
+    const levelStatements = statements[level];
+    return levelStatements[Math.floor(Math.random() * levelStatements.length)];
+}
+
+// Handle Player Answer
+trueBtn.addEventListener('click', () => checkAnswer("true"));
+liarBtn.addEventListener('click', () => checkAnswer("liar"));
+
+function checkAnswer(answer) {
+    if (answer === currentStatement.answer) {
+        feedbackElement.textContent = "Correct!";
+        feedbackElement.style.color = "green";
+        score++;
+    } else {
+        feedbackElement.textContent = "Wrong! Try Again.";
+        feedbackElement.style.color = "red";
+    }
+
+    // Update Score
+    scoreElement.textContent = score;
+
+    // Start New Round After Feedback
+    setTimeout(startNewRound, 1000);
+}
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>3D Picture Puzzle Game</title>
+</head>
+<style>
+    body {
+  font-family: 'Segoe UI', sans-serif;
+  text-align: center;
+  background: #222;
+  color: white;
+  margin: 0;
+  padding: 20px;
+}
+
+.controls {
+  margin: 20px;
+}
+
+#puzzle-container {
+  perspective: 1000px;
+  display: grid;
+  margin: auto;
+  width: fit-content;
+  transform-style: preserve-3d;
+}
+
+.tile {
+  border: 1px solid #444;
+  background-size: cover;
+  transition: transform 0.3s;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+  transform: rotateY(0deg);
+}
+
+.tile:hover {
+  transform: rotateY(15deg);
+}
+
+</style>
+<body>
+  <h1>3D Picture Puzzle Game</h1>
+  <div class="controls">
+    <select id="level-select">
+      <option value="3">Easy (3x3)</option>
+      <option value="4">Medium (4x4)</option>
+      <option value="5">Hard (5x5)</option>
+    </select>
+    <button onclick="startGame()">Start Game</button>
+  </div>
+  <div id="puzzle-container"></div>
+  <audio id="move-sound" src="https://www.soundjay.com/button/sounds/button-29.mp3"></audio>
+  <script>
+    let gridSize = 3;
+const puzzleContainer = document.getElementById('puzzle-container');
+const moveSound = document.getElementById('move-sound');
+
+document.getElementById('level-select').addEventListener('change', e => {
+  gridSize = parseInt(e.target.value);
+});
+
+function startGame() {
+  puzzleContainer.innerHTML = '';
+  puzzleContainer.style.gridTemplateColumns = `repeat(${gridSize}, 100px)`;
+  puzzleContainer.style.gridTemplateRows = `repeat(${gridSize}, 100px)`;
+
+  const imageUrl = 'https://picsum.photos/500'; // Can be replaced with a custom image
+  const tiles = [];
+
+  for (let i = 0; i < gridSize * gridSize; i++) {
+    if (i === gridSize * gridSize - 1) continue; // leave one space empty
+
+    const tile = document.createElement('div');
+    tile.className = 'tile';
+    tile.style.width = tile.style.height = '100px';
+
+    const x = (i % gridSize) * -100;
+    const y = Math.floor(i / gridSize) * -100;
+    tile.style.backgroundImage = `url(${imageUrl})`;
+    tile.style.backgroundPosition = `${x}px ${y}px`;
+
+    tile.dataset.index = i;
+    tile.addEventListener('click', () => moveTile(tile));
+    tiles.push(tile);
+  }
+
+  // Shuffle tiles using Fisher-Yates
+  shuffleArray(tiles);
+
+  const positions = [...tiles];
+  positions.push(null); // Empty spot
+
+  positions.forEach(tile => {
+    if (tile) puzzleContainer.appendChild(tile);
+    else {
+      const empty = document.createElement('div');
+      empty.className = 'tile';
+      empty.style.opacity = '0';
+      puzzleContainer.appendChild(empty);
+    }
+  });
+}
+
+function moveTile(tile) {
+  const tiles = Array.from(puzzleContainer.children);
+  const tileIndex = tiles.indexOf(tile);
+  const emptyIndex = tiles.findIndex(t => t.style.opacity === '0');
+
+  const validMoves = [emptyIndex - 1, emptyIndex + 1, emptyIndex - gridSize, emptyIndex + gridSize];
+
+  if (validMoves.includes(tileIndex)) {
+    moveSound.play();
+    puzzleContainer.insertBefore(tile, tiles[emptyIndex]);
+    puzzleContainer.insertBefore(tiles[emptyIndex], tiles[tileIndex]);
+  }
+
+  if (isSolved()) {
+    setTimeout(() => alert('🎉 You solved it!'), 100);
+  }
+}
+
+function isSolved() {
+  const tiles = Array.from(puzzleContainer.children);
+  for (let i = 0; i < tiles.length - 1; i++) {
+    if (!tiles[i].dataset.index || parseInt(tiles[i].dataset.index) !== i) return false;
+  }
+  return true;
+}
+
+function shuffleArray(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
+
+  </script>
+</body>
+</html>

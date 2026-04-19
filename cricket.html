@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>🏏 Doodle Cricket</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#5bc8f0;display:flex;align-items:center;justify-content:center;min-height:100vh;overflow:hidden;user-select:none;touch-action:none;font-family:'Fredoka One',cursive}
+#wrap{position:relative;width:min(720px,100vw);aspect-ratio:720/500}
+canvas{width:100%;height:100%;display:block;cursor:pointer}
+/* Score */
+#hud{position:absolute;top:8px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:2px;pointer-events:none;z-index:5}
+#trophy{font-size:20px;line-height:1;filter:drop-shadow(0 1px 2px rgba(0,0,0,.3))}
+#sb{background:#1a2a3a;border:2px solid #546e7a;border-radius:5px;padding:4px 20px;min-width:94px;text-align:center}
+#rd{font-family:'Fredoka One',cursive;font-size:34px;color:#00e676;line-height:1;letter-spacing:3px;text-shadow:0 0 10px rgba(0,230,118,.4)}
+/* Wickets */
+#wrow{position:absolute;top:10px;left:12px;display:flex;gap:5px;pointer-events:none;z-index:5}
+.wk{font-size:19px;transition:.3s;filter:drop-shadow(0 1px 3px rgba(0,0,0,.4))}
+.wk.gone{filter:grayscale(1) opacity(.2)!important}
+/* Tap btn */
+#tb{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);width:66px;height:66px;background:radial-gradient(circle at 38% 35%,#ffe57f,#ffc107);border-radius:50%;border:3px solid #e65100;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:30px;box-shadow:0 5px 0 #bf360c,0 8px 18px rgba(0,0,0,.4);z-index:10;animation:tbp 1.4s ease-in-out infinite;transition:.1s}
+#tb:active,.tbH{transform:translateX(-50%) translateY(4px)!important;box-shadow:0 1px 0 #bf360c!important;animation:none!important}
+@keyframes tbp{0%,100%{box-shadow:0 5px 0 #bf360c,0 8px 18px rgba(0,0,0,.4),0 0 0 0 rgba(255,193,7,.7)}60%{box-shadow:0 5px 0 #bf360c,0 8px 18px rgba(0,0,0,.4),0 0 0 14px rgba(255,193,7,0)}}
+/* Overlay */
+#ov{position:absolute;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(5px)}
+#ov.hide{display:none}
+.cd{background:linear-gradient(145deg,#fff9e6,#fffde7);border-radius:22px;padding:32px 42px;text-align:center;border:3px solid #ffd600;box-shadow:0 16px 50px rgba(0,0,0,.5);animation:pop .4s cubic-bezier(.34,1.56,.64,1)}
+@keyframes pop{from{transform:scale(.5);opacity:0}}
+.ce{font-size:60px;display:block;animation:bob 2s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.ct{font-size:32px;color:#2e7d32;margin:6px 0}.cr{font-size:48px;color:#f57f17;margin:4px 0}
+.cs{font-size:13px;color:#888;font-family:'Nunito',sans-serif;font-weight:700;margin-bottom:20px}
+.nr{display:inline-block;background:linear-gradient(135deg,#ffd54f,#ffca28);color:#5d4037;padding:3px 14px;border-radius:20px;font-size:12px;font-family:'Nunito',sans-serif;font-weight:800;margin-bottom:12px}
+.pb{background:linear-gradient(135deg,#43a047,#2e7d32);color:#fff;border:none;border-radius:40px;font-family:'Fredoka One',cursive;font-size:22px;letter-spacing:1px;padding:12px 44px;cursor:pointer;box-shadow:0 5px 0 #1b5e20;transition:.15s}
+.pb:hover{transform:translateY(-2px)}.pb:active{transform:translateY(3px);box-shadow:0 2px 0 #1b5e20}
+/* Float text */
+.ft{position:absolute;pointer-events:none;font-family:'Fredoka One',cursive;text-shadow:0 2px 0 rgba(0,0,0,.35);animation:ft 1.2s ease-out forwards;white-space:nowrap;z-index:20}
+@keyframes ft{0%{opacity:1;transform:translateY(0) scale(.85)}40%{opacity:1;transform:translateY(-55px) scale(1.2)}100%{opacity:0;transform:translateY(-100px) scale(1.0)}}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="gc" width="720" height="500"></canvas>
+  <div id="hud"><div id="trophy">🏆</div><div id="sb"><div id="rd">000</div></div></div>
+  <div id="wrow"><span class="wk" id="w1">🦗</span><span class="wk" id="w2">🦗</span><span class="wk" id="w3">🦗</span></div>
+  <button id="tb" aria-label="Swing bat">🏏</button>
+  <div id="ov">
+    <div class="cd">
+      <span class="ce" id="oE">🦗</span>
+      <div class="ct" id="oT">Doodle Cricket</div>
+      <div class="cr" id="oR"></div>
+      <div id="oRc"></div>
+      <div class="cs" id="oS">Tap 🏏 to swing the bat!</div>
+      <button class="pb" id="oB">▶ PLAY</button>
+    </div>
+  </div>
+</div>
+<script>
+const CV=document.getElementById('gc'), ctx=CV.getContext('2d');
+const W=720, H=500;
+
+// ── STATE ──
+let runs=0,wickets=0,balls=6,hs=+(localStorage.getItem('dc_hs4')||0);
+let gs='idle'; // idle|ready|bowling|out|gameover
+let crowdT=0, animT=0;
+let balloons=[], parts=[];
+
+// Ball: moves from far end (top, small) to near end (bottom, large)
+const BallStart={x:360, y:192, r:4.5};
+let ball={...BallStart, vx:0, active:false, bounced:false, hit:false, progress:0};
+const BALL_SPEED=2.4; // y pixels per frame
+
+// Bat swing
+let batSwing=0; // 0..PI swing progress
+let swinging=false;
+
+// ── FIELD POSITIONS ──
+const FIELDERS=[
+  {x:130,y:300},{x:590,y:300},
+  {x:88,y:345},{x:632,y:345},
+  {x:195,y:280},{x:525,y:280},
+  {x:155,y:330},{x:565,y:330},
+  {x:360,y:265},{x:255,y:272},{x:465,y:272}
+];
+
+// ── ROUNDED RECT ──
+function rr(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.arcTo(x+w,y,x+w,y+r,r);ctx.lineTo(x+w,y+h-r);ctx.arcTo(x+w,y+h,x+w-r,y+h,r);ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();}
+
+// ══════════════════════════════════════════
+//  BACKGROUND
+// ══════════════════════════════════════════
+function drawBG(){
+  // Sky
+  const sky=ctx.createLinearGradient(0,0,0,H*0.52);
+  sky.addColorStop(0,'#4fc3f7'); sky.addColorStop(1,'#a6dcef');
+  ctx.fillStyle=sky; ctx.fillRect(0,0,W,H*0.52);
+
+  // Clouds
+  drawCloud(90,55,1.0); drawCloud(310,38,0.75); drawCloud(540,60,0.85); drawCloud(195,78,0.55); drawCloud(640,42,0.65);
+
+  // Far grass horizon strip
+  ctx.fillStyle='#76c440'; ctx.fillRect(0,H*0.43,W,H*0.1);
+
+  // Sunflower / wheat row
+  for(let i=0;i<38;i++){
+    const x=i*19+4, y=H*0.42;
+    // Stem
+    ctx.strokeStyle='#558b2f'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(x+5,y+14); ctx.lineTo(x+5,y); ctx.stroke();
+    // Big petal head
+    ctx.fillStyle='#fdd835';
+    ctx.beginPath(); ctx.arc(x+5,y,7,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#6d4c41';
+    ctx.beginPath(); ctx.arc(x+5,y,3.5,0,Math.PI*2); ctx.fill();
+    // Small leaf
+    ctx.fillStyle='#558b2f';
+    ctx.beginPath(); ctx.ellipse(x+9,y+6,4,2,0.5,0,Math.PI*2); ctx.fill();
+  }
+
+  // Dense crowd row
+  drawCrowdRow();
+
+  // Main grass (infield)
+  const gr=ctx.createLinearGradient(0,H*0.5,0,H);
+  gr.addColorStop(0,'#5cb85c'); gr.addColorStop(0.5,'#4caf50'); gr.addColorStop(1,'#43a047');
+  ctx.fillStyle=gr; ctx.fillRect(0,H*0.5,W,H*0.5);
+
+  // Pitch (perspective trapezoid)
+  drawPitch();
+}
+
+function drawCloud(x,y,s){
+  ctx.fillStyle='rgba(255,255,255,0.92)';
+  ctx.beginPath();
+  ctx.arc(x,y,22*s,0,Math.PI*2); ctx.arc(x+28*s,y-7*s,17*s,0,Math.PI*2);
+  ctx.arc(x+52*s,y,21*s,0,Math.PI*2); ctx.arc(x+22*s,y+9*s,16*s,0,Math.PI*2);
+  ctx.fill();
+}
+
+function drawCrowdRow(){
+  const ry=H*0.5+1;
+  const cols=['#e57373','#81c784','#64b5f6','#ffb74d','#ba68c8','#4db6ac','#f06292','#a5d6a7','#ff8a65','#80cbc4'];
+  for(let i=0;i<40;i++){
+    const x=i*18+2;
+    const y=ry-12+Math.sin(crowdT+i*0.4)*4;
+    const c=cols[i%cols.length];
+    // Body
+    ctx.fillStyle=c;
+    ctx.beginPath(); ctx.arc(x+5,y+9,7,0,Math.PI*2); ctx.fill();
+    // Head
+    ctx.fillStyle='#ffcc80';
+    ctx.beginPath(); ctx.arc(x+5,y,5.5,0,Math.PI*2); ctx.fill();
+    // Eyes
+    ctx.fillStyle='#333';
+    ctx.beginPath(); ctx.arc(x+3,y-1,1.2,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x+7,y-1,1.2,0,Math.PI*2); ctx.fill();
+    // Smile
+    ctx.strokeStyle='#c8926a'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.arc(x+5,y+1,2.5,0.3,Math.PI-0.3); ctx.stroke();
+    // Some have shells (snails)
+    if(i%3===1){
+      ctx.fillStyle='#8d6e63';
+      ctx.beginPath(); ctx.arc(x+5,y+9,4,Math.PI,0); ctx.fill();
+    }
+    // Arms up for celebration wave
+    ctx.strokeStyle=c; ctx.lineWidth=2;
+    const wv=Math.sin(crowdT*2+i*0.3);
+    ctx.beginPath(); ctx.moveTo(x,y+5); ctx.lineTo(x-6,y-2+wv*3); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x+10,y+5); ctx.lineTo(x+16,y-2+wv*3); ctx.stroke();
+  }
+  // White boundary stripe
+  ctx.fillStyle='rgba(255,255,255,0.7)';
+  ctx.fillRect(0,ry+6,W,5);
+}
+
+function drawPitch(){
+  // Perspective trapezoid pitch
+  ctx.fillStyle='#c8a96e';
+  ctx.beginPath();
+  ctx.moveTo(318,208); ctx.lineTo(402,208);
+  ctx.lineTo(448,430); ctx.lineTo(272,430);
+  ctx.closePath(); ctx.fill();
+  // Pitch texture lines
+  ctx.strokeStyle='rgba(180,150,90,0.4)'; ctx.lineWidth=1;
+  for(let i=1;i<5;i++){
+    const t=i/5;
+    const x1=318+(448-318)*t*0.5, x2=402+(448-402)*t*0.5;
+    ctx.beginPath(); ctx.moveTo(x1,208+t*222); ctx.lineTo(x2+30*t,208+t*222); ctx.stroke();
+  }
+  // Crease lines
+  ctx.strokeStyle='rgba(255,255,255,0.9)'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(312,220); ctx.lineTo(408,220); ctx.stroke(); // far
+  ctx.beginPath(); ctx.moveTo(262,420); ctx.lineTo(458,420); ctx.stroke(); // near
+  // Stumps far (small)
+  drawStumps(360,222,0.42);
+  // Stumps near (big)
+  drawStumps(360,418,1.0);
+}
+
+function drawStumps(cx,y,s){
+  ctx.strokeStyle='#a0826d'; ctx.lineWidth=s>0.5?3:1.5;
+  const gap=8*s, h=22*s;
+  [-gap,0,gap].forEach(dx=>{ctx.beginPath();ctx.moveTo(cx+dx,y);ctx.lineTo(cx+dx,y-h);ctx.stroke();});
+  ctx.strokeStyle='#d4b060'; ctx.lineWidth=s>0.5?2.5:1;
+  ctx.beginPath(); ctx.moveTo(cx-gap-4*s,y-h+1.5); ctx.lineTo(cx+gap+4*s,y-h+1.5); ctx.stroke();
+}
+
+// ══════════════════════════════════════════
+//  SCOREBOARD
+// ══════════════════════════════════════════
+function drawScoreboard(){
+  const bx=278,by=62,bw=164,bh=58;
+  // Metal legs
+  ctx.strokeStyle='#607d8b'; ctx.lineWidth=4; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(bx+32,by+bh); ctx.lineTo(bx+22,by+bh+42); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(bx+bw-32,by+bh); ctx.lineTo(bx+bw-22,by+bh+42); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(bx+22,by+bh+20); ctx.lineTo(bx+bw-22,by+bh+20); ctx.stroke();
+  // Board body
+  ctx.fillStyle='#263238'; rr(bx,by,bw,bh,5); ctx.fill();
+  ctx.fillStyle='#1a252f'; rr(bx+4,by+4,bw-8,bh-8,3); ctx.fill();
+  // LED pixel dots
+  ctx.fillStyle='#37474f';
+  for(let i=0;i<7;i++) for(let j=0;j<2;j++){ctx.beginPath();ctx.arc(bx+14+i*22,by+9+j*9,1.8,0,Math.PI*2);ctx.fill();}
+  // Score text
+  ctx.fillStyle='#00e676'; ctx.font='bold 30px "Fredoka One"'; ctx.textAlign='center';
+  ctx.fillText(String(runs).padStart(3,'0'),bx+bw/2,by+bh-14);
+  // Trophy on top
+  ctx.font='18px serif'; ctx.textAlign='center';
+  ctx.fillText('🏆',bx+bw/2,by-4);
+}
+
+// ══════════════════════════════════════════
+//  SNAIL (fielder & bowler)
+// ══════════════════════════════════════════
+function drawSnail(x,y,s=1){
+  ctx.save(); ctx.translate(x,y);
+  // Shadow
+  ctx.fillStyle='rgba(0,0,0,0.13)';
+  ctx.beginPath(); ctx.ellipse(4*s,8*s,16*s,5*s,0,0,Math.PI*2); ctx.fill();
+  // Shell layers
+  ctx.fillStyle='#8d6e63'; ctx.beginPath(); ctx.arc(-2*s,-2*s,14*s,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#6d4c41'; ctx.beginPath(); ctx.arc(-2*s,-2*s,10*s,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#8d6e63'; ctx.beginPath(); ctx.arc(-2*s,-2*s,6*s,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#a07860'; ctx.beginPath(); ctx.arc(-2*s,-2*s,2.5*s,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,0.2)'; ctx.beginPath(); ctx.ellipse(-6*s,-7*s,4*s,2.5*s,-0.5,0,Math.PI*2); ctx.fill();
+  // Body
+  ctx.fillStyle='#e8d090'; ctx.beginPath(); ctx.ellipse(12*s,2*s,12*s,7*s,0.15,0,Math.PI*2); ctx.fill();
+  // Head
+  ctx.fillStyle='#e8d090'; ctx.beginPath(); ctx.arc(22*s,-1*s,8*s,0,Math.PI*2); ctx.fill();
+  // Eye stalks
+  ctx.strokeStyle='#c8a060'; ctx.lineWidth=1.8*s;
+  ctx.beginPath(); ctx.moveTo(20*s,-5*s); ctx.lineTo(17*s,-14*s); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(24*s,-5*s); ctx.lineTo(27*s,-14*s); ctx.stroke();
+  // Eyes
+  ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(17*s,-14*s,3.5*s,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(27*s,-14*s,3.5*s,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#1a1a1a'; ctx.beginPath(); ctx.arc(17*s,-14*s,2*s,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(27*s,-14*s,2*s,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(18*s,-15.5*s,0.8*s,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(28*s,-15.5*s,0.8*s,0,Math.PI*2); ctx.fill();
+  // Smile
+  ctx.strokeStyle='#c8a060'; ctx.lineWidth=1.5*s;
+  ctx.beginPath(); ctx.arc(24*s,1*s,3.5*s,0.2,Math.PI-0.2); ctx.stroke();
+  ctx.restore();
+}
+
+let bowlAnim=0;
+function drawBowler(){
+  bowlAnim+=0.045;
+  const by=H*0.515+Math.abs(Math.sin(bowlAnim))*4;
+  ctx.save(); ctx.scale(0.52,0.52); ctx.translate(360/0.52, by/0.52);
+  drawSnail(0,0,1);
+  ctx.restore();
+}
+
+// ══════════════════════════════════════════
+//  CRICKET INSECT BATSMAN - proper cartoon
+// ══════════════════════════════════════════
+function drawBatsman(x,y,swA){
+  ctx.save(); ctx.translate(x,y);
+
+  // SHADOW
+  ctx.fillStyle='rgba(0,0,0,0.2)';
+  ctx.beginPath(); ctx.ellipse(0,72,38,9,0,0,Math.PI*2); ctx.fill();
+
+  // ── LEGS ──
+  ctx.strokeStyle='#33691e'; ctx.lineWidth=8; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(-10,35); ctx.lineTo(-12,62); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(10,35); ctx.lineTo(12,62); ctx.stroke();
+  // Cricket boots
+  ctx.fillStyle='#2e4020'; ctx.beginPath(); ctx.ellipse(-15,64,10,5,-0.3,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#2e4020'; ctx.beginPath(); ctx.ellipse(15,64,10,5,0.3,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#fff'; ctx.beginPath(); ctx.ellipse(-15,62,8,3,-0.3,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#fff'; ctx.beginPath(); ctx.ellipse(15,62,8,3,0.3,0,Math.PI*2); ctx.fill();
+
+  // ── PADS (white leg guards) ──
+  ctx.fillStyle='#f8f8f0'; ctx.strokeStyle='#ddd'; ctx.lineWidth=1.2;
+  rr(-22,22,14,36,5); ctx.fill(); ctx.stroke();
+  rr(8,22,14,36,5); ctx.fill(); ctx.stroke();
+  // Pad straps
+  ctx.strokeStyle='#ccc'; ctx.lineWidth=1;
+  for(let i=0;i<3;i++){ctx.beginPath();ctx.moveTo(-22,28+i*9);ctx.lineTo(-8,28+i*9);ctx.stroke();}
+  for(let i=0;i<3;i++){ctx.beginPath();ctx.moveTo(8,28+i*9);ctx.lineTo(22,28+i*9);ctx.stroke();}
+
+  // ── BODY (white shirt) ──
+  ctx.fillStyle='#f2f2ea'; ctx.strokeStyle='#d8d8d0'; ctx.lineWidth=1.5;
+  rr(-20,-12,40,46,8); ctx.fill(); ctx.stroke();
+  // Green stripes on shirt
+  ctx.fillStyle='rgba(85,139,47,0.35)';
+  ctx.fillRect(-20,-4,40,3); ctx.fillRect(-20,4,40,3);
+  // Green collar
+  ctx.fillStyle='#558b2f';
+  ctx.beginPath(); ctx.arc(0,-12,12,Math.PI*1.1,Math.PI*2-0.1); ctx.lineTo(12,-12); ctx.lineTo(-12,-12); ctx.closePath(); ctx.fill();
+
+  // ── LEFT ARM ──
+  ctx.strokeStyle='#558b2f'; ctx.lineWidth=9; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(-20,2); ctx.quadraticCurveTo(-32,-8,-30,-22); ctx.stroke();
+  // Left glove
+  ctx.fillStyle='#f0f0e8'; ctx.strokeStyle='#ddd'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.arc(-30,-24,9,0,Math.PI*2); ctx.fill(); ctx.stroke();
+
+  // ── RIGHT ARM + BAT (swings) ──
+  ctx.save();
+  ctx.translate(22,-2);
+  ctx.rotate(swA);
+  // Arm
+  ctx.strokeStyle='#558b2f'; ctx.lineWidth=9; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(8,-20); ctx.stroke();
+  // Right glove
+  ctx.fillStyle='#f0f0e8'; ctx.strokeStyle='#ddd'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.arc(10,-24,8,0,Math.PI*2); ctx.fill(); ctx.stroke();
+  // BAT grip/handle
+  ctx.fillStyle='#6d4c41'; rr(6,-36,8,22,2); ctx.fill();
+  ctx.fillStyle='#4a3525'; for(let i=0;i<4;i++){ctx.fillRect(6,-34+i*5,8,2.5);}
+  // BAT BLADE
+  ctx.fillStyle='#ede0b0'; ctx.strokeStyle='#c8b070'; ctx.lineWidth=1.5;
+  rr(2,-84,18,52,4); ctx.fill(); ctx.stroke();
+  // Blade lines (wood grain)
+  ctx.strokeStyle='rgba(180,150,90,0.6)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(5,-78); ctx.lineTo(5,-38); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(11,-78); ctx.lineTo(11,-38); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(17,-78); ctx.lineTo(17,-38); ctx.stroke();
+  // Bat edge (darker side)
+  ctx.fillStyle='rgba(160,120,60,0.4)'; ctx.fillRect(18,-84,2,52);
+  ctx.restore();
+
+  // ── HELMET ──
+  ctx.fillStyle='#1565c0';
+  ctx.beginPath();
+  ctx.ellipse(0,-38,24,14,0,Math.PI,0);
+  ctx.fill();
+  ctx.fillRect(-24,-38,48,14);
+  // Helmet brim
+  ctx.fillStyle='#0d47a1';
+  ctx.beginPath(); ctx.ellipse(0,-24,28,7,0,0,Math.PI*2); ctx.fill();
+  // Grille bars
+  ctx.strokeStyle='#90caf9'; ctx.lineWidth=2;
+  for(let i=-2;i<=2;i++){
+    ctx.beginPath(); ctx.moveTo(i*6,-38); ctx.lineTo(i*6,-22); ctx.stroke();
+  }
+  ctx.beginPath(); ctx.moveTo(-14,-34); ctx.lineTo(14,-34); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-14,-28); ctx.lineTo(14,-28); ctx.stroke();
+
+  // ── HEAD (BIG ROUND GREEN CARTOON) ──
+  ctx.fillStyle='#8bc34a';
+  ctx.beginPath(); ctx.arc(0,-46,24,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle='#558b2f'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.arc(0,-46,24,0,Math.PI*2); ctx.stroke();
+  // Cheeks
+  ctx.fillStyle='rgba(139,195,74,0.5)';
+  ctx.beginPath(); ctx.arc(-16,-44,8,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(16,-44,8,0,Math.PI*2); ctx.fill();
+
+  // ── BIG CARTOON EYES ──
+  // Eye whites
+  ctx.fillStyle='#fff';
+  ctx.beginPath(); ctx.ellipse(-9,-48,10,13,-.18,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(9,-48,10,13,.18,0,Math.PI*2); ctx.fill();
+  // Pupils (large)
+  ctx.fillStyle='#111';
+  ctx.beginPath(); ctx.arc(-9,-47,6.5,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(9,-47,6.5,0,Math.PI*2); ctx.fill();
+  // Iris (brown)
+  ctx.fillStyle='#5d4037';
+  ctx.beginPath(); ctx.arc(-9,-47,4,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(9,-47,4,0,Math.PI*2); ctx.fill();
+  // Pupil dot
+  ctx.fillStyle='#111';
+  ctx.beginPath(); ctx.arc(-9,-47,2.5,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(9,-47,2.5,0,Math.PI*2); ctx.fill();
+  // Eye shine (two dots)
+  ctx.fillStyle='#fff';
+  ctx.beginPath(); ctx.arc(-6,-50,2.5,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(12,-50,2.5,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(-12,-45,1.2,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(6,-45,1.2,0,Math.PI*2); ctx.fill();
+  // Eye outlines
+  ctx.strokeStyle='#33691e'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.ellipse(-9,-48,10,13,-.18,0,Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(9,-48,10,13,.18,0,Math.PI*2); ctx.stroke();
+
+  // Mouth / smile
+  ctx.strokeStyle='#33691e'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.arc(0,-38,6,0.2,Math.PI-0.2); ctx.stroke();
+
+  // ── ANTENNAE ──
+  ctx.strokeStyle='#33691e'; ctx.lineWidth=2.5;
+  ctx.beginPath(); ctx.moveTo(-8,-68); ctx.quadraticCurveTo(-22,-86,-28,-94); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-8,-68); ctx.quadraticCurveTo(-10,-85,-16,-92); ctx.stroke();
+  // Antenna tips
+  ctx.fillStyle='#33691e';
+  ctx.beginPath(); ctx.arc(-28,-94,4.5,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(-16,-92,4.5,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#558b2f';
+  ctx.beginPath(); ctx.arc(-28,-94,2.5,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(-16,-92,2.5,0,Math.PI*2); ctx.fill();
+
+  ctx.restore();
+}
+
+// ══════════════════════════════════════════
+//  BALL (grows as approaches camera)
+// ══════════════════════════════════════════
+function drawBall(x,y,r){
+  if(r<2) return;
+  // Ground shadow
+  ctx.fillStyle='rgba(0,0,0,0.15)';
+  ctx.beginPath(); ctx.ellipse(x,H*0.85,r*1.3,r*0.45,0,0,Math.PI*2); ctx.fill();
+  // Ball radial gradient
+  const g=ctx.createRadialGradient(x-r*.3,y-r*.3,r*.05,x,y,r);
+  g.addColorStop(0,'#f07070'); g.addColorStop(0.5,'#cc2200'); g.addColorStop(1,'#7f0000');
+  ctx.fillStyle=g;
+  ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+  // Seam stitches
+  if(r>5){
+    ctx.strokeStyle='rgba(255,240,180,0.85)'; ctx.lineWidth=Math.max(0.8,r*.1);
+    ctx.beginPath(); ctx.arc(x,y,r*.6,0.6,Math.PI-0.6); ctx.stroke();
+    ctx.beginPath(); ctx.arc(x,y,r*.6,Math.PI+0.6,-0.6); ctx.stroke();
+  }
+  // Shine
+  if(r>8){
+    ctx.fillStyle='rgba(255,255,255,0.28)';
+    ctx.beginPath(); ctx.ellipse(x-r*.3,y-r*.3,r*.28,r*.18,-0.5,0,Math.PI*2); ctx.fill();
+  }
+}
+
+// ══════════════════════════════════════════
+//  BALLOONS
+// ══════════════════════════════════════════
+const BCOLS=['#ef5350','#42a5f5','#66bb6a','#ffa726','#ab47bc','#26c6da','#ffee58','#f06292'];
+function spawnBalloons(n){
+  for(let i=0;i<n;i++) balloons.push({
+    x:60+Math.random()*600, y:H*0.52,
+    vy:-(1.6+Math.random()*1.6), vx:(Math.random()-.5)*.9,
+    col:BCOLS[i%BCOLS.length], r:14+Math.random()*7,
+    life:130+Math.random()*50|0, ml:180, w:Math.random()*Math.PI*2
+  });
+}
+function drawBalloons(){
+  balloons.forEach(b=>{
+    b.w+=.055; const wx=Math.sin(b.w)*3;
+    const al=Math.min(1,b.life/30);
+    ctx.globalAlpha=al;
+    ctx.strokeStyle='rgba(0,0,0,0.2)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(b.x+wx,b.y+b.r); ctx.lineTo(b.x+wx,b.y+b.r+20); ctx.stroke();
+    const g=ctx.createRadialGradient(b.x+wx-b.r*.3,b.y-b.r*.3,b.r*.1,b.x+wx,b.y,b.r);
+    g.addColorStop(0,'rgba(255,255,255,.55)'); g.addColorStop(.4,b.col); g.addColorStop(1,b.col+'bb');
+    ctx.fillStyle=g; ctx.beginPath(); ctx.arc(b.x+wx,b.y,b.r,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,.45)';
+    ctx.beginPath(); ctx.ellipse(b.x+wx-b.r*.35,b.y-b.r*.35,b.r*.25,b.r*.17,-.5,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle=b.col; ctx.beginPath(); ctx.arc(b.x+wx,b.y+b.r,3.5,0,Math.PI*2); ctx.fill();
+    ctx.globalAlpha=1;
+  });
+}
+
+// ══════════════════════════════════════════
+//  PARTICLES
+// ══════════════════════════════════════════
+function spawnParts(x,y,n,cols){
+  for(let i=0;i<n;i++) parts.push({x,y,vx:(Math.random()-.5)*9,vy:-(Math.random()*5+2),col:cols[i%cols.length],r:3+Math.random()*4,life:55+Math.random()*30|0});
+}
+function drawParts(){
+  parts.forEach(p=>{ctx.globalAlpha=p.life/85;ctx.fillStyle=p.col;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();});
+  ctx.globalAlpha=1;
+}
+
+// ══════════════════════════════════════════
+//  FLOAT TEXT
+// ══════════════════════════════════════════
+function ftext(t,x,y,col,sz){
+  const el=document.createElement('div'); el.className='ft';
+  el.textContent=t; el.style.color=col; el.style.fontSize=sz+'px';
+  el.style.left=x+'px'; el.style.top=y+'px';
+  document.getElementById('wrap').appendChild(el);
+  setTimeout(()=>el.remove(),1200);
+}
+
+// ══════════════════════════════════════════
+//  GAME LOGIC
+// ══════════════════════════════════════════
+function resetBall(){
+  ball.x=355+(Math.random()-.5)*12;
+  ball.y=BallStart.y; ball.r=BallStart.r;
+  ball.vx=(Math.random()-.5)*1.8; ball.active=false; ball.bounced=false; ball.hit=false;
+  batSwing=0; swinging=false;
+}
+
+function startBowl(){
+  if(gs!=='ready') return;
+  gs='bowling'; resetBall();
+  setTimeout(()=>{ if(gs!=='bowling') return; ball.active=true; balls--; updateHUD(); },350);
+}
+
+function doSwing(){
+  if(['gameover','idle','out'].includes(gs)) return;
+  if(gs==='ready'){startBowl();return;}
+  if(gs!=='bowling'||swinging) return;
+  swinging=true; batSwing=0;
+  document.getElementById('tb').classList.add('tbH');
+  setTimeout(()=>document.getElementById('tb').classList.remove('tbH'),150);
+}
+
+// Ball progress: how far from bowler to batsman (0=far, 1=near)
+function ballProg(){return Math.min(1,Math.max(0,(ball.y-BallStart.y)/(H*0.85-BallStart.y)));}
+
+function updateGame(){
+  crowdT+=0.038;
+  balloons=balloons.filter(b=>{b.x+=b.vx;b.y+=b.vy;b.vy+=0.012;b.life--;return b.life>0;});
+  parts=parts.filter(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=0.28;p.life--;return p.life>0;});
+  if(!ball.active) return;
+
+  // Ball travels toward camera (top to bottom, small to large)
+  const speed=2.2+ballProg()*1.4; // accelerates slightly
+  ball.y+=speed; ball.x+=ball.vx;
+  ball.r=BallStart.r+ballProg()*22; // grows with perspective
+
+  // Slight curve inward on pitch
+  const pitchMid=360;
+  ball.vx+=(pitchMid-ball.x)*0.002;
+
+  // Bounce
+  if(!ball.bounced && ball.y>H*0.6+Math.random()*30){
+    ball.bounced=true;
+    ball.vx+=(Math.random()-.5)*1.5;
+  }
+
+  // Swing animation
+  if(swinging){
+    batSwing+=0.13;
+    // Check hit when ball is in batsman zone
+    if(ball.y>H*0.72 && !ball.hit && batSwing>0.35 && batSwing<1.65){
+      doHit();
+    }
+    if(batSwing>Math.PI){ swinging=false; batSwing=0; }
+  }
+
+  // Ball past batsman without being hit
+  if(ball.y>H*0.88 && !ball.hit){
+    ball.active=false; doOut();
+  }
+}
+
+function doHit(){
+  if(ball.hit) return;
+  ball.hit=true; ball.active=false;
+  gs='hit';
+  // Timing quality
+  const mid=Math.abs(batSwing-0.9);
+  const isPerfect=mid<0.25, isGood=mid<0.5;
+  let r;
+  if(isPerfect) r=[6,6,4,6][Math.random()*4|0];
+  else if(isGood) r=[4,4,2,3][Math.random()*4|0];
+  else r=[1,2,1][Math.random()*3|0];
+  runs+=r; updateHUD();
+
+  if(r>=6){
+    spawnBalloons(20); spawnParts(360,360,32,['#ffd700','#ff6b35','#ff1744','#ffeb3b','#fff']);
+    ftext(['SIX! 🚀','MAXIMUM! 💥','OUT OF THE PARK! 🌟'][Math.random()*3|0],155,130,'#ffd700',40);
+  } else if(r>=4){
+    spawnBalloons(12); spawnParts(360,360,22,['#42a5f5','#26c6da','#fff','#80deea']);
+    ftext(['FOUR! ⚡','BOUNDARY! 🔥','CRACKED! 💥'][Math.random()*3|0],180,140,'#ff6b35',34);
+  } else {
+    spawnParts(360,360,14,['#69f0ae','#a5d6a7','#fff']);
+    ftext(r+' RUN'+(r>1?'S':'')+'! 👍',220,155,'#69f0ae',28);
+  }
+  if(balls<=0){balls=6;}
+  setTimeout(()=>{ if(gs!=='gameover'){resetBall();gs='ready';setTimeout(startBowl,1400);} }, r>0?1100:700);
+}
+
+function doOut(){
+  if(['out','gameover'].includes(gs)) return;
+  gs='out'; wickets++;
+  if(wickets<=3) document.getElementById('w'+wickets).classList.add('gone');
+  ftext('OUT! 💀',240,145,'#ff1744',42);
+  spawnParts(360,390,18,['#ff5252','#ffd740','#fff']);
+  if(wickets>=3) setTimeout(gameOver,1500);
+  else setTimeout(()=>{resetBall();gs='ready';setTimeout(startBowl,1600);},1500);
+}
+
+function gameOver(){
+  gs='gameover';
+  const isHS=runs>hs; if(isHS){hs=runs;localStorage.setItem('dc_hs4',hs);}
+  document.getElementById('oE').textContent=runs>=50?'🏆':runs>=20?'🎉':runs>=8?'😅':'💀';
+  document.getElementById('oT').textContent=runs>=50?'Champion!':runs>=25?'Well Played!':runs>=8?'Not Bad!':'Game Over!';
+  document.getElementById('oR').textContent=String(runs).padStart(3,'0')+' Runs';
+  document.getElementById('oS').textContent='Best: '+String(Math.max(runs,hs)).padStart(3,'0')+' Runs';
+  document.getElementById('oRc').innerHTML=isHS?'<div class="nr">⭐ NEW RECORD!</div>':'';
+  document.getElementById('oB').textContent='🔄 PLAY AGAIN';
+  document.getElementById('ov').classList.remove('hide');
+}
+
+function startGame(){
+  runs=0;wickets=0;balls=6;gs='ready';
+  balloons=[];parts=[];
+  document.getElementById('ov').classList.add('hide');
+  for(let i=1;i<=3;i++) document.getElementById('w'+i).classList.remove('gone');
+  updateHUD(); resetBall();
+  setTimeout(startBowl,800);
+}
+
+function updateHUD(){
+  document.getElementById('rd').textContent=String(runs).padStart(3,'0');
+}
+
+// ══════════════════════════════════════════
+//  RENDER LOOP
+// ══════════════════════════════════════════
+function render(){
+  requestAnimationFrame(render); animT+=0.016;
+  ctx.clearRect(0,0,W,H);
+  updateGame();
+
+  drawBG();
+  drawBalloons();
+  drawScoreboard();
+
+  // Fielders (draw back to front)
+  FIELDERS.sort((a,b)=>a.y-b.y).forEach(f=>{
+    const s=0.45+(f.y-260)/600;
+    drawSnail(f.x,f.y,s);
+  });
+
+  // Bowler
+  drawBowler();
+
+  // Ball (in front of fielders, behind batsman)
+  if(ball.active) drawBall(ball.x, ball.y, ball.r);
+
+  // Batsman
+  const sw=swinging ? -Math.sin(batSwing)*1.9 : -0.12+Math.sin(animT*1.8)*0.05;
+  drawBatsman(360, 388, sw);
+
+  drawParts();
+
+  // Ready label
+  if(gs==='ready'&&!ball.active){
+    ctx.fillStyle='rgba(0,0,0,0.45)'; rr(220,H-100,280,28,14); ctx.fill();
+    ctx.fillStyle='#fff'; ctx.font='15px "Fredoka One"'; ctx.textAlign='center';
+    ctx.fillText('Ball coming... tap 🏏 to swing!',360,H-81);
+  }
+}
+
+// ── INPUT ──
+document.getElementById('tb').addEventListener('click',doSwing);
+document.getElementById('tb').addEventListener('touchstart',e=>{e.preventDefault();doSwing();},{passive:false});
+CV.addEventListener('click',doSwing);
+CV.addEventListener('touchstart',e=>{e.preventDefault();doSwing();},{passive:false});
+document.addEventListener('keydown',e=>{if(e.code==='Space'||e.code==='ArrowUp'){e.preventDefault();doSwing();}});
+document.getElementById('oB').addEventListener('click',startGame);
+
+updateHUD(); render();
+</script>
+</body>
+</html>

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Anagram Solve Game</title>
+</head>
+<style>  body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(to right, #74ebd5, #acb6e5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+  }
+  
+  .game-container {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    width: 350px;
+  }
+  
+  h1 {
+    color: #333;
+    margin-bottom: 20px;
+  }
+  
+  #level-select, #instruction, #game {
+    margin-top: 20px;
+  }
+  
+  .hidden {
+    display: none;
+  }
+  
+  #anagram-word {
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+  
+  #user-input {
+    padding: 10px;
+    width: 80%;
+    margin-bottom: 10px;
+  }
+  
+  #check-button, #start-button {
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    padding: 10px 15px;
+    text-align: center;
+    font-size: 16px;
+    margin-top: 10px;
+    cursor: pointer;
+    border-radius: 8px;
+  }
+  
+  #check-button:hover, #start-button:hover {
+    background-color: #45a049;
+  }
+  
+  #feedback {
+    margin-top: 15px;
+    font-weight: bold;
+  }
+  </style>
+<body>
+
+  <div class="game-container">
+    <h1>Anagram Solve Game</h1>
+
+    <div id="level-select">
+      <label for="level">Choose Level:</label>
+      <select id="level">
+        <option value="easy">Easy</option>
+        <option value="medium">Medium</option>
+        <option value="hard">Hard</option>
+      </select>
+      <button id="start-button">Start Game</button>
+    </div>
+
+    <div id="instruction" class="hidden">
+      <p>🔹 Unscramble the anagram to form a correct word!</p>
+      <p>🔹 Type your answer and press "Check".</p>
+      <p>🔹 Good luck!</p>
+    </div>
+
+    <div id="game" class="hidden">
+      <h2 id="anagram-word"></h2>
+      <input type="text" id="user-input" placeholder="Your answer...">
+      <button id="check-button">Check</button>
+      <p id="feedback"></p>
+    </div>
+  </div>
+
+  <script>
+    // Word lists
+const words = {
+  easy: ["cat", "dog", "sun", "bat", "car"],
+  medium: ["planet", "forest", "bridge", "camera", "pencil"],
+  hard: ["algorithm", "astronomy", "adventure", "character", "elephant"]
+};
+
+let selectedWord = "";
+let shuffledWord = "";
+
+// Shuffle letters of the word
+function shuffleWord(word) {
+  return word.split('').sort(() => Math.random() - 0.5).join('');
+}
+
+// Start Game
+document.getElementById('start-button').addEventListener('click', function() {
+  const level = document.getElementById('level').value;
+  const wordList = words[level];
+  
+  selectedWord = wordList[Math.floor(Math.random() * wordList.length)];
+  shuffledWord = shuffleWord(selectedWord);
+
+  // Show instruction first
+  document.getElementById('instruction').classList.remove('hidden');
+  document.getElementById('game').classList.remove('hidden');
+  document.getElementById('anagram-word').innerText = shuffledWord;
+  document.getElementById('feedback').innerText = "";
+});
+
+// Check Answer
+document.getElementById('check-button').addEventListener('click', function() {
+  const userAnswer = document.getElementById('user-input').value.trim().toLowerCase();
+  
+  if (userAnswer === selectedWord) {
+    document.getElementById('feedback').innerText = "✅ Correct! Well done!";
+    document.getElementById('feedback').style.color = "green";
+  } else {
+    document.getElementById('feedback').innerText = "❌ Incorrect! Try again!";
+    document.getElementById('feedback').style.color = "red";
+  }
+});
+
+  </script>
+</body>
+</html>
