@@ -3,102 +3,479 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>36+ Games Hub</title>
-  <link rel="icon" href="images (11).jpeg">
+  <title>NEXUS Gaming Hub - 43 Games</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
 </head>
 <style>
-    body {
-  font-family: sans-serif;
-  background: url(./unnamed.webp);
-  color: rgb(242, 234, 234);
+:root {
+  --neon-pink: #ff006e;
+  --neon-cyan: #00f5ff;
+  --neon-purple: #8b00ff;
+  --neon-green: #39ff14;
+  --dark-bg: #0a0e27;
+  --card-bg: rgba(15, 23, 42, 0.85);
+  --glow-pink: 0 0 20px rgba(255, 0, 110, 0.5);
+  --glow-cyan: 0 0 20px rgba(0, 245, 255, 0.5);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Rajdhani', sans-serif;
+  background: var(--dark-bg);
+  color: #ffffff;
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Animated Background */
+.bg-animation {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  background: 
+    radial-gradient(ellipse at 20% 30%, rgba(139, 0, 255, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 70%, rgba(255, 0, 110, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(0, 245, 255, 0.1) 0%, transparent 50%);
+  animation: bgShift 15s ease-in-out infinite alternate;
+}
+
+@keyframes bgShift {
+  0% { transform: scale(1) rotate(0deg); }
+  100% { transform: scale(1.1) rotate(5deg); }
+}
+
+/* Grid Pattern Overlay */
+.grid-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  background-image: 
+    linear-gradient(rgba(0, 245, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 245, 255, 0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+  animation: gridScroll 20s linear infinite;
+}
+
+@keyframes gridScroll {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(50px); }
+}
+
+/* Header */
+header {
   text-align: center;
+  padding: 3rem 1rem 2rem;
+  position: relative;
+}
+
+.logo {
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(2.5rem, 8vw, 5rem);
+  font-weight: 900;
+  background: linear-gradient(135deg, var(--neon-cyan), var(--neon-pink), var(--neon-purple));
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradientFlow 4s ease infinite, glitchText 5s infinite;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.5rem;
+  filter: drop-shadow(0 0 30px rgba(255, 0, 110, 0.5));
+}
+
+@keyframes gradientFlow {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes glitchText {
+  0%, 90%, 100% { transform: translateX(0); }
+  92% { transform: translateX(-2px); }
+  94% { transform: translateX(2px); }
+  96% { transform: translateX(-2px); }
+  98% { transform: translateX(2px); }
+}
+
+.subtitle {
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(0.9rem, 2vw, 1.2rem);
+  color: var(--neon-cyan);
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  opacity: 0.9;
+  animation: fadeInUp 1s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 0.9;
+    transform: translateY(0);
+  }
+}
+
+/* Stats Bar */
+.stats-bar {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  padding: 1.5rem;
+  margin: 2rem auto;
+  max-width: 600px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(0, 245, 255, 0.3);
+  border-radius: 15px;
+  backdrop-filter: blur(10px);
+}
+
+.stat {
+  text-align: center;
+}
+
+.stat-number {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--neon-pink);
+  text-shadow: var(--glow-pink);
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-top: 0.25rem;
+}
+
+/* Game Grid */
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
 }
 
 .game-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 1rem;
-  padding: 2rem;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 2rem;
+  animation: gridFadeIn 0.8s ease-out;
 }
 
-button {
-  background: #e10a0a;
-  color: white;
-  padding: 1rem;
-  border: 2px solid #444;
-  border-radius: 10px;
+@keyframes gridFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Game Cards */
+.game-card {
+  background: var(--card-bg);
+  border: 2px solid transparent;
+  border-radius: 20px;
+  padding: 2rem 1.5rem;
   cursor: pointer;
-  font-size: 1.1rem;
-  transition: 3s;
-}
-button:hover {
-  background: #890209e6;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  backdrop-filter: blur(10px);
+  animation: cardSlideIn 0.6s ease-out backwards;
 }
 
-</style>
-<body>
-  <h1>🎮 Gaming Hub(40 games)</h1>
+.game-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, var(--neon-pink), var(--neon-cyan));
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  z-index: -1;
+}
+
+.game-card::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, var(--neon-pink), var(--neon-cyan), var(--neon-purple));
+  border-radius: 20px;
+  opacity: 0;
+  z-index: -2;
+  filter: blur(10px);
+  transition: opacity 0.4s ease;
+}
+
+.game-card:hover {
+  transform: translateY(-10px) scale(1.03);
+  border-color: var(--neon-cyan);
+  box-shadow: 
+    0 20px 60px rgba(0, 245, 255, 0.3),
+    0 0 40px rgba(255, 0, 110, 0.2),
+    inset 0 0 20px rgba(0, 245, 255, 0.1);
+}
+
+.game-card:hover::before {
+  opacity: 0.05;
+}
+
+.game-card:hover::after {
+  opacity: 0.6;
+}
+
+.game-card:hover .game-number {
+  color: var(--neon-green);
+  text-shadow: 0 0 15px var(--neon-green);
+}
+
+.game-card:hover .play-icon {
+  transform: scale(1.2) rotate(360deg);
+  color: var(--neon-pink);
+}
+
+@keyframes cardSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Stagger animation delays */
+.game-card:nth-child(1) { animation-delay: 0.05s; }
+.game-card:nth-child(2) { animation-delay: 0.1s; }
+.game-card:nth-child(3) { animation-delay: 0.15s; }
+.game-card:nth-child(4) { animation-delay: 0.2s; }
+.game-card:nth-child(5) { animation-delay: 0.25s; }
+.game-card:nth-child(6) { animation-delay: 0.3s; }
+.game-card:nth-child(n+7) { animation-delay: 0.35s; }
+
+.game-number {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.75rem;
+  color: var(--neon-cyan);
+  opacity: 0.6;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  margin-bottom: 0.75rem;
+  transition: all 0.3s ease;
+}
+
+.game-name {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  line-height: 1.3;
+}
+
+.play-icon {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-size: 1.5rem;
+  color: var(--neon-cyan);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Footer */
+footer {
+  text-align: center;
+  padding: 3rem 1rem;
+  margin-top: 4rem;
+  border-top: 1px solid rgba(0, 245, 255, 0.2);
+}
+
+.footer-text {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.9rem;
+  letter-spacing: 0.1em;
+}
+
+.footer-text span {
+  color: var(--neon-pink);
+  font-weight: 700;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .game-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+  }
   
-  <div class="game-grid" id="gameMenu"></div>
+  .stats-bar {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  header {
+    padding: 2rem 1rem 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .game-grid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+  
+  .container {
+    padding: 1rem;
+  }
+}
+
+/* Loading Animation */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.loading {
+  animation: pulse 2s ease-in-out infinite;
+}
+</style>
+
+<body>
+  <div class="bg-animation"></div>
+  <div class="grid-overlay"></div>
+
+  <header>
+    <h1 class="logo">MARYAM'S</h1>
+    <p class="subtitle">Gaming Hub</p>
+  </header>
+
+  <div class="stats-bar">
+    <div class="stat">
+      <div class="stat-number">43</div>
+      <div class="stat-label">Games</div>
+    </div>
+    <div class="stat">
+      <div class="stat-number">∞</div>
+      <div class="stat-label">Fun</div>
+    </div>
+    <div class="stat">
+      <div class="stat-number">100%</div>
+      <div class="stat-label">Free</div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="game-grid" id="gameMenu"></div>
+  </div>
+
+  <footer>
+    <p class="footer-text">Made with <span>♥</span> for gamers worldwide</p>
+  </footer>
+
   <script>
     const games = [
-  { name: "Math Quiz", file: "math.html"},//1
-  { name: "Memory Match", file: "memory.html" },//2
-  { name: "Puzzle Slider", file: "puzzle_slider.html" },//3
-  { name: "Word Search", file: "word.html" },//4
-  { name: "Maze Solver", file: "maze_solver.html" },//5
-  { name: "Reaction Timer", file: "timer.html" },//6
-  { name: "archery aim", file: "archeryaim.html" },//7
-  { name: "Angram solve", file: "AnagramSolve.html" },//8
-  { name: "Catch The Apple", file: "apple.html" },//9
-  { name: "emoji creator", file: "emg_creator.html" },//10
-  { name: "Liar Truth game", file: "LiarTruthGame.html" },//11
-  { name: "Flash_box", file: "Flash_box.html" },//12
-  { name: "Pong", file: "pong.html" },//13
-  { name: "Whack-A-Black-Mole", file: "Whack-a-Mole.html" },//14
-  { name: "match the words", file: "Challenge.html" },//15
-  { name: "checkers", file: "checkers.html" },//16
-  { name: "astiorids", file: "astiorids.html" },//17
-  { name: "bomber man", file: "Bomberman.html" },//18
-  { name: "blocks game", file: "block.html" },//19
-  { name: "emoji puzzle", file: "emg.html" },//20
-  { name: "Typing Challange", file: "TypigChallege.html" },//21
-  { name: "Tic Tac Toe", file: "ticc.html" },//22
-  { name: "Truth or Dare", file: "td.html" },//23
-  { name: "Tetris", file: "tetris.html" },//24
-  { name: "Crush The Ball", file: "crush_ball.html" },//25
-  { name: "Flappy Birds", file: "fb.html" },//26
-  { name: "Flip the bottle", file: "flip.html" },//27
-  { name: "Color by number", file: "cbn.html" },//28
-  { name: "Dont touch red", file: "dontt_red.html" },//29
-  { name: "finger follow", file: "finger.html" },//30
-  { name: "Gravity Flipper", file: "Gravity_Flipper.html" },//31
-  { name: "Blind Puzzle", file: "BlindPuzzle.html" },//32
-  { name: "Human Body Information", file: "Humanbodyinfo.html" },//33
-  { name: "Slingshot", file: "Slingshot.html" },//33
-  { name: "Newton's Cradle", file: "Newton's Cradle.html" },//34
-  { name: "Mine Sweeper", file: "Minesweeper.html" },//35
-  { name: "Fun Box Game", file: "funboxg.html" },//36
-  { name: "scramble", file: "words.html" },//37
-  { name: "chess", file: "chess.html" },//38
-  { name: "talking_kitty", file: "kitty.html" },//39
-  { name: "subway surfers", file: "jake.html" },//40
-  { name: "shooters", file: "free.html" },//41
-  { name: "Ludo Master", file: "ludo.html" },//42
-  { name: "om-nom and nelle-running_game", file: "om.html" },//43
-];
+      { name: "Math Quiz", file: "math.html"},
+      { name: "Memory Match", file: "memory.html" },
+      { name: "Puzzle Slider", file: "puzzle_slider.html" },
+      { name: "Word Search", file: "word.html" },
+      { name: "Maze Solver", file: "maze_solver.html" },
+      { name: "Reaction Timer", file: "timer.html" },
+      { name: "Archery Aim", file: "archeryaim.html" },
+      { name: "Anagram Solve", file: "AnagramSolve.html" },
+      { name: "Catch The Apple", file: "apple.html" },
+      { name: "Emoji Creator", file: "emg_creator.html" },
+      { name: "Liar Truth Game", file: "LiarTruthGame.html" },
+      { name: "Flash Box", file: "Flash_box.html" },
+      { name: "Pong", file: "pong.html" },
+      { name: "Whack-A-Mole", file: "Whack-a-Mole.html" },
+      { name: "Match The Words", file: "Challenge.html" },
+      { name: "Checkers", file: "checkers.html" },
+      { name: "Asteroids", file: "astiorids.html" },
+      { name: "Bomber Man", file: "Bomberman.html" },
+      { name: "Blocks Game", file: "block.html" },
+      { name: "Emoji Puzzle", file: "emg.html" },
+      { name: "Typing Challenge", file: "TypigChallege.html" },
+      { name: "Tic Tac Toe", file: "ticc.html" },
+      { name: "Truth or Dare", file: "td.html" },
+      { name: "Tetris", file: "tetris.html" },
+      { name: "Crush The Ball", file: "crush_ball.html" },
+      { name: "Flappy Birds", file: "fb.html" },
+      { name: "Flip The Bottle", file: "flip.html" },
+      { name: "Color By Number", file: "cbn.html" },
+      { name: "Don't Touch Red", file: "dontt_red.html" },
+      { name: "Finger Follow", file: "finger.html" },
+      { name: "Gravity Flipper", file: "Gravity_Flipper.html" },
+      { name: "Blind Puzzle", file: "BlindPuzzle.html" },
+      { name: "Human Body Info", file: "Humanbodyinfo.html" },
+      { name: "Slingshot", file: "Slingshot.html" },
+      { name: "Newton's Cradle", file: "Newton's Cradle.html" },
+      { name: "Mine Sweeper", file: "Minesweeper.html" },
+      { name: "Fun Box Game", file: "funboxg.html" },
+      { name: "Scramble", file: "words.html" },
+      { name: "Chess", file: "chess.html" },
+      { name: "Talking Kitty", file: "kitty.html" },
+      { name: "Subway Surfers", file: "jake.html" },
+      { name: "Shooters", file: "free.html" },
+      { name: "Ludo Master", file: "ludo.html" },
+      { name: "Om-Nom Running", file: "om.html" },
+      { name: "doodles", file: "cricket.html" }
+    ];
 
-const gameMenu = document.getElementById("gameMenu");
+    const gameMenu = document.getElementById("gameMenu");
 
-games.forEach(game => {
-  const btn = document.createElement("button");
-  btn.textContent = game.name;
-  btn.onclick = () => window.location.href = game.file;
-  gameMenu.appendChild(btn);
-});
+    games.forEach((game, index) => {
+      const card = document.createElement("div");
+      card.className = "game-card";
+      
+      card.innerHTML = `
+        <div class="game-number">Game #${String(index + 1).padStart(2, '0')}</div>
+        <div class="game-name">${game.name}</div>
+        <div class="play-icon">▶</div>
+      `;
+      
+      card.onclick = () => window.location.href = game.file;
+      
+      gameMenu.appendChild(card);
+    });
 
+    // Add subtle parallax effect on mouse move
+    document.addEventListener('mousemove', (e) => {
+      const moveX = (e.clientX - window.innerWidth / 2) * 0.01;
+      const moveY = (e.clientY - window.innerHeight / 2) * 0.01;
+      
+      document.querySelector('.bg-animation').style.transform = 
+        `translate(${moveX}px, ${moveY}px)`;
+    });
   </script>
 </body>
- </html> 
+</html>
 
 
