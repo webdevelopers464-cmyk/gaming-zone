@@ -3,404 +3,1628 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Talking Kitty — Home Life</title>
+<title>Talking Kitty Angela — Home Life</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Pacifico&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg:#0f1226; --panel:#1b1f3b; --text:#e9ecff; --accent:#6cf1ff; --danger:#ff4d6d;
-    --green:#06d6a0; --yellow:#ffd166; --blue:#118ab2; --pink:#ef476f; 
-  }
-  *{box-sizing:border-box}
-  body{
-    margin:0; min-height:100vh; display:grid; grid-template-rows:auto 1fr auto;
-    background: radial-gradient(1200px 600px at 50% 0%, #15183a, var(--bg));
-    color:var(--text); font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-  }
-  header,footer{display:flex; align-items:center; justify-content:space-between; gap:.75rem; padding:.75rem 1rem}
-  header{background:rgba(27,31,59,.6); border-bottom:1px solid #2a2f57; backdrop-filter:blur(6px)}
-  footer{background:rgba(27,31,59,.6); border-top:1px solid #2a2f57; backdrop-filter:blur(6px)}
-  h1{margin:0; font-size:1.1rem; letter-spacing:.4px}
-  .menu{display:flex; gap:.5rem; flex-wrap:wrap}
-  button{
-    background:var(--panel); color:var(--text); border:1px solid #2a2f57;
-    padding:.5rem .75rem; border-radius:10px; cursor:pointer;
-  }
-  button:hover{filter:brightness(1.08)}
-  .wrap{display:grid; grid-template-columns: 280px 1fr; gap:1rem; padding:1rem}
-  .sidebar{
-    background:var(--panel); border:1px solid #2a2f57; border-radius:12px; padding:.75rem;
-  }
-  .card{background:rgba(255,255,255,.04); border:1px solid #2a2f57; border-radius:12px; padding:.6rem .75rem; margin-bottom:.6rem}
-  .bar{height:10px; background:#222a4f; border-radius:8px; overflow:hidden; margin-top:.4rem}
-  .bar > span{display:block; height:100%; background:linear-gradient(90deg,#6cf1ff,#06d6a0)}
-  .room{
-    background:var(--panel); border:1px solid #2a2f57; border-radius:14px; padding:1rem; position:relative;
-    min-height:520px; display:grid; grid-template-columns: 1fr; place-items:center;
-  }
-  .room-title{position:absolute; top:.6rem; left:.8rem; font-weight:600; opacity:.85}
-  /* Kitty sprite (simple CSS) */
-  .kitty{
-    width:140px; height:140px; position:relative;
-    filter: drop-shadow(0 6px 12px rgba(0,0,0,.35));
-  }
-  .kitty .body{
-    width:100%; height:100%; background:#edecec; border-radius: 50%;
-    border:3px solid #8aa0ff;
-  }
-  .kitty .ear{position:absolute; width:36px; height:36px; background:#c7d2ff; border:3px solid #8aa0ff; top:-12px; border-radius:50%; transform:rotate(20deg)}
-  .kitty .ear.right{right:18px}
-  .kitty .ear.left{left:18px; transform:rotate(-20deg)}
-  .kitty .eye{position:absolute; width:18px; height:18px; background:#111; border-radius:50%; top:48px}
-  .kitty .eye.left{left:40px} .kitty .eye.right{right:40px}
-  .kitty .mouth{position:absolute; width:36px; height:18px; background:#f20232; border-radius:0 0 18px 18px; bottom:36px; left:calc(50% - 18px)}
-  .kitty.sleep .eye{height:6px; top:56px; background:#222}
-  .bubble{position:absolute; right:-10px; top:-10px; background:#fff; color:#111; border-radius:12px; padding:.35rem .5rem; font-size:.85rem}
-  .actions{display:flex; gap:.5rem; flex-wrap:wrap; margin-top:.75rem}
-  .actions button{background:#242a55}
-  /* Room themes */
-  .gaming{background:linear-gradient(#1a1f44,#0c0f24)}
-  .bedroom{background:linear-gradient(#0c0f24,#1a1f44)}
-  .bathroom{background:linear-gradient(#1e2a4f,#0c1633)}
-  .kitchen{background:linear-gradient(#1a2f2a,#0c1f18)}
-  /* Mini-game canvas */
-  canvas{border:2px solid #2a2f57; border-radius:12px; background:#0c0f24}
-  .timer{position:absolute; top:.6rem; right:.8rem; opacity:.85}
+:root{
+  --pink:#ff6eb4;--pink2:#ff9ed2;--pink3:#ffd6ee;--pink4:#fff0f8;
+  --purple:#c084fc;--purple2:#e9d5ff;
+  --teal:#5eead4;--yellow:#fde68a;--orange:#fb923c;
+  --blue:#60a5fa;--blue2:#bfdbfe;
+  --green:#4ade80;--red:#f87171;
+  --cream:#fff8f2;--dark:#3d1a4a;
+  --shadow:0 8px 32px rgba(150,40,120,.18);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Nunito',sans-serif;
+  background:linear-gradient(135deg,#ffe4f5 0%,#e0d4ff 50%,#c8eeff 100%);
+  min-height:100vh;overflow:hidden;
+  user-select:none;
+}
+
+/* ===== LAYOUT ===== */
+#app{display:flex;flex-direction:column;height:100vh;max-height:100vh}
+
+/* TOP BAR */
+#topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 16px;
+  background:rgba(255,255,255,.7);backdrop-filter:blur(12px);
+  border-bottom:2px solid rgba(255,110,180,.3);
+  flex-shrink:0;z-index:100;
+}
+.game-title{font-family:'Pacifico',cursive;font-size:1.4rem;color:var(--pink);text-shadow:2px 2px 0 #fff}
+.coins{display:flex;align-items:center;gap:6px;background:linear-gradient(135deg,#fde68a,#fb923c);
+  padding:4px 14px;border-radius:20px;font-weight:800;color:#7c3a00;font-size:.9rem;
+  box-shadow:0 2px 8px rgba(251,146,60,.4)}
+.coins span{font-size:1.2rem}
+
+/* ROOM NAV */
+#roomnav{
+  display:flex;gap:8px;padding:8px 12px;
+  background:rgba(255,255,255,.55);backdrop-filter:blur(8px);
+  border-bottom:2px solid rgba(255,110,180,.2);
+  overflow-x:auto;flex-shrink:0;
+}
+.rnav-btn{
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  background:rgba(255,255,255,.8);border:2.5px solid transparent;
+  border-radius:14px;padding:6px 14px;cursor:pointer;font-family:'Nunito',sans-serif;
+  font-weight:700;font-size:.78rem;color:var(--dark);transition:all .2s;white-space:nowrap;
+  box-shadow:0 2px 8px rgba(0,0,0,.06);
+}
+.rnav-btn .ricon{font-size:1.5rem}
+.rnav-btn:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(255,110,180,.3)}
+.rnav-btn.active{border-color:var(--pink);background:linear-gradient(135deg,#ffe0f5,#f3e0ff);color:var(--pink)}
+
+/* MAIN AREA */
+#main{display:flex;flex:1;min-height:0;gap:0}
+
+/* STATS PANEL */
+#stats{
+  width:150px;flex-shrink:0;
+  background:rgba(255,255,255,.65);backdrop-filter:blur(10px);
+  border-right:2px solid rgba(255,110,180,.2);
+  padding:12px 10px;display:flex;flex-direction:column;gap:8px;overflow-y:auto;
+}
+.stat-card{background:rgba(255,255,255,.8);border-radius:12px;padding:8px 10px;
+  box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.stat-label{font-size:.72rem;font-weight:800;color:var(--dark);opacity:.7;margin-bottom:4px;display:flex;align-items:center;gap:4px}
+.stat-bar{height:10px;background:#f0e0f8;border-radius:8px;overflow:hidden}
+.stat-fill{height:100%;border-radius:8px;transition:width .5s ease}
+.fill-energy{background:linear-gradient(90deg,#fde68a,#fb923c)}
+.fill-hygiene{background:linear-gradient(90deg,#5eead4,#60a5fa)}
+.fill-hunger{background:linear-gradient(90deg,#f87171,#fb923c)}
+.fill-fun{background:linear-gradient(90deg,#c084fc,#f472b6)}
+.fill-mood{background:linear-gradient(90deg,#4ade80,#5eead4)}
+
+.mood-badge{
+  background:linear-gradient(135deg,var(--pink),var(--purple));
+  color:#fff;border-radius:12px;padding:6px 8px;text-align:center;
+  font-weight:800;font-size:.8rem;
+}
+#clock-display{text-align:center;font-size:.9rem;font-weight:800;color:var(--dark);
+  background:rgba(255,255,255,.8);border-radius:10px;padding:4px}
+
+/* ROOM VIEWPORT */
+#room-viewport{flex:1;position:relative;overflow:hidden}
+.room-bg{position:absolute;inset:0;display:none;flex-direction:column}
+.room-bg.active{display:flex}
+
+/* ===== BEDROOM ===== */
+#room-bedroom{
+  background:linear-gradient(180deg,#fce7f3 0%,#f3e8ff 60%,#e9d5ff 100%);
+}
+.bedroom-scene{flex:1;position:relative;display:flex;align-items:flex-end;justify-content:center;padding-bottom:20px}
+.bed{position:absolute;bottom:30px;left:50%;transform:translateX(-50%);width:320px}
+.bed-frame{
+  background:linear-gradient(180deg,#e879f9,#c026d3);
+  border-radius:20px 20px 8px 8px;height:60px;width:100%;
+  box-shadow:0 8px 20px rgba(200,30,200,.35);
+}
+.bed-pillow{
+  position:absolute;top:-22px;left:20px;right:20px;height:35px;
+  background:linear-gradient(135deg,#fff,#fce7f3);
+  border-radius:16px;border:3px solid #f9a8d4;
+  box-shadow:0 4px 12px rgba(0,0,0,.1);
+}
+.bed-blanket{
+  position:absolute;bottom:60px;left:0;right:0;height:50px;
+  background:linear-gradient(135deg,#f0abfc,#c084fc);
+  border-radius:12px 12px 0 0;
+  box-shadow:0 -4px 16px rgba(192,132,252,.4);
+}
+.bed-blanket::before{
+  content:'';position:absolute;top:6px;left:10px;right:10px;height:8px;
+  background:rgba(255,255,255,.35);border-radius:4px;
+}
+.bedside-lamp{position:absolute;right:60px;bottom:100px;font-size:2.5rem;filter:drop-shadow(0 4px 8px rgba(253,230,138,.6))}
+.bedroom-window{position:absolute;top:20px;left:30px;width:90px;height:90px;
+  background:linear-gradient(135deg,#bfdbfe,#e0f2fe);
+  border:4px solid #fff;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,.1);}
+.bedroom-window::after{content:'';position:absolute;top:50%;left:0;right:0;height:3px;background:#fff}
+.bedroom-window::before{content:'';position:absolute;left:50%;top:0;bottom:0;width:3px;background:#fff}
+.bedroom-stars{position:absolute;top:0;left:0;right:0;height:200px;pointer-events:none;overflow:hidden}
+.star{position:absolute;background:#fff;border-radius:50%;animation:twinkle 2s infinite alternate}
+@keyframes twinkle{from{opacity:.3;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
+
+/* CLOSET */
+.closet-btn{
+  position:absolute;top:20px;right:20px;
+  background:linear-gradient(135deg,#e879f9,#c026d3);
+  color:#fff;border:none;border-radius:16px;padding:10px 16px;
+  font-family:'Nunito',sans-serif;font-weight:800;font-size:.9rem;
+  cursor:pointer;box-shadow:0 4px 16px rgba(200,30,200,.4);
+  display:flex;align-items:center;gap:6px;transition:all .2s;
+}
+.closet-btn:hover{transform:scale(1.07)}
+
+/* ===== LIVING/GAMING ROOM ===== */
+#room-living{
+  background:linear-gradient(180deg,#e0f2fe 0%,#dbeafe 40%,#ede9fe 100%);
+}
+.living-scene{flex:1;position:relative}
+.sofa{position:absolute;bottom:40px;left:50%;transform:translateX(-50%);width:280px}
+.sofa-body{height:50px;background:linear-gradient(180deg,#f87171,#dc2626);border-radius:14px;
+  box-shadow:0 6px 20px rgba(220,38,38,.35)}
+.sofa-back{height:38px;background:linear-gradient(180deg,#ef4444,#dc2626);border-radius:14px 14px 0 0;
+  margin-bottom:-2px;box-shadow:0 -4px 12px rgba(220,38,38,.2)}
+.sofa-arm{width:30px;height:38px;background:linear-gradient(180deg,#ef4444,#dc2626);
+  border-radius:10px;position:absolute;bottom:0}
+.sofa-arm.left{left:-15px}.sofa-arm.right{right:-15px}
+.tv{position:absolute;top:20px;left:50%;transform:translateX(-50%);width:220px;
+  background:#1e1b4b;border-radius:12px;padding:6px;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.tv-screen{
+  background:linear-gradient(135deg,#0f172a,#1e3a5f);
+  border-radius:8px;height:110px;display:flex;align-items:center;justify-content:center;
+  font-size:.7rem;color:#60a5fa;font-weight:700;text-align:center;line-height:1.6;
+}
+.tv-stand{width:60px;height:16px;background:#1e1b4b;margin:0 auto;border-radius:0 0 8px 8px}
+.plant{position:absolute;bottom:40px;right:30px;font-size:3rem;filter:drop-shadow(0 4px 10px rgba(74,222,128,.3))}
+.games-btn{
+  position:absolute;bottom:110px;left:50%;transform:translateX(-50%);
+  background:linear-gradient(135deg,#7c3aed,#4f46e5);
+  color:#fff;border:none;border-radius:20px;padding:10px 24px;
+  font-family:'Nunito',sans-serif;font-weight:800;font-size:1rem;
+  cursor:pointer;box-shadow:0 4px 16px rgba(124,58,237,.4);transition:all .2s;
+  display:flex;align-items:center;gap:8px;
+}
+.games-btn:hover{transform:translateX(-50%) scale(1.08)}
+
+/* ===== BATHROOM ===== */
+#room-bathroom{
+  background:linear-gradient(180deg,#e0f2fe 0%,#cffafe 50%,#a5f3fc 100%);
+}
+.bathroom-scene{flex:1;position:relative;display:flex;align-items:flex-end;justify-content:center;gap:30px;padding-bottom:30px}
+.bathtub{position:relative;width:220px}
+.bathtub-body{
+  background:linear-gradient(180deg,#fff,#f0f9ff);
+  border:4px solid #bae6fd;border-radius:16px 16px 40px 40px;
+  height:80px;box-shadow:0 8px 24px rgba(0,0,0,.1);overflow:hidden;position:relative;
+}
+.bath-water{
+  position:absolute;bottom:0;left:0;right:0;height:0;
+  background:linear-gradient(180deg,rgba(96,165,250,.5),rgba(14,165,233,.7));
+  transition:height 1s ease;border-radius:0 0 36px 36px;
+}
+.bathtub-rim{height:16px;background:linear-gradient(180deg,#bae6fd,#7dd3fc);
+  border-radius:8px;margin-top:-4px;box-shadow:0 4px 8px rgba(0,0,0,.08)}
+.faucet{
+  position:absolute;top:-24px;left:50%;transform:translateX(-50%);
+  font-size:1.5rem;cursor:pointer;transition:all .2s;
+}
+.faucet:hover{transform:translateX(-50%) scale(1.2)}
+.sink-area{display:flex;flex-direction:column;align-items:center;gap:8px}
+.sink{
+  width:100px;height:65px;
+  background:linear-gradient(180deg,#fff,#f0f9ff);
+  border:3px solid #bae6fd;border-radius:12px 12px 30px 30px;
+  box-shadow:0 6px 16px rgba(0,0,0,.08);position:relative;overflow:hidden;
+}
+.sink-water{position:absolute;bottom:0;left:0;right:0;height:0;
+  background:rgba(96,165,250,.5);transition:height .5s}
+.mirror{
+  width:100px;height:80px;
+  background:linear-gradient(135deg,rgba(255,255,255,.9),rgba(224,242,254,.8));
+  border:4px solid #bae6fd;border-radius:10px;
+  box-shadow:0 4px 16px rgba(0,0,0,.1);
+  display:flex;align-items:center;justify-content:center;font-size:2rem;
+}
+.toilet{position:absolute;bottom:30px;right:30px}
+.toilet-body{width:60px;height:70px;background:linear-gradient(180deg,#fff,#f0f9ff);
+  border:3px solid #e2e8f0;border-radius:8px 8px 20px 20px;box-shadow:0 4px 12px rgba(0,0,0,.08)}
+.toilet-seat{width:70px;height:20px;background:linear-gradient(180deg,#fff,#f0f9ff);
+  border:3px solid #e2e8f0;border-radius:10px;margin-bottom:-4px;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+.toilet-tank{width:52px;height:36px;background:linear-gradient(180deg,#fff,#f0f9ff);
+  border:3px solid #e2e8f0;border-radius:6px;margin-bottom:-4px;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+.bath-actions{
+  position:absolute;bottom:10px;left:50%;transform:translateX(-50%);
+  display:flex;gap:8px;flex-wrap:wrap;justify-content:center;
+}
+
+/* ===== MAKEUP ROOM ===== */
+#room-makeup{
+  background:linear-gradient(180deg,#fdf2f8 0%,#fce7f3 50%,#f3e8ff 100%);
+}
+.makeup-scene{flex:1;position:relative}
+.vanity{
+  position:absolute;bottom:40px;left:50%;transform:translateX(-50%);
+  width:260px;
+}
+.vanity-mirror{
+  width:180px;height:140px;margin:0 auto;
+  background:linear-gradient(135deg,rgba(255,255,255,.95),rgba(253,224,247,.9));
+  border:5px solid;border-image:linear-gradient(135deg,#e879f9,#c084fc,#f472b6) 1;
+  border-radius:50% 50% 10px 10px;
+  box-shadow:0 8px 24px rgba(200,100,200,.3);
+  position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;
+}
+.vanity-mirror::before{
+  content:'';position:absolute;top:0;left:15%;right:15%;height:40%;
+  background:rgba(255,255,255,.4);border-radius:0 0 50% 50%;
+}
+.vanity-table{height:30px;background:linear-gradient(180deg,#f9a8d4,#ec4899);
+  border-radius:6px;box-shadow:0 6px 16px rgba(236,72,153,.35)}
+.makeup-items{display:flex;gap:8px;justify-content:center;margin-top:8px;flex-wrap:wrap;font-size:1.4rem}
+.makeup-kit{position:absolute;top:20px;right:20px;font-size:2.5rem;
+  filter:drop-shadow(0 4px 8px rgba(255,110,180,.4))}
+
+/* ===== KITCHEN ===== */
+#room-kitchen{
+  background:linear-gradient(180deg,#fef3c7 0%,#fde68a 40%,#fef9ee 100%);
+}
+.kitchen-scene{flex:1;position:relative}
+.counter{position:absolute;bottom:40px;left:0;right:0;height:70px;
+  background:linear-gradient(180deg,#fde68a,#fbbf24);
+  box-shadow:0 -4px 16px rgba(251,191,36,.4)}
+.cabinet{position:absolute;top:20px;left:20px;width:120px;height:80px;
+  background:linear-gradient(180deg,#fbbf24,#f59e0b);border-radius:8px;
+  border:3px solid #d97706;box-shadow:0 4px 12px rgba(0,0,0,.1)}
+.cabinet::after{content:'●';position:absolute;right:10px;top:50%;transform:translateY(-50%);
+  color:#d97706;font-size:1.2rem}
+.stove{position:absolute;bottom:110px;left:50%;transform:translateX(-50%);
+  width:160px;height:90px;background:#374151;border-radius:10px;
+  box-shadow:0 4px 16px rgba(0,0,0,.35)}
+.burner{width:40px;height:40px;border-radius:50%;background:#1f2937;border:3px solid #6b7280;
+  position:absolute;display:flex;align-items:center;justify-content:center}
+.burner.on{background:#ef4444;box-shadow:0 0 12px rgba(239,68,68,.8);animation:flicker .3s infinite alternate}
+@keyframes flicker{from{box-shadow:0 0 8px rgba(239,68,68,.6)}to{box-shadow:0 0 16px rgba(251,146,60,.8)}}
+.burner.tl{top:12px;left:16px}.burner.tr{top:12px;right:16px}
+.burner.bl{bottom:12px;left:16px}.burner.br{bottom:12px;right:16px}
+.pot{position:absolute;top:-28px;left:50%;transform:translateX(-50%);font-size:2rem}
+.fridge{position:absolute;bottom:40px;right:20px;width:70px;height:120px;
+  background:linear-gradient(180deg,#fff,#f0fdf4);border:3px solid #d1fae5;border-radius:10px;
+  box-shadow:0 4px 16px rgba(0,0,0,.1)}
+.fridge::after{content:'';position:absolute;top:48%;left:0;right:0;height:3px;background:#d1fae5}
+.fridge-handle{position:absolute;right:10px;top:22%;bottom:55%;width:6px;
+  background:#d1fae5;border-radius:3px}
+.kitchen-actions{
+  position:absolute;bottom:120px;right:20px;
+  display:flex;flex-direction:column;gap:6px;
+}
+
+/* ===== ANGELA CHARACTER ===== */
+#angela-container{
+  position:absolute;bottom:0;left:50%;transform:translateX(-50%);
+  z-index:50;pointer-events:none;transition:all .4s ease;
+}
+.angela{width:200px;position:relative;text-align:center}
+/* Body */
+.angela-body{
+  width:120px;height:140px;margin:0 auto;
+  border-radius:60px 60px 50px 50px;
+  background:linear-gradient(180deg,#f9fafb,#e5e7eb);
+  border:3px solid rgba(255,255,255,.8);
+  box-shadow:0 8px 32px rgba(0,0,0,.15),inset 0 2px 8px rgba(255,255,255,.8);
+  position:relative;overflow:hidden;
+}
+.angela-dress{
+  position:absolute;bottom:0;left:-10px;right:-10px;height:60px;
+  background:var(--dress-color,linear-gradient(180deg,#f472b6,#ec4899));
+  border-radius:0 0 50px 50px;transition:all .5s;
+}
+.angela-belly{
+  position:absolute;bottom:55px;left:50%;transform:translateX(-50%);
+  width:50px;height:30px;background:rgba(255,255,255,.4);border-radius:50%;
+}
+/* Head */
+.angela-head{
+  width:130px;height:130px;margin:0 auto;
+  border-radius:50%;
+  background:linear-gradient(145deg,#f9fafb,#e5e7eb);
+  border:3px solid rgba(255,255,255,.8);
+  box-shadow:0 4px 20px rgba(0,0,0,.15),inset 0 2px 8px rgba(255,255,255,.8);
+  position:relative;overflow:visible;
+}
+/* Ears */
+.angela-ear{
+  position:absolute;width:45px;height:55px;
+  background:linear-gradient(145deg,#f9fafb,#e5e7eb);
+  border:3px solid rgba(255,255,255,.8);
+  clip-path:polygon(50% 0%,100% 100%,0% 100%);
+  top:-22px;
+}
+.angela-ear.left{left:-10px;transform:rotate(-15deg)}
+.angela-ear.right{right:-10px;transform:rotate(15deg)}
+.angela-inner-ear{
+  width:24px;height:30px;
+  background:linear-gradient(145deg,#fda4af,#f43f5e);
+  clip-path:polygon(50% 0%,100% 100%,0% 100%);
+  margin:8px auto 0;
+}
+/* Eyes */
+.angela-eye-group{position:absolute;top:35px;left:50%;transform:translateX(-50%);width:90px;display:flex;justify-content:space-between}
+.angela-eye{
+  width:32px;height:36px;background:#1a1a2e;border-radius:50%;
+  position:relative;box-shadow:0 2px 8px rgba(0,0,0,.4);
+}
+.angela-eye::before{/* iris */
+  content:'';position:absolute;top:4px;left:4px;width:18px;height:18px;
+  background:radial-gradient(circle at 35% 35%,#1e334b,#000a25,#1e1b4b);
+  border-radius:50%;
+}
+.angela-eye::after{/* highlight */
+  content:'';position:absolute;top:6px;left:6px;width:8px;height:8px;
+  background:rgba(255,255,255,.9);border-radius:50%;
+}
+.angela-eye.sleepy{height:16px;border-radius:50% 50% 40% 40%;top:48px}
+.angela-eye.sleepy::before{display:none}
+.angela-eye.sleepy::after{display:none}
+/* Lashes */
+.angela-lash{position:absolute;top:-4px;left:2px;right:2px;display:flex;justify-content:space-between}
+.lash{width:3px;height:8px;background:#1a1a2e;border-radius:2px;transform-origin:bottom;transform:rotate(var(--rot,0deg))}
+/* Nose */
+.angela-nose{
+  position:absolute;top:68px;left:50%;transform:translateX(-50%);
+  width:22px;height:14px;
+  background:linear-gradient(180deg,#fda4af,#f43f5e);
+  border-radius:50%;
+}
+/* Mouth */
+.angela-mouth{
+  position:absolute;top:88px;left:50%;transform:translateX(-50%);
+  width:40px;height:20px;
+  background:var(--mouth-color,#f43f5e);
+  border-radius:0 0 20px 20px;
+  transition:all .3s;
+}
+.angela-mouth.happy{height:24px;width:44px;top:86px}
+.angela-mouth.sad{border-radius:20px 20px 0 0;top:96px;height:14px}
+.angela-mouth.open{height:28px}
+/* Blush */
+.angela-blush{
+  position:absolute;top:72px;width:28px;height:16px;
+  background:rgba(255,150,180,var(--blush-opacity,0));
+  border-radius:50%;transition:all .5s;
+}
+.angela-blush.left{left:8px}
+.angela-blush.right{right:8px}
+/* Whiskers */
+.angela-whiskers{position:absolute;top:78px;width:100%;display:flex;justify-content:space-between;padding:0 4px}
+.whisker-group{display:flex;flex-direction:column;gap:4px}
+.whisker{height:2px;background:#adb5bd;border-radius:2px;opacity:.7}
+.whisker-group.left .whisker{width:36px;transform-origin:right}
+.whisker-group.right .whisker{width:36px;transform-origin:left}
+.whisker-group.left .whisker:nth-child(1){transform:rotate(-10deg)}
+.whisker-group.left .whisker:nth-child(3){transform:rotate(10deg)}
+.whisker-group.right .whisker:nth-child(1){transform:rotate(10deg)}
+.whisker-group.right .whisker:nth-child(3){transform:rotate(-10deg)}
+/* Tail */
+/* .angela-tail{
+  position:absolute;right:-60px;bottom:40px;
+  width:70px;height:30px;
+  border-bottom:6px solid #d1d5db;border-right:6px solid #d1d5db;
+  border-radius:0 0 30px 0;
+  transform:rotate(-10deg);animation:tailwag 2s ease-in-out infinite;transform-origin:left bottom;
+} */
+@keyframes tailwag{0%,100%{transform:rotate(-10deg)}50%{transform:rotate(10deg)}}
+/* Accessories */
+.angela-bow{position:absolute;top:-8px;right:20px;font-size:1.8rem;transform:rotate(15deg);transition:all .3s}
+.angela-crown{position:absolute;top:-24px;left:50%;transform:translateX(-50%);font-size:2rem;display:none}
+.angela-glasses{position:absolute;top:42px;left:50%;transform:translateX(-50%);font-size:1.5rem;display:none}
+.angela-necklace{position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);font-size:1.2rem;display:none}
+/* Makeup overlays */
+.angela-eyeshadow{
+  position:absolute;top:28px;left:50%;transform:translateX(-50%);
+  width:96px;display:flex;justify-content:space-between;pointer-events:none;
+}
+.eyeshadow-patch{
+  width:36px;height:18px;border-radius:50%;
+  background:var(--eyeshadow-color,transparent);opacity:.6;
+  transition:all .4s;
+}
+.angela-lipstick{/* handled via mouth color */}
+/* Outfit overlay */
+.angela-outfit-overlay{
+  position:absolute;bottom:0;left:-10px;right:-10px;height:55px;
+  opacity:0;transition:opacity .5s;
+  border-radius:0 0 50px 50px;pointer-events:none;
+}
+/* Floating heart/zz animations */
+.angela-float{
+  position:absolute;top:-30px;left:50%;
+  animation:floatUp 2s ease-out forwards;font-size:1.4rem;pointer-events:none;
+}
+@keyframes floatUp{
+  0%{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}
+  100%{opacity:0;transform:translateX(-50%) translateY(-60px) scale(1.4)}
+}
+/* Walking/bouncing */
+.angela-walk{animation:bounce .6s ease-in-out infinite alternate}
+@keyframes bounce{from{transform:translateY(0)}to{transform:translateY(-8px)}}
+/* Sleep zzz */
+.zzz-container{position:absolute;top:-20px;right:-20px;font-size:1.2rem;display:none;animation:floatZzz 3s infinite}
+@keyframes floatZzz{0%,100%{opacity:.6;transform:translateY(0) scale(.8)}50%{opacity:1;transform:translateY(-10px) scale(1)}}
+/* Speech bubble */
+.angela-speech{
+  position:absolute;top:-65px;left:50%;transform:translateX(-50%);
+  background:#fff;border-radius:16px;padding:8px 14px;
+  font-size:.8rem;font-weight:700;color:var(--dark);white-space:nowrap;
+  box-shadow:0 4px 16px rgba(0,0,0,.12);border:2px solid rgba(255,110,180,.3);
+  transition:opacity .5s;
+}
+.angela-speech::after{
+  content:'';position:absolute;bottom:-10px;left:50%;transform:translateX(-50%);
+  border:8px solid transparent;border-top-color:#fff;
+}
+
+/* ===== ACTION BUTTONS ===== */
+.action-strip{
+  display:flex;gap:8px;padding:8px 12px;
+  background:rgba(255,255,255,.6);backdrop-filter:blur(8px);
+  border-top:2px solid rgba(255,110,180,.2);
+  overflow-x:auto;flex-shrink:0;flex-wrap:nowrap;
+}
+.act-btn{
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  background:rgba(255,255,255,.85);border:2.5px solid rgba(255,110,180,.25);
+  border-radius:14px;padding:8px 14px;cursor:pointer;
+  font-family:'Nunito',sans-serif;font-weight:700;font-size:.72rem;
+  color:var(--dark);transition:all .18s;white-space:nowrap;flex-shrink:0;
+}
+.act-btn .aicon{font-size:1.4rem}
+.act-btn:hover{transform:translateY(-3px);border-color:var(--pink);
+  box-shadow:0 6px 16px rgba(255,110,180,.25)}
+.act-btn:active{transform:scale(.93)}
+
+/* ===== MODALS ===== */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(61,26,74,.5);backdrop-filter:blur(6px);
+  z-index:200;display:none;align-items:center;justify-content:center;
+  animation:fadeIn .2s ease;
+}
+.modal-overlay.open{display:flex}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{
+  background:linear-gradient(145deg,#fff8fd,#fce7f3);
+  border-radius:24px;padding:24px;min-width:320px;max-width:90vw;max-height:85vh;
+  overflow-y:auto;
+  box-shadow:0 24px 64px rgba(200,50,200,.25);
+  border:3px solid rgba(255,110,180,.3);
+  animation:slideUp .3s ease;
+}
+@keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-title{font-family:'Pacifico',cursive;font-size:1.4rem;color:var(--pink);margin-bottom:16px;text-align:center}
+.modal-close{
+  float:right;background:var(--pink);color:#fff;border:none;border-radius:50%;
+  width:32px;height:32px;font-size:1.1rem;cursor:pointer;margin-top:-6px;
+}
+
+/* CLOSET MODAL */
+.dress-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px}
+.dress-card{
+  background:rgba(255,255,255,.8);border:3px solid transparent;border-radius:16px;
+  padding:12px;text-align:center;cursor:pointer;transition:all .2s;
+}
+.dress-card:hover{border-color:var(--pink);transform:scale(1.05)}
+.dress-card.selected{border-color:var(--purple);background:var(--purple2)}
+.dress-emoji{font-size:2.2rem}
+.dress-name{font-size:.72rem;font-weight:700;color:var(--dark);margin-top:4px}
+
+/* MAKEUP MODAL */
+.makeup-section{margin-bottom:16px}
+.makeup-section h4{font-weight:800;font-size:.85rem;color:var(--dark);margin-bottom:8px}
+.color-swatches{display:flex;gap:6px;flex-wrap:wrap}
+.swatch{width:30px;height:30px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:all .2s}
+.swatch:hover,.swatch.selected{border-color:var(--dark);transform:scale(1.15)}
+.makeup-btn{
+  background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff;border:none;
+  border-radius:12px;padding:8px 18px;font-family:'Nunito',sans-serif;font-weight:700;
+  cursor:pointer;margin-top:8px;
+}
+
+/* GAMES MODAL */
+.games-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px}
+.game-card{
+  background:rgba(255,255,255,.8);border:3px solid transparent;border-radius:16px;
+  padding:16px;text-align:center;cursor:pointer;transition:all .2s;
+}
+.game-card:hover{border-color:var(--purple);transform:scale(1.04);box-shadow:0 6px 20px rgba(0,0,0,.1)}
+.game-icon{font-size:2.5rem;margin-bottom:8px}
+.game-name{font-weight:800;font-size:.85rem;color:var(--dark)}
+.game-desc{font-size:.7rem;color:#6b7280;margin-top:2px}
+
+/* MINI GAME AREA */
+#minigame-container{
+  position:fixed;inset:0;background:rgba(15,12,41,.9);z-index:300;
+  display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;
+}
+#minigame-container.open{display:flex}
+#mg-canvas{border:3px solid var(--purple);border-radius:16px;max-width:95vw;max-height:60vh}
+.mg-ui{display:flex;gap:16px;align-items:center}
+.mg-stat{color:#fff;font-weight:800;font-size:1rem}
+#mg-close{background:var(--red);color:#fff;border:none;border-radius:12px;
+  padding:10px 22px;font-family:'Nunito',sans-serif;font-weight:800;cursor:pointer;font-size:1rem}
+#mg-title{color:#fff;font-family:'Pacifico',cursive;font-size:1.6rem}
+
+/* NOTIFICATION TOAST */
+#toast{
+  position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(30px);
+  background:linear-gradient(135deg,var(--pink),var(--purple));
+  color:#fff;padding:10px 22px;border-radius:20px;font-weight:700;font-size:.9rem;
+  opacity:0;transition:all .3s;z-index:500;pointer-events:none;
+  box-shadow:0 8px 24px rgba(200,50,200,.4);
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* PROGRESS BAR FILL COLORS based on value */
+.low{background:linear-gradient(90deg,#f87171,#ef4444)!important}
+.mid{background:linear-gradient(90deg,#fde68a,#fb923c)!important}
+
+/* STARS decoration */
+.deco-stars{position:absolute;top:0;left:0;right:0;height:100%;pointer-events:none;overflow:hidden}
+.deco-star{position:absolute;font-size:1rem;opacity:.15;animation:spin 8s linear infinite}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+
+/* BATH BUBBLES */
+.bath-bubble-el{
+  position:absolute;border-radius:50%;
+  background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.9),rgba(96,165,250,.4));
+  border:2px solid rgba(255,255,255,.6);
+  animation:bubble-rise var(--dur,3s) ease-out forwards;
+  pointer-events:none;
+}
+@keyframes bubble-rise{
+  0%{opacity:1;transform:translateY(0) scale(1)}
+  100%{opacity:0;transform:translateY(-120px) scale(1.2)}
+}
+
+/* STEAM particles */
+.steam{
+  position:absolute;border-radius:50%;background:rgba(255,255,255,.7);
+  animation:steam-rise 2s ease-out infinite;pointer-events:none;
+}
+@keyframes steam-rise{
+  0%{opacity:.8;transform:translateY(0) scale(1)}
+  100%{opacity:0;transform:translateY(-50px) scale(2)}
+}
+
+/* Toothbrush progress */
+.brush-progress{width:100%;height:8px;background:#e2e8f0;border-radius:4px;margin-top:6px;overflow:hidden}
+.brush-fill{height:100%;width:0;background:linear-gradient(90deg,#4ade80,#5eead4);border-radius:4px;transition:width .3s}
+
+/* RESPONSIVE */
+@media(max-width:600px){
+  #stats{width:110px}
+  .angela{width:160px}
+  .modal{min-width:280px;padding:16px}
+}
 </style>
 </head>
 <body>
-  <header>
-    <h1>Talking Kitty — Home Life</h1>
-    <div class="menu">
-      <button data-room="gaming">Gaming room</button>
-      <button data-room="bedroom">Sleeping room</button>
-      <button data-room="bathroom">Bath room</button>
-      <button data-room="kitchen">Kitchen</button>
+<div id="app">
+
+  <!-- TOP BAR -->
+  <header id="topbar">
+    <div class="game-title">✨ Kitty</div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <div class="coins"><span>🪙</span><span id="coin-count">1000</span></div>
+      <div style="background:rgba(255,255,255,.7);border-radius:12px;padding:4px 10px;font-weight:800;font-size:.85rem;color:var(--dark)" id="clock-top">--:--</div>
     </div>
   </header>
 
-  <div class="wrap">
-    <aside class="sidebar">
-      <div class="card">
-        <strong>Energy</strong>
-        <div class="bar"><span id="bar-energy" style="width:80%"></span></div>
+  <!-- ROOM NAVIGATION -->
+  <nav id="roomnav">
+    <button class="rnav-btn active" data-room="bedroom" onclick="switchRoom('bedroom')">
+      <span class="ricon">🛏️</span>Bedroom
+    </button>
+    <button class="rnav-btn" data-room="living" onclick="switchRoom('living')">
+      <span class="ricon">🎮</span>Living Room
+    </button>
+    <button class="rnav-btn" data-room="bathroom" onclick="switchRoom('bathroom')">
+      <span class="ricon">🛁</span>Bathroom
+    </button>
+    <button class="rnav-btn" data-room="makeup" onclick="switchRoom('makeup')">
+      <span class="ricon">💄</span>Makeup Room
+    </button>
+    <button class="rnav-btn" data-room="kitchen" onclick="switchRoom('kitchen')">
+      <span class="ricon">🍳</span>Kitchen
+    </button>
+  </nav>
+
+  <div id="main">
+
+    <!-- STATS SIDEBAR -->
+    <aside id="stats">
+      <div id="clock-display">--:--</div>
+      <div class="stat-card">
+        <div class="stat-label">⚡ Energy</div>
+        <div class="stat-bar"><div class="stat-fill fill-energy" id="bar-energy" style="width:80%"></div></div>
       </div>
-      <div class="card">
-        <strong>Hygiene</strong>
-        <div class="bar"><span id="bar-hygiene" style="width:80%"></span></div>
+      <div class="stat-card">
+        <div class="stat-label">🌸 Hygiene</div>
+        <div class="stat-bar"><div class="stat-fill fill-hygiene" id="bar-hygiene" style="width:80%"></div></div>
       </div>
-      <div class="card">
-        <strong>Hunger</strong>
-        <div class="bar"><span id="bar-hunger" style="width:40%"></span></div>
+      <div class="stat-card">
+        <div class="stat-label">🍭 Hunger</div>
+        <div class="stat-bar"><div class="stat-fill fill-hunger" id="bar-hunger" style="width:40%"></div></div>
       </div>
-      <div class="card">
-        <strong>Fun</strong>
-        <div class="bar"><span id="bar-fun" style="width:60%"></span></div>
+      <div class="stat-card">
+        <div class="stat-label">🎀 Fun</div>
+        <div class="stat-bar"><div class="stat-fill fill-fun" id="bar-fun" style="width:60%"></div></div>
       </div>
-      <div class="card">
-        <strong>Clock</strong>
-        <div id="clock">--:--</div>
+      <div class="stat-card">
+        <div class="stat-label">😊 Mood</div>
+        <div class="stat-bar"><div class="stat-fill fill-mood" id="bar-mood" style="width:70%"></div></div>
       </div>
-      <div class="card">
-        <strong>Status</strong>
-        <div id="status">Ready to play!</div>
-      </div>
+      <div class="mood-badge" id="mood-text">Happy!</div>
     </aside>
 
-    <main id="room" class="room gaming">
-      <div class="room-title">Gaming room</div>
-      <div class="timer" id="roomTimer"></div>
+    <!-- ROOM VIEWPORT -->
+    <div id="room-viewport">
 
-      <div class="kitty" id="kitty">
-        <div class="body"></div>
-        <div class="ear left"></div><div class="ear right"></div>
-        <div class="eye left"></div><div class="eye right"></div>
-        <div class="mouth"></div>
-        <div class="bubble" id="bubble">Let’s play!</div>
-      </div>
-
-      <!-- Gaming room content -->
-      <div id="gamingContent">
-        <canvas id="gameCanvas" width="560" height="320" aria-label="Mini game"></canvas>
-        <div class="actions">
-          <button id="startMini">Start mini‑game</button>
-          <button id="stopMini">Stop</button>
+      <!-- ===== BEDROOM ===== -->
+      <div id="room-bedroom" class="room-bg active">
+        <div class="bedroom-scene">
+          <div class="deco-stars" id="bedroom-stars"></div>
+          <div class="bedroom-window"></div>
+          <!-- Bed -->
+          <div class="bed" style="z-index:2">
+            <div class="bed-blanket"></div>
+            <div class="bed-pillow"></div>
+            <div class="bed-frame"></div>
+          </div>
+          <div class="bedside-lamp" style="z-index:3">🪔</div>
+          <!-- Closet button -->
+          <button class="closet-btn" onclick="openModal('closet-modal')">
+            🚪 Closet
+          </button>
+          <!-- Dresser -->
+          <div style="position:absolute;bottom:40px;left:20px;width:80px;height:90px;background:linear-gradient(180deg,#c084fc,#7c3aed);border-radius:10px;border:3px solid #a855f7;box-shadow:0 4px 16px rgba(124,58,237,.3)">
+            <div style="position:absolute;top:12px;left:10px;right:10px;height:20px;background:rgba(255,255,255,.2);border-radius:4px"></div>
+            <div style="position:absolute;top:40px;left:10px;right:10px;height:20px;background:rgba(255,255,255,.2);border-radius:4px"></div>
+            <div style="position:absolute;top:64px;left:10px;right:10px;height:20px;background:rgba(255,255,255,.2);border-radius:4px"></div>
+            <div style="position:absolute;top:16px;right:-6px;width:12px;height:12px;background:#fff;border-radius:50%"></div>
+            <div style="position:absolute;top:44px;right:-6px;width:12px;height:12px;background:#fff;border-radius:50%"></div>
+          </div>
+          <!-- Bookshelf -->
+          <div style="position:absolute;top:20px;right:120px;width:70px;height:100px;background:linear-gradient(180deg,#7c3aed,#6d28d9);border-radius:6px;border:3px solid #7c3aed">
+            <div style="margin:6px 4px;height:14px;background:#f472b6;border-radius:3px"></div>
+            <div style="margin:3px 4px;height:14px;background:#60a5fa;border-radius:3px"></div>
+            <div style="margin:3px 4px;height:14px;background:#fde68a;border-radius:3px"></div>
+            <div style="margin:3px 4px;height:14px;background:#4ade80;border-radius:3px"></div>
+          </div>
+          <!-- Floor rug -->
+          <div style="position:absolute;bottom:38px;left:50%;transform:translateX(-50%);width:200px;height:20px;background:linear-gradient(90deg,#f472b6,#c084fc,#60a5fa);border-radius:50%;opacity:.5"></div>
+        </div>
+        <!-- Bedroom actions -->
+        <div class="action-strip">
+          <button class="act-btn" onclick="action_sleep()"><span class="aicon">😴</span>Sleep</button>
+          <button class="act-btn" onclick="action_wakeup()"><span class="aicon">☀️</span>Wake Up</button>
+          <button class="act-btn" onclick="action_dream()"><span class="aicon">💭</span>Dream</button>
+          <button class="act-btn" onclick="openModal('closet-modal')"><span class="aicon">👗</span>Dress Up</button>
+          <button class="act-btn" onclick="action_hug()"><span class="aicon">🤗</span>Hug</button>
+          <button class="act-btn" onclick="action_dance()"><span class="aicon">💃</span>Dance</button>
         </div>
       </div>
 
-      <!-- Bedroom content -->
-      <div id="bedroomContent" style="display:none; text-align:center">
-        <p>Sleep timer: <strong id="sleepLeft">00:00</strong></p>
-        <div class="actions">
-          <button id="sleepBtn">Sleep (2 min)</button>
-          <button id="wakeBtn">Wake up</button>
+      <!-- ===== LIVING ROOM ===== -->
+      <div id="room-living" class="room-bg">
+        <div class="living-scene">
+          <!-- TV -->
+          <div class="tv">
+            <div class="tv-screen" id="tv-screen">📺<br>Press "Play Game"<br>to start!</div>
+            <div class="tv-stand"></div>
+          </div>
+          <!-- Sofa -->
+          <div class="sofa" style="position:absolute;bottom:40px;left:50%;transform:translateX(-50%);width:280px">
+            <div class="sofa-back" style="height:38px;background:linear-gradient(180deg,#ef4444,#dc2626);border-radius:14px 14px 0 0;box-shadow:0 -4px 12px rgba(220,38,38,.2)"></div>
+            <div style="position:relative">
+              <div class="sofa-arm left"></div>
+              <div class="sofa-body"></div>
+              <div class="sofa-arm right"></div>
+            </div>
+          </div>
+          <!-- Decor -->
+          <div class="plant">🌿</div>
+          <div style="position:absolute;top:20px;right:20px;font-size:2rem">🎀</div>
+          <div style="position:absolute;bottom:110px;left:20px;width:60px;height:80px;background:linear-gradient(180deg,#fde68a,#fbbf24);border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.1)">
+            <div style="padding:6px 4px;display:flex;flex-direction:column;gap:3px">
+              <div style="height:8px;background:rgba(255,255,255,.5);border-radius:2px"></div>
+              <div style="height:8px;background:rgba(255,255,255,.4);border-radius:2px"></div>
+              <div style="height:8px;background:rgba(255,255,255,.3);border-radius:2px"></div>
+            </div>
+          </div>
+          <!-- Games button -->
+          <button class="games-btn" onclick="openModal('games-modal')">
+            🎮 Play Games
+          </button>
+          <!-- Floor rug -->
+          <div style="position:absolute;bottom:38px;left:50%;transform:translateX(-50%);width:250px;height:22px;background:linear-gradient(90deg,#60a5fa,#c084fc,#f472b6);border-radius:50%;opacity:.5"></div>
+        </div>
+        <div class="action-strip">
+          <button class="act-btn" onclick="openModal('games-modal')"><span class="aicon">🎮</span>Games</button>
+          <button class="act-btn" onclick="action_tv()"><span class="aicon">📺</span>Watch TV</button>
+          <button class="act-btn" onclick="action_sing()"><span class="aicon">🎤</span>Sing</button>
+          <button class="act-btn" onclick="action_dance()"><span class="aicon">💃</span>Dance</button>
+          <button class="act-btn" onclick="action_feed('snack','🍭',5)"><span class="aicon">🍭</span>Snack</button>
+          <button class="act-btn" onclick="action_hug()"><span class="aicon">🤗</span>Hug</button>
         </div>
       </div>
 
-      <!-- Bathroom content -->
-      <div id="bathroomContent" style="display:none; text-align:center">
-        <p>Tap to wash: water + soap increases hygiene.</p>
-        <div class="actions">
-          <button id="waterBtn">Water</button>
-          <button id="soapBtn">Soap</button>
-          <button id="rinseBtn">Rinse</button>
+      <!-- ===== BATHROOM ===== -->
+      <div id="room-bathroom" class="room-bg">
+        <div class="bathroom-scene" style="flex:1;position:relative;overflow:hidden">
+          <!-- Wall tiles -->
+          <div style="position:absolute;inset:0;background:repeating-linear-gradient(90deg,rgba(255,255,255,.1) 0,rgba(255,255,255,.1) 1px,transparent 1px,transparent 40px),repeating-linear-gradient(0deg,rgba(255,255,255,.1) 0,rgba(255,255,255,.1) 1px,transparent 1px,transparent 40px)"></div>
+          <!-- Mirror -->
+          <div class="mirror" style="position:absolute;top:20px;left:50%;transform:translateX(-50%)">🐱</div>
+          <!-- Sink area -->
+          <div style="position:absolute;bottom:40px;left:30px">
+            <div style="width:90px;height:70px;background:linear-gradient(180deg,#fff,#f0f9ff);border:3px solid #bae6fd;border-radius:12px 12px 30px 30px;box-shadow:0 6px 16px rgba(0,0,0,.08);overflow:hidden;position:relative">
+              <div id="sink-water" style="position:absolute;bottom:0;left:0;right:0;height:0;background:rgba(96,165,250,.5);transition:height .5s"></div>
+            </div>
+            <div style="width:10px;height:14px;background:#94a3b8;margin:-4px auto 0;border-radius:2px"></div>
+            <div style="width:40px;height:8px;background:#cbd5e1;margin:0 auto;border-radius:4px"></div>
+          </div>
+          <!-- Bathtub -->
+          <div style="position:absolute;bottom:30px;left:50%;transform:translateX(-50%);width:220px">
+            <div id="bathtub-body" style="background:linear-gradient(180deg,#fff,#f0f9ff);border:4px solid #bae6fd;border-radius:16px 16px 40px 40px;height:90px;box-shadow:0 8px 24px rgba(0,0,0,.1);overflow:hidden;position:relative">
+              <div id="bath-water-fill" style="position:absolute;bottom:0;left:0;right:0;height:0;background:linear-gradient(180deg,rgba(96,165,250,.45),rgba(14,165,233,.7));transition:height 1.2s ease;border-radius:0 0 36px 36px"></div>
+              <div id="bath-bubbles-container"></div>
+              <!-- Duck -->
+              <div id="rubber-duck" style="position:absolute;bottom:4px;right:20px;font-size:1.4rem;display:none;animation:float-duck 2s ease-in-out infinite">🐥</div>
+            </div>
+            <div style="height:14px;background:linear-gradient(180deg,#bae6fd,#7dd3fc);border-radius:8px;margin-top:-4px;box-shadow:0 4px 8px rgba(0,0,0,.08)"></div>
+          </div>
+          <!-- Faucet -->
+          <div id="faucet" style="position:absolute;bottom:115px;left:50%;transform:translateX(-50%);font-size:2rem;cursor:pointer;transition:all .2s;z-index:10" onclick="action_faucet()">🚿</div>
+          <!-- Toilet -->
+          <div style="position:absolute;bottom:30px;right:20px;width:65px">
+            <div style="width:52px;height:30px;background:linear-gradient(180deg,#fff,#f0f9ff);border:3px solid #e2e8f0;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,.06);margin:0 auto"></div>
+            <div style="width:64px;height:16px;background:linear-gradient(180deg,#fff,#f0f9ff);border:3px solid #e2e8f0;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.06);margin-bottom:-4px"></div>
+            <div style="width:64px;height:60px;background:linear-gradient(180deg,#fff,#f0f9ff);border:3px solid #e2e8f0;border-radius:8px 8px 20px 20px;box-shadow:0 4px 12px rgba(0,0,0,.08)"></div>
+          </div>
+          <!-- Toothbrush holder -->
+          <div style="position:absolute;top:20px;right:20px;font-size:1.5rem">🪥</div>
+          <div style="position:absolute;top:20px;left:20px;font-size:1.5rem">🧴</div>
+          <!-- Brush progress -->
+          <div style="position:absolute;top:60px;left:20px;width:80px">
+            <div style="font-size:.7rem;font-weight:800;color:var(--dark)">🦷 Clean</div>
+            <div class="brush-progress"><div class="brush-fill" id="brush-fill"></div></div>
+          </div>
+          @keyframes float-duck{0%,100%{transform:translateY(0) rotate(-5deg)}50%{transform:translateY(-4px) rotate(5deg)}}
         </div>
-        <canvas id="bathCanvas" width="560" height="320" aria-label="Bath"></canvas>
+        <div class="action-strip">
+          <button class="act-btn" onclick="action_bath()"><span class="aicon">🛁</span>Take Bath</button>
+          <button class="act-btn" onclick="action_shower()"><span class="aicon">🚿</span>Shower</button>
+          <button class="act-btn" onclick="action_brushteeth()"><span class="aicon">🪥</span>Brush Teeth</button>
+          <button class="act-btn" onclick="action_washface()"><span class="aicon">💦</span>Wash Face</button>
+          <button class="act-btn" onclick="action_shampoo()"><span class="aicon">🧴</span>Shampoo</button>
+          <button class="act-btn" onclick="action_dryhair()"><span class="aicon">💨</span>Dry Hair</button>
+        </div>
       </div>
 
-      <!-- Kitchen content -->
-      <div id="kitchenContent" style="display:none; text-align:center">
-        <p>Cook and eat to reduce hunger. Cooking takes time—don’t burn it!</p>
-        <div class="actions">
-          <button id="cookBtn">Cook</button>
-          <button id="eatBtn">Eat</button>
+      <!-- ===== MAKEUP ROOM ===== -->
+      <div id="room-makeup" class="room-bg">
+        <div class="makeup-scene">
+          <!-- Fancy background wall -->
+          <div style="position:absolute;top:0;left:0;right:0;height:50%;background:linear-gradient(180deg,#fdf2f8,#fce7f3)"></div>
+          <div style="position:absolute;top:0;left:0;right:0;height:50%;background:repeating-linear-gradient(90deg,rgba(255,110,180,.05) 0,rgba(255,110,180,.05) 1px,transparent 1px,transparent 30px),repeating-linear-gradient(0deg,rgba(255,110,180,.05) 0,rgba(255,110,180,.05) 1px,transparent 1px,transparent 30px)"></div>
+          <!-- Vanity mirror -->
+          <div class="vanity" style="position:absolute;bottom:50px;left:50%;transform:translateX(-50%)">
+            <div class="vanity-mirror">
+              <span style="font-size:2rem">✨</span>
+            </div>
+            <div class="vanity-table"></div>
+          </div>
+          <!-- Makeup items on table -->
+          <div style="position:absolute;bottom:48px;left:50%;transform:translateX(-50%);display:flex;gap:6px;font-size:1.4rem;background:transparent;z-index:5">
+            💄🧴💅👄🪄
+          </div>
+          <!-- Decorative elements -->
+          <div style="position:absolute;top:20px;left:20px;font-size:2rem">🌸</div>
+          <div style="position:absolute;top:20px;right:20px;font-size:2rem">✨</div>
+          <div style="position:absolute;top:50px;left:50%;transform:translateX(-50%);font-family:'Pacifico',cursive;font-size:1.1rem;color:var(--pink);text-shadow:1px 1px 0 rgba(255,255,255,.8)">Glamour Studio</div>
+          <!-- Perfume bottles -->
+          <div style="position:absolute;bottom:90px;left:20px;font-size:2rem">🧴</div>
+          <div style="position:absolute;bottom:90px;right:20px;font-size:2rem">💐</div>
+          <!-- Light bulbs around mirror -->
+          <div style="position:absolute;bottom:160px;left:50%;transform:translateX(-50%);width:200px;display:flex;justify-content:space-around;font-size:1rem">💡💡💡💡💡</div>
         </div>
-        <canvas id="kitchenCanvas" width="560" height="320" aria-label="Kitchen"></canvas>
+        <div class="action-strip">
+          <button class="act-btn" onclick="openMakeupModal('lipstick')"><span class="aicon">💄</span>Lipstick</button>
+          <button class="act-btn" onclick="openMakeupModal('eyeshadow')"><span class="aicon">👁️</span>Eyeshadow</button>
+          <button class="act-btn" onclick="openMakeupModal('blush')"><span class="aicon">🌸</span>Blush</button>
+          <button class="act-btn" onclick="openMakeupModal('accessories')"><span class="aicon">👑</span>Accessories</button>
+          <button class="act-btn" onclick="action_removemakeup()"><span class="aicon">✨</span>Remove All</button>
+          <button class="act-btn" onclick="action_perfume()"><span class="aicon">🌸</span>Perfume</button>
+        </div>
       </div>
-    </main>
+
+      <!-- ===== KITCHEN ===== -->
+      <div id="room-kitchen" class="room-bg">
+        <div class="kitchen-scene">
+          <!-- Cabinet left -->
+          <div class="cabinet" style="background:linear-gradient(180deg,#fbbf24,#f59e0b)"></div>
+          <!-- Cabinet right -->
+          <div class="cabinet" style="right:20px;left:auto;background:linear-gradient(180deg,#fbbf24,#f59e0b)"></div>
+          <!-- Top cabinets -->
+          <div style="position:absolute;top:20px;left:0;right:0;height:55px;background:linear-gradient(180deg,#fbbf24,#f59e0b);border-bottom:3px solid #d97706;display:flex;gap:4px;padding:4px">
+            <div style="flex:1;background:rgba(255,255,255,.2);border-radius:4px"></div>
+            <div style="flex:1;background:rgba(255,255,255,.2);border-radius:4px"></div>
+            <div style="flex:1;background:rgba(255,255,255,.2);border-radius:4px"></div>
+          </div>
+          <!-- Stove -->
+          <div class="stove" style="z-index:2">
+            <div class="burner tl" id="burner-tl">🔥</div>
+            <div class="burner tr" id="burner-tr">⬛</div>
+            <div class="burner bl" id="burner-bl">⬛</div>
+            <div class="burner br" id="burner-br">⬛</div>
+            <div class="pot" id="kitchen-pot">🍲</div>
+          </div>
+          <!-- Counter top -->
+          <div class="counter"></div>
+          <!-- Fridge -->
+          <div class="fridge">
+            <div class="fridge-handle"></div>
+          </div>
+          <!-- Kitchen items -->
+          <div style="position:absolute;bottom:120px;left:30px;font-size:1.5rem">☕</div>
+          <div style="position:absolute;bottom:120px;right:110px;font-size:1.5rem">🥗</div>
+          <!-- Cooking timer display -->
+          <div id="cook-timer" style="position:absolute;top:80px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,.8);border-radius:12px;padding:6px 14px;font-weight:800;display:none"></div>
+        </div>
+        <div class="action-strip">
+          <button class="act-btn" onclick="action_cook()"><span class="aicon">🍳</span>Cook Meal</button>
+          <button class="act-btn" onclick="action_eat()"><span class="aicon">🍽️</span>Eat</button>
+          <button class="act-btn" onclick="action_bake()"><span class="aicon">🎂</span>Bake Cake</button>
+          <button class="act-btn" onclick="action_feed('milk','🥛',10)"><span class="aicon">🥛</span>Drink Milk</button>
+          <button class="act-btn" onclick="action_feed('tea','☕',8)"><span class="aicon">☕</span>Tea</button>
+          <button class="act-btn" onclick="action_feed('juice','🍹',12)"><span class="aicon">🍹</span>Juice</button>
+        </div>
+      </div>
+
+      <!-- ANGELA CHARACTER (always on top) -->
+      <div id="angela-container">
+        <div class="angela" id="angela">
+          <!-- Tail -->
+          <div class="angela-tail"></div>
+          <!-- Head -->
+          <div class="angela-head" id="angela-head">
+            <div class="angela-ear left"><div class="angela-inner-ear"></div></div>
+            <div class="angela-ear right"><div class="angela-inner-ear"></div></div>
+            <!-- Crown -->
+            <div class="angela-crown" id="angela-crown">👑</div>
+            <!-- Eyeshadow -->
+            <div class="angela-eyeshadow">
+              <div class="eyeshadow-patch" id="eyeshadow-l"></div>
+              <div class="eyeshadow-patch" id="eyeshadow-r"></div>
+            </div>
+            <!-- Eyes -->
+            <div class="angela-eye-group">
+              <div class="angela-eye" id="angela-eye-l">
+                <div class="angela-lash">
+                  <div class="lash" style="--rot:-20deg"></div>
+                  <div class="lash" style="--rot:-10deg"></div>
+                  <div class="lash"></div>
+                  <div class="lash" style="--rot:10deg"></div>
+                </div>
+              </div>
+              <div class="angela-eye" id="angela-eye-r">
+                <div class="angela-lash">
+                  <div class="lash" style="--rot:-10deg"></div>
+                  <div class="lash"></div>
+                  <div class="lash" style="--rot:10deg"></div>
+                  <div class="lash" style="--rot:20deg"></div>
+                </div>
+              </div>
+            </div>
+            <!-- Blush -->
+            <div class="angela-blush left" id="blush-l"></div>
+            <div class="angela-blush right" id="blush-r"></div>
+            <!-- Nose -->
+            <div class="angela-nose"></div>
+            <!-- Whiskers -->
+            <!-- <div class="angela-whiskers">
+              <div class="whisker-group left">
+                <div class="whisker"></div><div class="whisker"></div><div class="whisker"></div>
+              </div>
+              <div class="whisker-group right">
+                <div class="whisker"></div><div class="whisker"></div><div class="whisker"></div>
+              </div>
+            </div> -->
+            <!-- Mouth -->
+            <div class="angela-mouth happy" id="angela-mouth"></div>
+            <!-- Glasses -->
+            <div class="angela-glasses" id="angela-glasses">🕶️</div>
+            <!-- Bow -->
+            <div class="angela-bow" id="angela-bow">🎀</div>
+            <!-- Speech -->
+            <div class="angela-speech" id="angela-speech">Hi! I'm Angela! 💖</div>
+            <!-- ZZZ -->
+            <div class="zzz-container" id="zzz">💤</div>
+          </div>
+          <!-- Body -->
+          <div class="angela-body" id="angela-body">
+            <div class="angela-belly"></div>
+            <div class="angela-dress" id="angela-dress"></div>
+            <!-- Necklace -->
+            <div class="angela-necklace" id="angela-necklace">💎</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end room-viewport -->
+  </div><!-- end main -->
+</div><!-- end app -->
+
+<!-- ===== MODALS ===== -->
+
+<!-- CLOSET MODAL -->
+<div class="modal-overlay" id="closet-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('closet-modal')">✕</button>
+    <div class="modal-title">👗 Angela's Closet</div>
+    <div style="font-size:.8rem;color:#6b7280;margin-bottom:12px;text-align:center">Choose a beautiful outfit!</div>
+    <div class="dress-grid" id="dress-grid"></div>
   </div>
+</div>
 
-  <footer>
-    <div>Tips: Keep Energy high for gaming, Hygiene high after bath, Hunger low after eating, Fun high by playing.</div>
-    <div><span class="accent">Rooms:</span> Gaming • Bedroom • Bathroom • Kitchen</div>
-  </footer>
+<!-- GAMES MODAL -->
+<div class="modal-overlay" id="games-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('games-modal')">✕</button>
+    <div class="modal-title">🎮 Game Center</div>
+    <div class="games-grid">
+      <div class="game-card" onclick="startGame('dodger')">
+        <div class="game-icon">🚀</div>
+        <div class="game-name">Star Dodger</div>
+        <div class="game-desc">Dodge the meteors!</div>
+      </div>
+      <div class="game-card" onclick="startGame('catcher')">
+        <div class="game-icon">🌟</div>
+        <div class="game-name">Star Catcher</div>
+        <div class="game-desc">Catch falling stars!</div>
+      </div>
+      <div class="game-card" onclick="startGame('memory')">
+        <div class="game-icon">🃏</div>
+        <div class="game-name">Memory Match</div>
+        <div class="game-desc">Match the pairs!</div>
+      </div>
+      <div class="game-card" onclick="startGame('bounce')">
+        <div class="game-icon">🏓</div>
+        <div class="game-name">Paw Pong</div>
+        <div class="game-desc">Classic ping pong!</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MAKEUP MODAL -->
+<div class="modal-overlay" id="makeup-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('makeup-modal')">✕</button>
+    <div class="modal-title" id="makeup-modal-title">💄 Lipstick</div>
+    <div id="makeup-modal-content"></div>
+  </div>
+</div>
+
+<!-- MINI GAME CONTAINER -->
+<div id="minigame-container">
+  <div id="mg-title">🌟 Star Catcher</div>
+  <canvas id="mg-canvas" width="480" height="360"></canvas>
+  <div class="mg-ui">
+    <div class="mg-stat">Score: <span id="mg-score">0</span></div>
+    <div class="mg-stat">Lives: <span id="mg-lives">3</span></div>
+    <div class="mg-stat">Time: <span id="mg-time">60</span>s</div>
+    <button id="mg-close" onclick="closeMinigame()">✕ Exit</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
 
 <script>
-/* --- Core state --- */
-const state = {
-  energy: 80, hygiene: 80, hunger: 40, fun: 60,
-  room: 'gaming',
-  miniRunning: false,
-  sleepUntil: null,
-  cooking: null, // {start, doneAt, burnedAt}
+// ============================================================
+// STATE
+// ============================================================
+const S = {
+  energy:80, hygiene:80, hunger:40, fun:60, mood:70, coins:1000,
+  room:'bedroom',
+  sleeping:false, sleepEnd:null,
+  cooking:null,
+  currentDress:0,
+  makeup:{lipstick:null,eyeshadow:null,blush:false,crown:false,glasses:false,necklace:false},
+  brushProgress:0,
+  bathFill:0,
+  mgRunning:false, mgType:null,
 };
-const ui = {
-  energy: document.getElementById('bar-energy'),
-  hygiene: document.getElementById('bar-hygiene'),
-  hunger: document.getElementById('bar-hunger'),
-  fun: document.getElementById('bar-fun'),
-  status: document.getElementById('status'),
-  clock: document.getElementById('clock'),
-  bubble: document.getElementById('bubble'),
-  roomTimer: document.getElementById('roomTimer'),
-  kitty: document.getElementById('kitty'),
-  room: document.getElementById('room'),
-  sleepLeft: document.getElementById('sleepLeft'),
-};
-function clamp(v){ return Math.max(0, Math.min(100, v)); }
-function setBar(el, val){ el.style.width = clamp(val) + '%'; }
 
-/* --- Global clock & passive needs --- */
-setInterval(()=>{
-  const now = new Date();
-  ui.clock.textContent = now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-  // Passive changes: hunger rises, energy slowly drops if awake, hygiene slowly drops, fun drifts down
-  if (!state.sleepUntil || Date.now() > state.sleepUntil) {
-    state.hunger = clamp(state.hunger + 0.15);
-    state.energy = clamp(state.energy - 0.08);
-    state.hygiene = clamp(state.hygiene - 0.05);
-    state.fun = clamp(state.fun - 0.04);
-  }
-  refreshHUD();
-  updateSleepTimer();
-  updateCooking();
-}, 1000);
+// ============================================================
+// DRESSES
+// ============================================================
+const DRESSES = [
+  {name:'Princess Pink',color:'linear-gradient(180deg,#f472b6,#ec4899)',emoji:'👗',accent:'#f9a8d4'},
+  {name:'Royal Purple',color:'linear-gradient(180deg,#c084fc,#9333ea)',emoji:'💜',accent:'#e9d5ff'},
+  {name:'Ocean Blue',color:'linear-gradient(180deg,#60a5fa,#2563eb)',emoji:'💙',accent:'#bfdbfe'},
+  {name:'Mint Fresh',color:'linear-gradient(180deg,#4ade80,#16a34a)',emoji:'💚',accent:'#bbf7d0'},
+  {name:'Sunny Yellow',color:'linear-gradient(180deg,#fde68a,#f59e0b)',emoji:'💛',accent:'#fef3c7'},
+  {name:'Cherry Red',color:'linear-gradient(180deg,#f87171,#dc2626)',emoji:'❤️',accent:'#fecaca'},
+  {name:'Peach Dream',color:'linear-gradient(180deg,#fdba74,#f97316)',emoji:'🧡',accent:'#fed7aa'},
+  {name:'Galaxy Night',color:'linear-gradient(180deg,#818cf8,#4338ca)',emoji:'🌌',accent:'#c7d2fe'},
+  {name:'Snow White',color:'linear-gradient(180deg,#f9fafb,#e5e7eb)',emoji:'🤍',accent:'#f3f4f6'},
+  {name:'Rose Gold',color:'linear-gradient(180deg,#fda4af,#e11d48)',emoji:'🌹',accent:'#ffe4e6'},
+  {name:'Lavender',color:'linear-gradient(180deg,#d8b4fe,#7c3aed)',emoji:'💐',accent:'#ede9fe'},
+  {name:'Gold Glam',color:'linear-gradient(180deg,#fbbf24,#d97706)',emoji:'⭐',accent:'#fde68a'},
+];
 
-function refreshHUD(){
-  setBar(ui.energy, state.energy);
-  setBar(ui.hygiene, state.hygiene);
-  setBar(ui.hunger, state.hunger);
-  setBar(ui.fun, state.fun);
-  const mood = (state.energy>60 && state.hygiene>60 && state.hunger<50 && state.fun>60) ? 'Purr‑fect!' :
-               (state.hunger>80) ? 'So hungry…' :
-               (state.energy<30) ? 'Sleepy…' :
-               (state.hygiene<30) ? 'Needs a bath!' :
-               (state.fun<30) ? 'Bored…' : 'Ready to play!';
-  ui.status.textContent = mood;
-  ui.bubble.textContent = mood;
-  ui.kitty.classList.toggle('sleep', !!state.sleepUntil && Date.now() < state.sleepUntil);
+// ============================================================
+// BUILD CLOSET
+// ============================================================
+function buildCloset(){
+  const grid = document.getElementById('dress-grid');
+  grid.innerHTML = '';
+  DRESSES.forEach((d,i)=>{
+    const card = document.createElement('div');
+    card.className = 'dress-card' + (S.currentDress===i?' selected':'');
+    card.innerHTML = `<div class="dress-emoji">${d.emoji}</div><div class="dress-name">${d.name}</div>`;
+    card.onclick = ()=> selectDress(i);
+    grid.appendChild(card);
+  });
 }
 
-/* --- Room switching --- */
-const roomButtons = document.querySelectorAll('header .menu button');
-roomButtons.forEach(b => b.addEventListener('click', () => switchRoom(b.dataset.room)));
+function selectDress(i){
+  S.currentDress = i;
+  const d = DRESSES[i];
+  document.getElementById('angela-dress').style.background = d.color;
+  buildCloset();
+  showToast(`Wearing ${d.name}! ✨`);
+  addFloat('👗');
+  addCoins(5);
+}
 
+// ============================================================
+// MAKEUP
+// ============================================================
+const LIPSTICK_COLORS = ['#e11d48','#dc2626','#f97316','#d946ef','#7c3aed','#be185d','#831843','#9f1239','#b45309','#f9a8d4'];
+const EYESHADOW_COLORS = ['#c084fc','#818cf8','#60a5fa','#5eead4','#4ade80','#fde68a','#f472b6','#e879f9','#fb923c','#94a3b8','transparent'];
+
+function openMakeupModal(type){
+  closeModal('closet-modal');
+  document.getElementById('makeup-modal').classList.add('open');
+  const title = {lipstick:'💄 Lipstick',eyeshadow:'👁️ Eyeshadow',blush:'🌸 Blush',accessories:'👑 Accessories'}[type]||'Makeup';
+  document.getElementById('makeup-modal-title').textContent = title;
+  const content = document.getElementById('makeup-modal-content');
+  
+  if(type==='lipstick'){
+    content.innerHTML = '<div class="makeup-section"><h4>Choose Lip Color</h4><div class="color-swatches" id="lip-swatches"></div></div>';
+    const sw = document.getElementById('lip-swatches');
+    LIPSTICK_COLORS.forEach(c=>{
+      const s=document.createElement('div');s.className='swatch'+(S.makeup.lipstick===c?' selected':'');
+      s.style.background=c;s.onclick=()=>applyLipstick(c);sw.appendChild(s);
+    });
+  } else if(type==='eyeshadow'){
+    content.innerHTML = '<div class="makeup-section"><h4>Choose Eyeshadow Color</h4><div class="color-swatches" id="eye-swatches"></div></div>';
+    const sw = document.getElementById('eye-swatches');
+    EYESHADOW_COLORS.forEach(c=>{
+      const s=document.createElement('div');s.className='swatch'+(S.makeup.eyeshadow===c?' selected':'');
+      s.style.background=c||'#f0f0f0';s.onclick=()=>applyEyeshadow(c);sw.appendChild(s);
+    });
+  } else if(type==='blush'){
+    content.innerHTML = `
+      <div style="text-align:center">
+        <p style="margin-bottom:12px;font-size:.85rem;color:#6b7280">Add rosy cheeks!</p>
+        <button class="makeup-btn" onclick="toggleBlush(true)">🌸 Apply Blush</button>
+        <button class="makeup-btn" onclick="toggleBlush(false)" style="background:linear-gradient(135deg,#94a3b8,#64748b);margin-left:8px">Remove</button>
+      </div>`;
+  } else if(type==='accessories'){
+    content.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <button class="makeup-btn" style="padding:12px" onclick="toggleAcc('crown',true)">👑 Crown</button>
+        <button class="makeup-btn" style="padding:12px" onclick="toggleAcc('crown',false)">Remove Crown</button>
+        <button class="makeup-btn" style="padding:12px" onclick="toggleAcc('glasses',true)">🕶️ Sunglasses</button>
+        <button class="makeup-btn" style="padding:12px" onclick="toggleAcc('glasses',false)">Remove Glasses</button>
+        <button class="makeup-btn" style="padding:12px" onclick="toggleAcc('necklace',true)">💎 Necklace</button>
+        <button class="makeup-btn" style="padding:12px" onclick="toggleAcc('necklace',false)">Remove Necklace</button>
+        <button class="makeup-btn" style="padding:12px;background:linear-gradient(135deg,#fbbf24,#f59e0b)" onclick="toggleAcc('bow',true)">🎀 Bow</button>
+        <button class="makeup-btn" style="padding:12px;background:linear-gradient(135deg,#94a3b8,#64748b)" onclick="toggleAcc('bow',false)">Remove Bow</button>
+      </div>`;
+  }
+}
+
+function applyLipstick(c){
+  S.makeup.lipstick = c;
+  document.getElementById('angela-mouth').style.background = c;
+  showToast('Gorgeous lips! 💄');
+  addFloat('💄');addCoins(3);
+  openMakeupModal('lipstick');
+}
+function applyEyeshadow(c){
+  S.makeup.eyeshadow = c;
+  document.getElementById('eyeshadow-l').style.setProperty('--eyeshadow-color',c||'transparent');
+  document.getElementById('eyeshadow-r').style.setProperty('--eyeshadow-color',c||'transparent');
+  document.getElementById('eyeshadow-l').style.background = c||'transparent';
+  document.getElementById('eyeshadow-r').style.background = c||'transparent';
+  showToast('Beautiful eyes! ✨');
+  addFloat('✨');addCoins(3);
+  openMakeupModal('eyeshadow');
+}
+function toggleBlush(on){
+  S.makeup.blush = on;
+  const op = on?'0.55':'0';
+  document.getElementById('blush-l').style.setProperty('--blush-opacity',op);
+  document.getElementById('blush-r').style.setProperty('--blush-opacity',op);
+  document.getElementById('blush-l').style.background = on?'rgba(255,150,180,0.55)':'transparent';
+  document.getElementById('blush-r').style.background = on?'rgba(255,150,180,0.55)':'transparent';
+  showToast(on?'So rosy! 🌸':'Blush removed');
+  if(on){addFloat('🌸');addCoins(2);}
+}
+function toggleAcc(acc,on){
+  S.makeup[acc] = on;
+  const map = {crown:'angela-crown',glasses:'angela-glasses',necklace:'angela-necklace',bow:'angela-bow'};
+  if(map[acc]) document.getElementById(map[acc]).style.display = on?'block':'none';
+  if(acc==='bow') document.getElementById('angela-bow').style.display = on?'block':'none';
+  showToast(on?`${acc.charAt(0).toUpperCase()+acc.slice(1)} on! ✨`:`${acc} removed`);
+  if(on){addCoins(2);}
+}
+function action_removemakeup(){
+  S.makeup = {lipstick:null,eyeshadow:null,blush:false,crown:false,glasses:false,necklace:false};
+  document.getElementById('angela-mouth').style.background='';
+  document.getElementById('eyeshadow-l').style.background='transparent';
+  document.getElementById('eyeshadow-r').style.background='transparent';
+  document.getElementById('blush-l').style.background='transparent';
+  document.getElementById('blush-r').style.background='transparent';
+  ['angela-crown','angela-glasses','angela-necklace'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('angela-bow').style.display='block';
+  showToast('Fresh face! 🌟');
+  addFloat('🧼');
+}
+
+// ============================================================
+// BEDROOM ACTIONS
+// ============================================================
+function action_sleep(){
+  if(S.sleeping){showToast('Already sleeping… 💤');return;}
+  S.sleeping=true;S.sleepEnd=Date.now()+120000;
+  document.getElementById('zzz').style.display='block';
+  document.getElementById('angela-eye-l').classList.add('sleepy');
+  document.getElementById('angela-eye-r').classList.add('sleepy');
+  document.getElementById('angela-mouth').classList.remove('happy');
+  document.getElementById('angela-speech').textContent='Zzz... 💤';
+  showToast('Sweet dreams! 💤');
+}
+function action_wakeup(){
+  S.sleeping=false;S.sleepEnd=null;
+  document.getElementById('zzz').style.display='none';
+  document.getElementById('angela-eye-l').classList.remove('sleepy');
+  document.getElementById('angela-eye-r').classList.remove('sleepy');
+  document.getElementById('angela-mouth').classList.add('happy');
+  S.energy=clamp(S.energy+20);
+  updateSpeech('Good morning! ☀️');
+  showToast('Rise and shine! ☀️');
+  addFloat('☀️');
+}
+function action_dream(){
+  updateSpeech('I dreamt of butterflies... 🦋');
+  showToast('Sweet dream! 🌙');addFloat('🌙');
+  S.mood=clamp(S.mood+5);
+}
+function action_hug(){
+  updateSpeech('I love hugs! 🤗');
+  showToast('So warm! 🤗');addFloat('💖');
+  S.mood=clamp(S.mood+8);S.fun=clamp(S.fun+5);
+}
+function action_dance(){
+  document.getElementById('angela').classList.add('angela-walk');
+  updateSpeech('La la la! 🎵');
+  showToast('Dance party! 💃');addFloat('🎵');
+  S.fun=clamp(S.fun+10);S.energy=clamp(S.energy-5);
+  setTimeout(()=>document.getElementById('angela').classList.remove('angela-walk'),3000);
+}
+
+// ============================================================
+// BATHROOM ACTIONS
+// ============================================================
+let bathWater=0,sinkWater=false;
+function action_bath(){
+  bathWater=Math.min(80,bathWater+25);
+  document.getElementById('bath-water-fill').style.height=bathWater+'%';
+  document.getElementById('rubber-duck').style.display='block';
+  spawnBathBubbles(15);
+  S.hygiene=clamp(S.hygiene+15);S.fun=clamp(S.fun+5);
+  updateSpeech('Splish splash! 🛁');showToast('So clean! 🛁');addFloat('🫧');
+}
+function action_shower(){
+  for(let i=0;i<8;i++){
+    setTimeout(()=>spawnBathBubbles(3),i*200);
+  }
+  action_faucet();
+  S.hygiene=clamp(S.hygiene+12);
+  updateSpeech('Refreshing! 🚿');showToast('Squeaky clean! 🚿');addFloat('💧');
+}
+function action_faucet(){
+  const f=document.getElementById('faucet');
+  f.style.transform='translateX(-50%) scale(1.3)';
+  setTimeout(()=>f.style.transform='translateX(-50%) scale(1)',300);
+  // Sink water
+  const sw=document.getElementById('sink-water');
+  sw.style.height='40%';setTimeout(()=>sw.style.height='0',2000);
+}
+function action_brushteeth(){
+  let p=0;
+  const interval=setInterval(()=>{
+    p=Math.min(100,p+10);
+    document.getElementById('brush-fill').style.width=p+'%';
+    if(p>=100){clearInterval(interval);showToast('Sparkling teeth! 🦷');addFloat('✨');}
+  },200);
+  S.hygiene=clamp(S.hygiene+8);S.brushProgress=100;
+  updateSpeech('Brush brush brush! 🪥');
+}
+function action_washface(){
+  spawnBathBubbles(8);
+  S.hygiene=clamp(S.hygiene+6);
+  updateSpeech('Fresh face! 💦');showToast('Glowing! 💦');addFloat('💦');
+}
+function action_shampoo(){
+  spawnBathBubbles(20);
+  S.hygiene=clamp(S.hygiene+10);
+  updateSpeech('Smells so nice! 🧴');showToast('Shiny hair! 🧴');addFloat('🧴');
+}
+function action_dryhair(){
+  updateSpeech('Fluff fluff! 💨');showToast('Fluffy! 💨');addFloat('💨');
+  S.hygiene=clamp(S.hygiene+3);
+}
+
+function spawnBathBubbles(n){
+  const container=document.getElementById('bath-bubbles-container');
+  const bathtub=document.getElementById('bathtub-body');
+  const w=bathtub.clientWidth||220;
+  for(let i=0;i<n;i++){
+    setTimeout(()=>{
+      const b=document.createElement('div');
+      b.className='bath-bubble-el';
+      const size=8+Math.random()*16;
+      b.style.cssText=`width:${size}px;height:${size}px;left:${Math.random()*(w-20)+10}px;bottom:${Math.random()*30}px;--dur:${2+Math.random()*2}s`;
+      container.appendChild(b);
+      setTimeout(()=>b.remove(),4000);
+    },i*80);
+  }
+}
+
+// ============================================================
+// KITCHEN ACTIONS
+// ============================================================
+function action_cook(){
+  if(S.cooking){showToast('Already cooking! 🍳');return;}
+  const now=Date.now();
+  S.cooking={start:now,ready:now+15000,burn:now+30000};
+  document.getElementById('burner-tl').className='burner tl on';
+  document.getElementById('cook-timer').style.display='block';
+  updateSpeech('Cooking something yummy! 🍳');showToast('Cooking started! 🍳');
+}
+function action_eat(){
+  if(!S.cooking){showToast('Nothing cooked yet! Cook first 🍳');return;}
+  const now=Date.now();
+  if(now<S.cooking.ready){showToast('Still cooking! Wait a bit... ⏳');
+    document.getElementById('angela-mouth').classList.add('sad');
+    setTimeout(()=>document.getElementById('angela-mouth').classList.remove('sad'),2000);return;}
+  if(now<S.cooking.burn){
+    S.hunger=clamp(S.hunger-28);S.energy=clamp(S.energy+8);S.mood=clamp(S.mood+8);
+    showToast('Delicious! 😋');addFloat('😋');addCoins(5);
+    updateSpeech('Mmm yummy! 😋');
+  }else{
+    S.hunger=clamp(S.hunger-10);
+    showToast('Oops, burned! 😅');addFloat('💨');
+    updateSpeech('Oh no, burned! 😅');
+  }
+  S.cooking=null;
+  document.getElementById('burner-tl').className='burner tl';
+  document.getElementById('cook-timer').style.display='none';
+  document.getElementById('burner-tl').textContent='🔥'.replace('🔥','⬛');
+}
+function action_bake(){
+  if(S.cooking){showToast('Already cooking! 🍳');return;}
+  const now=Date.now();
+  S.cooking={start:now,ready:now+20000,burn:now+40000};
+  document.getElementById('burner-tl').className='burner tl on';
+  document.getElementById('cook-timer').style.display='block';
+  document.getElementById('kitchen-pot').textContent='🎂';
+  updateSpeech('Baking a cake! 🎂');showToast('Baking! 🎂');
+}
+function action_feed(name,emoji,amount){
+  S.hunger=clamp(S.hunger-amount);S.mood=clamp(S.mood+3);
+  showToast(`${emoji} Yum!`);addFloat(emoji);
+  updateSpeech(`${emoji} Tasty!`);
+}
+
+// ============================================================
+// LIVING ROOM ACTIONS
+// ============================================================
+function action_tv(){
+  const shows=['📺 Paw Patrol!','📺 Singing cats!','📺 Kitty dance show!','📺 Cooking with Angela!'];
+  const show=shows[Math.floor(Math.random()*shows.length)];
+  document.getElementById('tv-screen').innerHTML=show;
+  S.fun=clamp(S.fun+8);updateSpeech('I love this show! 📺');showToast('Watching TV! 📺');addFloat('📺');
+}
+function action_sing(){
+  const songs=['🎵 La la la!','🎶 Meow meow!','🎵 Purr purr purr!'];
+  updateSpeech(songs[Math.floor(Math.random()*songs.length)]);
+  S.fun=clamp(S.fun+12);S.energy=clamp(S.energy-3);
+  showToast('Beautiful singing! 🎤');addFloat('🎵');
+}
+function action_perfume(){
+  showToast('Smells wonderful! 🌸');addFloat('🌸');S.mood=clamp(S.mood+3);
+  updateSpeech('I smell amazing! 🌸');
+}
+
+// ============================================================
+// MINIGAMES
+// ============================================================
+let mgInterval=null,mgPlayer=null,mgObjects=[],mgScore=0,mgLives=3,mgTime=60,mgTimerInterval=null;
+
+const GAMES = {
+  dodger:{title:'🚀 Star Dodger',desc:'Dodge the meteors! ← → keys'},
+  catcher:{title:'🌟 Star Catcher',desc:'Catch falling stars! ← → keys'},
+  bounce:{title:'🏓 Paw Pong',desc:'Click/tap to move paddle!'},
+};
+
+function startGame(type){
+  closeModal('games-modal');
+  S.mgType=type;
+  document.getElementById('minigame-container').classList.add('open');
+  document.getElementById('mg-title').textContent=GAMES[type]?.title||'Game';
+  mgScore=0;mgLives=3;mgTime=60;mgObjects=[];S.mgRunning=true;
+  updateMGUI();
+  
+  const canvas=document.getElementById('mg-canvas');
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height;
+  
+  mgPlayer={x:W/2-25,y:H-50,w:50,h:20,speed:18};
+  
+  clearInterval(mgInterval);clearInterval(mgTimerInterval);
+  
+  mgTimerInterval=setInterval(()=>{
+    mgTime--;
+    document.getElementById('mg-time').textContent=mgTime;
+    if(mgTime<=0)closeMinigame();
+  },1000);
+  
+  const keys={};
+  window.onkeydown=e=>{keys[e.key]=true};
+  window.onkeyup=e=>{keys[e.key]=false};
+  
+  if(type==='dodger'||type==='catcher'){
+    mgInterval=setInterval(()=>{
+      if(!S.mgRunning)return;
+      // Move player
+      if(keys['ArrowLeft']||keys['a']) mgPlayer.x=Math.max(0,mgPlayer.x-mgPlayer.speed);
+      if(keys['ArrowRight']||keys['d']) mgPlayer.x=Math.min(W-mgPlayer.w,mgPlayer.x+mgPlayer.speed);
+      // Spawn
+      if(Math.random()<0.05) mgObjects.push({
+        x:Math.random()*(W-24)+12,y:-20,r:12,
+        vy:2+Math.random()*3+(60-mgTime)*0.03,
+        emoji:type==='catcher'?['⭐','🌟','💫','✨'][Math.floor(Math.random()*4)]:['☄️','🪨','💥'][Math.floor(Math.random()*3)]
+      });
+      mgObjects.forEach(o=>o.y+=o.vy);
+      mgObjects=mgObjects.filter(o=>{
+        if(o.y>H+30){if(type==='catcher'){mgLives--;document.getElementById('mg-lives').textContent=mgLives;if(mgLives<=0)closeMinigame();}return false;}
+        // Collision
+        if(o.x>mgPlayer.x-o.r&&o.x<mgPlayer.x+mgPlayer.w+o.r&&o.y>mgPlayer.y-o.r&&o.y<mgPlayer.y+mgPlayer.h+o.r){
+          if(type==='catcher'){mgScore+=10;document.getElementById('mg-score').textContent=mgScore;addCoins(1);}
+          else{mgLives--;document.getElementById('mg-lives').textContent=mgLives;if(mgLives<=0)closeMinigame();}
+          return false;
+        }
+        return true;
+      });
+      if(type==='dodger'){mgScore++;document.getElementById('mg-score').textContent=mgScore;}
+      // Draw
+      ctx.clearRect(0,0,W,H);
+      ctx.fillStyle='#0f172a';ctx.fillRect(0,0,W,H);
+      // stars bg
+      ctx.fillStyle='rgba(255,255,255,.1)';
+      for(let i=0;i<20;i++){ctx.beginPath();ctx.arc((i*73+mgTime*2)%W,(i*47)%H,1.5,0,Math.PI*2);ctx.fill();}
+      // Player
+      ctx.font='32px serif';ctx.textAlign='center';
+      ctx.fillText('🐱',mgPlayer.x+mgPlayer.w/2,mgPlayer.y+mgPlayer.h);
+      // Objects
+      mgObjects.forEach(o=>ctx.fillText(o.emoji,o.x,o.y));
+      // Score
+      ctx.fillStyle='#fff';ctx.font='bold 14px Nunito,sans-serif';ctx.textAlign='left';
+      ctx.fillText('Score: '+mgScore,10,22);
+      ctx.fillText('♥'.repeat(mgLives),W-80,22);
+    },33);
+  } else if(type==='bounce'){
+    let ball={x:W/2,y:H/2,vx:3,vy:-4,r:10};
+    let paddle={x:W/2-50,y:H-20,w:100,h:12};
+    let aiPaddle={x:W/2-50,y:20,w:100,h:12};
+    let aiScore=0,playerScore=0;
+    canvas.onclick=canvas.ontouchstart=e=>{
+      const rect=canvas.getBoundingClientRect();
+      const cx=(e.clientX||e.touches[0].clientX)-rect.left;
+      paddle.x=Math.max(0,Math.min(W-paddle.w,cx-paddle.w/2));
+    };
+    mgInterval=setInterval(()=>{
+      if(!S.mgRunning)return;
+      if(keys['ArrowLeft']) paddle.x=Math.max(0,paddle.x-mgPlayer.speed);
+      if(keys['ArrowRight']) paddle.x=Math.min(W-paddle.w,paddle.x+mgPlayer.speed);
+      ball.x+=ball.vx;ball.y+=ball.vy;
+      if(ball.x<ball.r||ball.x>W-ball.r)ball.vx*=-1;
+      if(ball.y<aiPaddle.y+aiPaddle.h&&ball.y>aiPaddle.y&&ball.x>aiPaddle.x&&ball.x<aiPaddle.x+aiPaddle.w)ball.vy=Math.abs(ball.vy);
+      if(ball.y>paddle.y-ball.r&&ball.y<paddle.y+paddle.h&&ball.x>paddle.x&&ball.x<paddle.x+paddle.w){ball.vy=-Math.abs(ball.vy);mgScore+=5;document.getElementById('mg-score').textContent=mgScore;addCoins(1);}
+      aiPaddle.x+=(ball.x-aiPaddle.x-aiPaddle.w/2)*0.06;
+      if(ball.y<0){playerScore++;ball={x:W/2,y:H/2,vx:3,vy:4,r:10};}
+      if(ball.y>H){mgLives--;document.getElementById('mg-lives').textContent=mgLives;ball={x:W/2,y:H/2,vx:3,vy:-4,r:10};if(mgLives<=0)closeMinigame();}
+      ctx.clearRect(0,0,W,H);
+      ctx.fillStyle='#0f172a';ctx.fillRect(0,0,W,H);
+      ctx.strokeStyle='rgba(255,255,255,.15)';ctx.setLineDash([8,8]);ctx.beginPath();ctx.moveTo(0,H/2);ctx.lineTo(W,H/2);ctx.stroke();ctx.setLineDash([]);
+      ctx.fillStyle='#f472b6';ctx.fillRect(paddle.x,paddle.y,paddle.w,paddle.h);
+      ctx.fillStyle='#60a5fa';ctx.fillRect(aiPaddle.x,aiPaddle.y,aiPaddle.w,aiPaddle.h);
+      ctx.font='24px serif';ctx.textAlign='center';ctx.fillText('⚽',ball.x,ball.y+8);
+      ctx.fillStyle='#fff';ctx.font='bold 14px Nunito,sans-serif';ctx.textAlign='left';
+      ctx.fillText('You: '+mgScore,10,H/2-10);
+    },33);
+  }
+}
+
+function closeMinigame(){
+  S.mgRunning=false;
+  clearInterval(mgInterval);clearInterval(mgTimerInterval);
+  window.onkeydown=null;window.onkeyup=null;
+  document.getElementById('minigame-container').classList.remove('open');
+  S.fun=clamp(S.fun+15);
+  showToast(`Game over! Score: ${mgScore} 🎮`);addCoins(Math.floor(mgScore/10));
+  updateSpeech('That was fun! 🎮');
+}
+
+function updateMGUI(){
+  document.getElementById('mg-score').textContent=mgScore;
+  document.getElementById('mg-lives').textContent=mgLives;
+  document.getElementById('mg-time').textContent=mgTime;
+}
+
+// ============================================================
+// ROOM SWITCH
+// ============================================================
 function switchRoom(name){
-  state.room = name;
-  ui.room.className = 'room ' + name;
-  document.querySelector('.room-title').textContent =
-    name === 'gaming' ? 'Gaming room' :
-    name === 'bedroom' ? 'Sleeping room' :
-    name === 'bathroom' ? 'Bath room' : 'Kitchen';
-
-  // Show/hide content
-  document.getElementById('gamingContent').style.display = name==='gaming' ? '' : 'none';
-  document.getElementById('bedroomContent').style.display = name==='bedroom' ? '' : 'none';
-  document.getElementById('bathroomContent').style.display = name==='bathroom' ? '' : 'none';
-  document.getElementById('kitchenContent').style.display = name==='kitchen' ? '' : 'none';
-
-  // Room entry effects
-  if (name==='gaming') ui.roomTimer.textContent = 'Play to raise Fun';
-  if (name==='bedroom') ui.roomTimer.textContent = 'Sleep restores Energy';
-  if (name==='bathroom') ui.roomTimer.textContent = 'Wash to raise Hygiene';
-  if (name==='kitchen') ui.roomTimer.textContent = 'Cook & eat to lower Hunger';
+  S.room=name;
+  document.querySelectorAll('.room-bg').forEach(r=>r.classList.remove('active'));
+  document.getElementById('room-'+name).classList.add('active');
+  document.querySelectorAll('.rnav-btn').forEach(b=>b.classList.toggle('active',b.dataset.room===name));
+  // Update angela position based on room
+  positionAngela(name);
+  // Room specific
+  const msgs={bedroom:'Time to rest! 😴',living:'Let\'s play! 🎮',bathroom:'Bath time! 🛁',makeup:'Glamour time! 💄',kitchen:'Let\'s cook! 🍳'};
+  updateSpeech(msgs[name]||'Hi!');
 }
 
-/* --- Gaming room: mini‑game (simple dodger) --- */
-const gCanvas = document.getElementById('gameCanvas');
-const gCtx = gCanvas.getContext('2d');
-let gLoop=null, player=null, blocks=null, gScore=0;
-
-document.getElementById('startMini').addEventListener('click', startMiniGame);
-document.getElementById('stopMini').addEventListener('click', stopMiniGame);
-
-function startMiniGame(){
-  if (state.miniRunning) return;
-  state.miniRunning = true;
-  player = {x:gCanvas.width/2-25, y:gCanvas.height-30, w:50, h:16};
-  blocks = []; gScore = 0;
-  gLoop = setInterval(()=>{
-    // spawn
-    if (Math.random()<0.06) blocks.push({x:Math.random()*(gCanvas.width-20), y:-20, w:20, h:20, vy:2+Math.random()*3});
-    // update
-    blocks.forEach(b=> b.y += b.vy);
-    blocks = blocks.filter(b=> b.y < gCanvas.height+30);
-    // collide
-    for (const b of blocks){
-      if (b.x < player.x+player.w && b.x+b.w > player.x && b.y < player.y+player.h && b.y+b.h > player.y){
-        gScore = Math.max(0, gScore-2);
-        state.fun = clamp(state.fun - 1);
-      }
-    }
-    // score & fun
-    gScore += 1; state.fun = clamp(state.fun + 0.4); state.energy = clamp(state.energy - 0.2);
-    // draw
-    gCtx.clearRect(0,0,gCanvas.width,gCanvas.height);
-    gCtx.fillStyle='#6cf1ff'; gCtx.fillRect(player.x, player.y, player.w, player.h);
-    gCtx.fillStyle='#ff4d6d'; blocks.forEach(b=> gCtx.fillRect(b.x,b.y,b.w,b.h));
-    gCtx.fillStyle='#fff'; gCtx.fillText('Score: '+gScore, 10, 18);
-  }, 33);
-  window.addEventListener('keydown', miniKeys);
-}
-function miniKeys(e){
-  if (!state.miniRunning) return;
-  if (e.key==='ArrowLeft') player.x = Math.max(0, player.x-18);
-  if (e.key==='ArrowRight') player.x = Math.min(gCanvas.width-player.w, player.x+18);
-}
-function stopMiniGame(){
-  if (!state.miniRunning) return;
-  clearInterval(gLoop); gLoop=null; state.miniRunning=false;
-  window.removeEventListener('keydown', miniKeys);
-  ui.status.textContent = 'Finished playing';
+function positionAngela(room){
+  const ac=document.getElementById('angela-container');
+  // Move angela to center-right of each room
+  ac.style.left='50%';ac.style.bottom='80px';
 }
 
-/* --- Bedroom: sleep timer --- */
-document.getElementById('sleepBtn').addEventListener('click', ()=>{
-  const minutes = 2;
-  state.sleepUntil = Date.now() + minutes*60*1000;
-  ui.status.textContent = 'Sleeping…';
-});
-document.getElementById('wakeBtn').addEventListener('click', ()=>{
-  state.sleepUntil = null;
-  ui.status.textContent = 'Awake!';
-});
+// ============================================================
+// HUD & CLOCK
+// ============================================================
+function clamp(v){return Math.max(0,Math.min(100,v))}
 
-function updateSleepTimer(){
-  if (!state.sleepUntil) { ui.sleepLeft.textContent = '00:00'; return; }
-  const left = Math.max(0, state.sleepUntil - Date.now());
-  const m = Math.floor(left/60000), s = Math.floor((left%60000)/1000);
-  ui.sleepLeft.textContent = String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
-  // Restore energy while sleeping, reduce hunger a bit slower, hygiene slightly down
-  state.energy = clamp(state.energy + 0.8);
-  state.hunger = clamp(state.hunger + 0.05);
-  state.hygiene = clamp(state.hygiene - 0.02);
-  if (left<=0){ state.sleepUntil=null; ui.status.textContent='Well rested!'; }
+function updateHUD(){
+  ['energy','hygiene','hunger','fun','mood'].forEach(k=>{
+    const el=document.getElementById('bar-'+k);
+    const v=S[k];
+    el.style.width=v+'%';
+    el.classList.toggle('low',v<25);
+    el.classList.toggle('mid',v>=25&&v<50&&k!=='hunger');
+  });
+  const avg=(S.energy+S.hygiene+(100-S.hunger)+S.fun)/4;
+  S.mood=clamp(avg);
+  const moods=S.energy<20?'💀 Critical!':S.hunger>85?'😭 So hungry!':S.hygiene<20?'🤢 Needs bath!':S.energy<40?'😴 Tired...':S.fun<30?'😑 Bored...':S.mood>80?'😻 Purr-fect!':S.mood>60?'😸 Happy!':'😊 Good!';
+  document.getElementById('mood-text').textContent=moods;
+  document.getElementById('coin-count').textContent=S.coins;
 }
 
-/* --- Bathroom: wash interactions --- */
-const bCanvas = document.getElementById('bathCanvas');
-const bCtx = bCanvas.getContext('2d');
-let bubbles = [];
-function drawBath(){
-  bCtx.clearRect(0,0,bCanvas.width,bCanvas.height);
-  // tub
-  bCtx.fillStyle='#1e2a4f'; bCtx.fillRect(40,200,480,100);
-  // water
-  bCtx.fillStyle='rgba(108,241,255,.35)'; bCtx.fillRect(40,220,480,80);
-  // bubbles
-  bCtx.fillStyle='#e9ecff';
-  bubbles.forEach(b=> { b.y -= 0.8; bCtx.beginPath(); bCtx.arc(b.x,b.y,b.r,0,Math.PI*2); bCtx.fill(); });
-  bubbles = bubbles.filter(b=> b.y > 160);
-}
-setInterval(drawBath, 33);
-
-document.getElementById('waterBtn').addEventListener('click', ()=>{
-  for (let i=0;i<12;i++) bubbles.push({x:60+Math.random()*440, y:290, r:4+Math.random()*6});
-  state.hygiene = clamp(state.hygiene + 2);
-  ui.status.textContent = 'Splash splash!';
-});
-document.getElementById('soapBtn').addEventListener('click', ()=>{
-  for (let i=0;i<16;i++) bubbles.push({x:60+Math.random()*440, y:290, r:6+Math.random()*8});
-  state.hygiene = clamp(state.hygiene + 4);
-  state.fun = clamp(state.fun + 0.6);
-  ui.status.textContent = 'Soapy bubbles!';
-});
-document.getElementById('rinseBtn').addEventListener('click', ()=>{
-  for (let i=0;i<10;i++) bubbles.push({x:60+Math.random()*440, y:290, r:5+Math.random()*5});
-  state.hygiene = clamp(state.hygiene + 3);
-  ui.status.textContent = 'Rinsed clean!';
-});
-
-/* --- Kitchen: cooking & eating --- */
-const kCanvas = document.getElementById('kitchenCanvas');
-const kCtx = kCanvas.getContext('2d');
-function drawKitchen(){
-  kCtx.clearRect(0,0,kCanvas.width,kCanvas.height);
-  // counter & stove
-  kCtx.fillStyle='#243a33'; kCtx.fillRect(40,220,480,80);
-  kCtx.fillStyle='#333'; kCtx.fillRect(360,200,120,40); // stove top
-  // pot
-  const cooking = state.cooking;
-  const potColor = cooking ? (Date.now() < cooking.doneAt ? '#6cf1ff' : (Date.now() < cooking.burnedAt ? '#ffd166' : '#ff4d6d')) : '#888';
-  kCtx.fillStyle=potColor; kCtx.fillRect(390,180,60,30);
-  // steam if cooking
-  if (cooking && Date.now() < cooking.doneAt){
-    kCtx.fillStyle='rgba(255,255,255,.6)';
-    for (let i=0;i<3;i++){
-      const x = 410 + Math.sin(Date.now()/300 + i)*10;
-      const y = 170 - (Date.now()/20 % 20);
-      kCtx.fillRect(x, y, 6, 12);
-    }
+setInterval(()=>{
+  const now=new Date();
+  const t=now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  document.getElementById('clock-display').textContent=t;
+  document.getElementById('clock-top').textContent=t;
+  // Passive changes
+  if(!S.sleeping){
+    S.hunger=clamp(S.hunger+0.12);
+    S.energy=clamp(S.energy-0.06);
+    S.hygiene=clamp(S.hygiene-0.04);
+    S.fun=clamp(S.fun-0.03);
+  } else {
+    S.energy=clamp(S.energy+0.6);
+    if(S.sleepEnd&&Date.now()>S.sleepEnd) action_wakeup();
   }
-  // plate
-  kCtx.fillStyle='#ddd'; kCtx.beginPath(); kCtx.arc(140,240,28,0,Math.PI*2); kCtx.fill();
-}
-setInterval(drawKitchen, 33);
+  // Cook timer
+  if(S.cooking){
+    const now2=Date.now();
+    const left=Math.max(0,S.cooking.ready-now2);
+    const phase=now2<S.cooking.ready?`⏳ ${Math.ceil(left/1000)}s`:now2<S.cooking.burn?'✅ Ready!':'🔥 Burning!';
+    document.getElementById('cook-timer').textContent=phase;
+  }
+  updateHUD();
+},1000);
 
-document.getElementById('cookBtn').addEventListener('click', ()=>{
-  if (state.cooking) { ui.status.textContent='Already cooking…'; return; }
-  const now = Date.now();
-  state.cooking = { start: now, doneAt: now + 15000, burnedAt: now + 30000 }; // 15s done, 30s burned
-  ui.status.textContent = 'Cooking… wait for it to finish!';
-});
-document.getElementById('eatBtn').addEventListener('click', ()=>{
-  if (!state.cooking){ ui.status.textContent='Nothing cooked yet.'; return; }
-  const now = Date.now();
-  if (now < state.cooking.doneAt){ ui.status.textContent='Too early—still raw!'; state.hunger = clamp(state.hunger - 5); }
-  else if (now < state.cooking.burnedAt){ ui.status.textContent='Yum! Perfect meal.'; state.hunger = clamp(state.hunger - 25); state.energy = clamp(state.energy + 6); state.fun = clamp(state.fun + 2); }
-  else { ui.status.textContent='Oops, burned…'; state.hunger = clamp(state.hunger - 10); state.fun = clamp(state.fun - 2); }
-  state.cooking = null;
-});
-
-function updateCooking(){
-  if (!state.cooking) return;
-  const now = Date.now();
-  const left = Math.max(0, state.cooking.doneAt - now);
-  const phase = now < state.cooking.doneAt ? 'Cooking' : (now < state.cooking.burnedAt ? 'Ready to eat' : 'Burning!');
-  if (state.room==='kitchen') ui.roomTimer.textContent = `${phase} — ${Math.ceil(left/1000)}s`;
+// ============================================================
+// UTILS
+// ============================================================
+function addFloat(emoji){
+  const f=document.createElement('div');
+  f.className='angela-float';f.textContent=emoji;
+  document.getElementById('angela-container').appendChild(f);
+  setTimeout(()=>f.remove(),2000);
 }
 
-/* --- Init --- */
-switchRoom('gaming');
-refreshHUD();
+function updateSpeech(text){
+  const el=document.getElementById('angela-speech');
+  el.textContent=text;el.style.opacity='1';
+  clearTimeout(window._speechTimeout);
+  window._speechTimeout=setTimeout(()=>el.style.opacity='0',3500);
+}
+
+let toastTimeout=null;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(toastTimeout);
+  toastTimeout=setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+function addCoins(n){
+  S.coins+=n;
+  document.getElementById('coin-count').textContent=S.coins;
+}
+
+function openModal(id){
+  document.getElementById(id).classList.add('open');
+  if(id==='closet-modal')buildCloset();
+}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+
+// Close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(o=>{
+  o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open')});
+});
+
+// ============================================================
+// BEDROOM STARS
+// ============================================================
+function generateStars(){
+  const container=document.getElementById('bedroom-stars');
+  for(let i=0;i<30;i++){
+    const s=document.createElement('div');
+    s.className='star';
+    const size=2+Math.random()*4;
+    s.style.cssText=`width:${size}px;height:${size}px;top:${Math.random()*200}px;left:${Math.random()*100}%;animation-delay:${Math.random()*2}s;animation-duration:${1.5+Math.random()*2}s`;
+    container.appendChild(s);
+  }
+}
+
+// ============================================================
+// ANGELA BLINKING
+// ============================================================
+function blink(){
+  if(S.sleeping)return;
+  const el=document.getElementById('angela-eye-l');
+  const er=document.getElementById('angela-eye-r');
+  el.style.height='4px';er.style.height='4px';
+  setTimeout(()=>{el.style.height='';er.style.height=''},150);
+}
+setInterval(blink,3000+Math.random()*2000);
+setInterval(()=>{
+  if(!S.sleeping&&!S.mgRunning){
+    const rnd=Math.random();
+    if(rnd<0.3)document.getElementById('angela').classList.toggle('angela-walk');
+    else document.getElementById('angela').classList.remove('angela-walk');
+  }
+},5000);
+
+// ============================================================
+// INIT
+// ============================================================
+generateStars();
+switchRoom('bedroom');
+// Apply default dress
+document.getElementById('angela-dress').style.background=DRESSES[0].color;
+updateHUD();
+// Greet
+setTimeout(()=>updateSpeech('Hi! I\'m Angela! 💖 Let\'s have fun!'),500);
 </script>
 </body>
 </html>
