@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EXTREME BIKE STUNTS 3D</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Rajdhani:wght@400;600;700&family=Orbitron:wght@700;900&display=swap');
+
+:root {
+  --fire:#ff3d00; --gold:#ffc400; --neon:#00e5ff; --plasma:#d500f9;
+  --dark:#060610; --panel:#0d0d1a; --card:#13131f;
+  --text:#eef0ff; --muted:#5a5a7a;
+  --green:#00e676; --red:#ff1744; --orange:#ff9100;
+  --glow-fire: 0 0 20px #ff3d00, 0 0 40px #ff3d00aa;
+  --glow-neon: 0 0 15px #00e5ff, 0 0 30px #00e5ffaa;
+  --glow-gold: 0 0 15px #ffc400, 0 0 30px #ffc400aa;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--dark);}
+body{font-family:'Rajdhani',sans-serif;color:var(--text);}
+
+/* ===================== CANVAS LAYER ===================== */
+#bgCanvas{position:fixed;inset:0;z-index:0;}
+
+/* ===================== SCREENS ===================== */
+.screen{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(4,4,18,0.96);transition:opacity .4s;}
+.screen.gone{opacity:0;pointer-events:none;}
+.screen.hidden{display:none;}
+
+/* ---- TITLE ---- */
+#titleScreen{background:transparent;}
+.title-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 60%,rgba(255,61,0,0.15) 0%,transparent 70%),radial-gradient(ellipse at 20% 30%,rgba(0,229,255,0.08) 0%,transparent 60%),linear-gradient(180deg,#020210 0%,#0a0418 50%,#150808 100%);z-index:-1;}
+
+.mega-title{font-family:'Black Ops One',cursive;font-size:clamp(36px,8vw,100px);line-height:0.9;text-align:center;background:linear-gradient(135deg,#ff3d00 0%,#ff9100 30%,#ffc400 55%,#00e5ff 80%,#d500f9 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 30px rgba(255,100,0,0.6));animation:titlePulse 3s ease-in-out infinite;}
+@keyframes titlePulse{0%,100%{filter:drop-shadow(0 0 30px rgba(255,100,0,0.6));}50%{filter:drop-shadow(0 0 60px rgba(255,180,0,0.9));}}
+
+.title-sub{font-family:'Orbitron',sans-serif;font-size:clamp(10px,2vw,16px);letter-spacing:8px;color:var(--neon);text-shadow:var(--glow-neon);margin:12px 0 40px;text-align:center;}
+
+.menu-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:min(480px,90vw);margin-bottom:20px;}
+.menu-btn{font-family:'Black Ops One',cursive;font-size:16px;letter-spacing:2px;padding:16px 20px;border:2px solid;border-radius:4px;background:transparent;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;}
+.menu-btn::before{content:'';position:absolute;inset:0;background:currentColor;opacity:0;transition:opacity .2s;}
+.menu-btn:hover::before{opacity:0.1;}
+.menu-btn:hover{transform:translateY(-2px);box-shadow:0 8px 25px currentColor;}
+.menu-btn.fire{color:var(--fire);border-color:var(--fire);}
+.menu-btn.neon{color:var(--neon);border-color:var(--neon);}
+.menu-btn.gold{color:var(--gold);border-color:var(--gold);}
+.menu-btn.plasma{color:var(--plasma);border-color:var(--plasma);}
+.menu-btn.wide{grid-column:span 2;font-size:22px;padding:20px;color:var(--gold);border-color:var(--gold);text-shadow:var(--glow-gold);}
+.menu-btn.wide:hover{box-shadow:var(--glow-gold);}
+
+.title-stats{display:flex;gap:30px;font-size:13px;color:var(--muted);font-family:'Orbitron',sans-serif;}
+.title-stat span{color:var(--gold);font-size:18px;display:block;text-align:center;}
+
+/* ---- LEVEL SELECT ---- */
+#levelScreen .screen-header{font-family:'Black Ops One',cursive;font-size:clamp(24px,5vw,52px);color:var(--gold);text-shadow:var(--glow-gold);margin-bottom:6px;text-align:center;}
+#levelScreen .screen-sub{font-family:'Orbitron',sans-serif;font-size:12px;letter-spacing:4px;color:var(--neon);margin-bottom:30px;}
+.levels-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;width:min(900px,92vw);max-height:60vh;overflow-y:auto;padding:4px;}
+.level-card{background:var(--card);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:18px;cursor:pointer;transition:all .25s;position:relative;overflow:hidden;}
+.level-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent,#ffc400);}
+.level-card:hover{transform:translateY(-4px);border-color:var(--accent,#ffc400);box-shadow:0 12px 30px rgba(0,0,0,0.5);}
+.level-card.locked{opacity:0.4;cursor:not-allowed;filter:grayscale(0.8);}
+.lc-num{font-family:'Orbitron',sans-serif;font-size:11px;color:var(--accent,#ffc400);letter-spacing:3px;margin-bottom:6px;}
+.lc-name{font-family:'Black Ops One',cursive;font-size:20px;margin-bottom:4px;}
+.lc-desc{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:10px;}
+.lc-badges{display:flex;flex-wrap:wrap;gap:5px;}
+.badge{font-size:10px;padding:3px 8px;border-radius:20px;border:1px solid;letter-spacing:1px;}
+.lc-stars{color:var(--gold);font-size:14px;margin-top:8px;}
+
+/* ---- MODE SELECT ---- */
+.modes-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;width:min(800px,92vw);}
+.mode-card{background:var(--card);border:2px solid rgba(255,255,255,0.06);border-radius:12px;padding:22px;cursor:pointer;transition:all .25s;text-align:center;}
+.mode-card:hover{transform:scale(1.03);border-color:var(--accent,#00e5ff);box-shadow:0 0 30px rgba(0,229,255,0.2);}
+.mode-icon{font-size:48px;margin-bottom:10px;}
+.mode-name{font-family:'Black Ops One',cursive;font-size:22px;color:var(--accent,#00e5ff);margin-bottom:6px;}
+.mode-desc{font-size:13px;color:var(--muted);line-height:1.6;}
+
+/* ---- KNOWLEDGE SCREEN ---- */
+#knowledgeScreen{overflow-y:auto;}
+.knowledge-wrap{width:min(880px,94vw);padding:20px 0;}
+.knowledge-wrap h1{font-family:'Black Ops One',cursive;font-size:clamp(28px,6vw,64px);background:linear-gradient(135deg,var(--fire),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-align:center;margin-bottom:6px;}
+.knowledge-wrap .k-sub{text-align:center;font-family:'Orbitron',sans-serif;font-size:11px;letter-spacing:4px;color:var(--neon);margin-bottom:30px;}
+.chapter{background:var(--card);border-left:4px solid var(--accent,#ff3d00);border-radius:0 10px 10px 0;padding:22px 26px;margin-bottom:20px;}
+.chapter h2{font-family:'Black Ops One',cursive;font-size:clamp(16px,3vw,24px);color:var(--accent,#ff3d00);margin-bottom:12px;letter-spacing:1px;}
+.chapter p{font-size:15px;line-height:1.85;color:#c8cadf;margin-bottom:12px;}
+.chapter p:last-child{margin-bottom:0;}
+.chapter .tech-box{background:rgba(0,229,255,0.05);border:1px solid rgba(0,229,255,0.2);border-radius:6px;padding:14px;margin:12px 0;font-size:13px;color:var(--neon);line-height:1.7;}
+.chapter .highlight{color:var(--gold);font-weight:700;}
+.stunt-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin:12px 0;}
+.stunt-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:14px;}
+.stunt-card h3{font-family:'Black Ops One',cursive;font-size:16px;color:var(--fire);margin-bottom:6px;}
+.stunt-card p{font-size:13px;color:#aaa;line-height:1.6;}
+.stunt-card .pts{font-family:'Orbitron',sans-serif;font-size:11px;color:var(--gold);margin-top:6px;}
+
+/* ---- GAME SCREEN ---- */
+#gameScreen{background:transparent;justify-content:flex-start;align-items:stretch;}
+#gameCanvas{position:absolute;inset:0;width:100%;height:100%;z-index:1;}
+
+/* HUD */
+#hud{position:absolute;inset:0;z-index:5;pointer-events:none;}
+.hud-top{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:flex-start;padding:12px 16px;gap:10px;}
+.hud-bottom{position:absolute;bottom:0;left:0;right:0;display:flex;justify-content:space-between;align-items:flex-end;padding:10px 14px;gap:10px;}
+.hud-mid{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;}
+
+.panel{background:rgba(6,6,22,0.82);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:8px 12px;backdrop-filter:blur(6px);}
+.panel-label{font-family:'Orbitron',sans-serif;font-size:8px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin-bottom:2px;}
+.panel-val{font-family:'Black Ops One',cursive;font-size:28px;line-height:1;color:#fff;}
+.panel-val.fire{color:var(--fire);text-shadow:var(--glow-fire);}
+.panel-val.gold{color:var(--gold);text-shadow:var(--glow-gold);}
+.panel-val.neon{color:var(--neon);text-shadow:var(--glow-neon);}
+.panel-val.sm{font-size:18px;}
+
+.bar-row{display:flex;flex-direction:column;gap:5px;}
+.bar-item{display:flex;align-items:center;gap:6px;}
+.bar-name{font-family:'Orbitron',sans-serif;font-size:8px;letter-spacing:2px;color:var(--muted);width:44px;}
+.bar-track{flex:1;height:7px;background:rgba(255,255,255,0.06);border-radius:4px;overflow:hidden;min-width:80px;}
+.bar-fill{height:100%;border-radius:4px;transition:width .12s;}
+#healthFill{background:linear-gradient(90deg,#ff1744,#00e676);}
+#boostFill{background:linear-gradient(90deg,#00e5ff,#d500f9);}
+#stuntFill{background:linear-gradient(90deg,#ff3d00,#ffc400);}
+#xpFill{background:linear-gradient(90deg,#ffc400,#ff3d00);}
+
+.combo-ring{width:70px;height:70px;position:relative;}
+.combo-ring svg{transform:rotate(-90deg);}
+.combo-ring .combo-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Black Ops One',cursive;font-size:20px;color:var(--gold);text-shadow:var(--glow-gold);}
+.combo-ring .combo-label{font-size:7px;font-family:'Orbitron',sans-serif;color:var(--muted);letter-spacing:1px;}
+
+#trickFlash{font-family:'Black Ops One',cursive;font-size:clamp(28px,6vw,64px);color:var(--gold);text-shadow:var(--glow-gold);opacity:0;transition:opacity .15s;white-space:nowrap;text-align:center;padding:8px 0;}
+#scorePopup{font-family:'Orbitron',sans-serif;font-size:22px;color:var(--neon);opacity:0;transition:opacity .1s;}
+#modeTag{font-family:'Orbitron',sans-serif;font-size:10px;letter-spacing:4px;padding:3px 12px;background:rgba(255,61,0,0.15);border:1px solid var(--fire);border-radius:20px;color:var(--fire);margin-bottom:4px;display:inline-block;}
+
+.pause-btn-hud{pointer-events:all;font-family:'Orbitron',sans-serif;font-size:10px;letter-spacing:2px;padding:5px 14px;border:1px solid rgba(255,255,255,0.15);border-radius:20px;background:rgba(0,0,0,0.4);color:#fff;cursor:pointer;transition:all .2s;}
+.pause-btn-hud:hover{background:rgba(255,255,255,0.08);}
+
+/* Level indicator */
+#levelTag{font-family:'Black Ops One',cursive;font-size:13px;color:var(--plasma);letter-spacing:2px;}
+#levelBar{width:120px;}
+
+/* Mobile controls */
+#mobileCtrl{position:absolute;bottom:70px;left:0;right:0;z-index:6;display:none;justify-content:space-between;padding:0 12px;}
+@media(max-width:700px){#mobileCtrl{display:flex;}}
+.ctrl-group{display:flex;gap:8px;align-items:flex-end;}
+.ctrlBtn{width:60px;height:60px;border-radius:50%;border:2px solid rgba(255,196,0,0.4);background:rgba(0,0,0,0.55);color:var(--gold);font-family:'Black Ops One',cursive;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;text-align:center;-webkit-tap-highlight-color:transparent;user-select:none;transition:background .1s;}
+.ctrlBtn:active,.ctrlBtn.pressed{background:rgba(255,196,0,0.18);}
+.ctrlBtn.jump-btn{width:76px;height:76px;font-size:15px;border-color:var(--fire);color:var(--fire);}
+
+/* ---- OVERLAY SCREENS ---- */
+#pauseScreen,#gameOverScreen{z-index:50;}
+.overlay-title{font-family:'Black Ops One',cursive;font-size:clamp(40px,8vw,90px);text-align:center;margin-bottom:8px;}
+.overlay-sub{font-family:'Orbitron',sans-serif;font-size:12px;letter-spacing:4px;color:var(--muted);margin-bottom:28px;text-align:center;}
+.overlay-btns{display:flex;flex-direction:column;gap:10px;width:min(320px,80vw);}
+.obtn{font-family:'Black Ops One',cursive;font-size:18px;letter-spacing:2px;padding:14px 30px;border:2px solid;border-radius:6px;background:transparent;cursor:pointer;transition:all .2s;width:100%;text-align:center;}
+.obtn:hover{transform:scale(1.03);}
+.obtn.primary{border-color:var(--fire);color:var(--fire);}
+.obtn.primary:hover{background:var(--fire);color:#fff;box-shadow:var(--glow-fire);}
+.obtn.sec{border-color:var(--muted);color:var(--muted);}
+.obtn.sec:hover{border-color:var(--neon);color:var(--neon);}
+
+.results-box{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:min(380px,88vw);margin:16px 0;}
+.r-item{text-align:center;background:var(--card);border-radius:8px;padding:12px;}
+.r-label{font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:3px;color:var(--muted);margin-bottom:4px;}
+.r-val{font-family:'Black Ops One',cursive;font-size:34px;color:var(--gold);}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--fire);border-radius:2px;}
+
+/* Back btn */
+.back-btn{font-family:'Orbitron',sans-serif;font-size:11px;letter-spacing:3px;padding:8px 20px;border:1px solid rgba(255,255,255,0.15);border-radius:20px;background:transparent;color:var(--muted);cursor:pointer;margin-top:20px;transition:all .2s;}
+.back-btn:hover{color:#fff;border-color:#fff;}
+</style>
+</head>
+<body>
+
+<!-- BG CANVAS (stars/atmosphere always visible) -->
+<canvas id="bgCanvas"></canvas>
+
+<!-- ========================= TITLE SCREEN ========================= -->
+<div class="screen" id="titleScreen">
+  <div class="title-bg"></div>
+  <div class="mega-title">EXTREME<br>BIKE<br>STUNTS</div>
+  <div class="title-sub">⚡ 3D GRAVITY DEFYING EDITION ⚡</div>
+  <div class="menu-grid">
+    <button class="menu-btn wide" onclick="showScreen('modeScreen')">🔥 PLAY NOW</button>
+    <button class="menu-btn fire" onclick="showScreen('levelScreen')">🏆 LEVELS</button>
+    <button class="menu-btn neon" onclick="showScreen('knowledgeScreen')">📖 STUNT BIBLE</button>
+    <button class="menu-btn gold" onclick="showScreen('modeScreen')">🎮 MODES</button>
+    <button class="menu-btn plasma" onclick="showGarage()">🔧 GARAGE</button>
+  </div>
+  <div class="title-stats">
+    <div><span id="ts_best">0</span>BEST SCORE</div>
+    <div><span id="ts_dist">0m</span>MAX DIST</div>
+    <div><span id="ts_tricks">0</span>TOTAL TRICKS</div>
+  </div>
+</div>
+
+<!-- ========================= MODE SELECT ========================= -->
+<div class="screen hidden" id="modeScreen">
+  <div class="screen-header" style="font-family:'Black Ops One',cursive;font-size:clamp(22px,5vw,50px);color:var(--neon);text-shadow:var(--glow-neon);text-align:center;margin-bottom:6px;">SELECT MODE</div>
+  <div class="screen-sub" style="font-family:'Orbitron',sans-serif;font-size:11px;letter-spacing:4px;color:var(--muted);margin-bottom:24px;">CHOOSE YOUR BATTLEGROUND</div>
+  <div class="modes-grid">
+    <div class="mode-card" style="--accent:var(--fire)" onclick="startGame('career')">
+      <div class="mode-icon">🏁</div>
+      <div class="mode-name" style="color:var(--fire)">CAREER</div>
+      <div class="mode-desc">Progress through 10 epic levels. Master each terrain, unlock new bikes, earn XP and rise from Rookie to GOAT legend.</div>
+    </div>
+    <div class="mode-card" style="--accent:var(--neon)" onclick="startGame('freeride')">
+      <div class="mode-icon">🌍</div>
+      <div class="mode-name" style="color:var(--neon)">FREE RIDE</div>
+      <div class="mode-desc">Infinite procedural terrain. No pressure, no timer — just pure riding, trick chaining, and stunt expression forever.</div>
+    </div>
+    <div class="mode-card" style="--accent:var(--gold)" onclick="startGame('trickattack')">
+      <div class="mode-icon">🎯</div>
+      <div class="mode-name" style="color:var(--gold)">TRICK ATTACK</div>
+      <div class="mode-desc">60 seconds. One mega ramp. Rack up the most insane score possible through stunt combos and mid-air mastery.</div>
+    </div>
+    <div class="mode-card" style="--accent:var(--plasma)" onclick="startGame('survival')">
+      <div class="mode-icon">💀</div>
+      <div class="mode-name" style="color:var(--plasma)">SURVIVAL</div>
+      <div class="mode-desc">Gnarliest terrain, maximum damage. One life. Every bail is final. Only legends survive past 1000 meters.</div>
+    </div>
+  </div>
+  <button class="back-btn" onclick="showScreen('titleScreen')">← BACK</button>
+</div>
+
+<!-- ========================= LEVEL SELECT ========================= -->
+<div class="screen hidden" id="levelScreen">
+  <div class="screen-header" style="font-family:'Black Ops One',cursive;font-size:clamp(22px,5vw,50px);color:var(--gold);text-shadow:var(--glow-gold);text-align:center;margin-bottom:4px;">LEVEL SELECT</div>
+  <div class="screen-sub" style="font-family:'Orbitron',sans-serif;font-size:11px;letter-spacing:4px;color:var(--muted);margin-bottom:22px;">10 EXTREME ENVIRONMENTS</div>
+  <div class="levels-grid" id="levelsGrid"></div>
+  <button class="back-btn" onclick="showScreen('titleScreen')">← BACK</button>
+</div>
+
+<!-- ========================= KNOWLEDGE / STUNT BIBLE ========================= -->
+<div class="screen hidden" id="knowledgeScreen" style="overflow-y:auto;padding:20px 0;">
+  <div class="knowledge-wrap">
+    <h1>THE STUNT BIBLE</h1>
+    <div class="k-sub">⚡ 1000 LINES OF EXTREME DEPTH ⚡</div>
+
+    <div class="chapter" style="--accent:var(--fire)">
+      <h2>📐 CHAPTER 1: BIKE GEOMETRY & FRAME PHYSICS</h2>
+      <p>Ek stunt bike sirf dhaat ka tukda nahi — ye ek <span class="highlight">engineered weapon</span> hai jo human body aur raw terrain ke beech ek living interface ka kaam karta hai. Jab ek rider 30-foot kicker se launch hota hai, to uski bike ka frame ek incredible amount of <span class="highlight">torsional stress</span> jhelta hai — wo force jo frame ko apni longitudinal axis ke around twist karne ki koshish karta hai. High-tensile chromoly steel ya aerospace-grade 6061-T6 aluminium alloy se banay frames isko handle karne ke liye specifically designed hain, lekin ye sirf material ki baat nahi — geometry ka har millimeter matter karta hai.</p>
+      <div class="tech-box">
+        🔬 TECHNICAL: Head tube angle (typically 71-75°) directly controls steering responsiveness. A slacker angle (lower number) creates stability at speed; steeper creates quick, flickable steering for street tricks. Bottom bracket drop affects center of gravity — lower BB = more stable landings, higher = better clearance for grinds.
+      </div>
+      <p><span class="highlight">Chainstay length</span> determine karta hai ke rear wheel kitna responsive feel karta hai. Shorter chainstays (16-16.5 inches for BMX) allow rapid rear-wheel lifting for manuals aur tailwhips. Longer stays stability dete hain high-speed descents mein. Yahi reason hai ke FMX (Freestyle Motocross) bikes aur BMX bikes geometrically poles apart hain lekin dono extreme stunts ke liye optimized hain. FMX bike ka wheelbase 58+ inches hota hai while competition BMX 20.5-21.5 inches ka top tube use karta hai — dono extremes ek specific trick vocabulary unlock karte hain.</p>
+      <p>Frame tubes ka <span class="highlight">wall thickness</span> aur <span class="highlight">butting pattern</span> — double-butted ya triple-butted — ye determine karta hai ke weight distribution kaise balance hoga bina structural integrity sacrifice kiye. Ek complete cromoly frame sirf 4-5 lbs weight karta hai lekin 2000+ pounds of impact force absorb kar sakta hai landings mein. Ye engineering miracle hai.</p>
+    </div>
+
+    <div class="chapter" style="--accent:var(--gold)">
+      <h2>🌀 CHAPTER 2: GYROSCOPIC STABILITY & THE PHYSICS OF SPIN</h2>
+      <p>Jab ek rider 360-spin execute karta hai mid-air mein, wo sirf apne body ko ghumata nahi — wo <span class="highlight">angular momentum</span> ke laws ke against aur saath mein kaam kar raha hota hai simultaneously. Rotating wheels ek <span class="highlight">gyroscopic effect</span> create karte hain: angular momentum vector perpendicular hoti hai rotation plane se, iska matlab ye ke bike inherently resist karti hai apna orientation change karne ki. Ye stability deta hai mid-air mein lekin ye same force tricks ko aur difficult bhi banata hai.</p>
+      <div class="tech-box">
+        ⚙️ GYRO FORMULA: L = Iω — Angular Momentum = Moment of Inertia × Angular Velocity. Zyada spin speed (ω) matlab zyada stability lekin zyada correction energy needed landing ke liye. Riders intuitively apne body ko use karte hain counter-angular momentum produce karne ke liye — arms aur legs spread kar ke moment of inertia increase karte hain, spinning phase mein tuck kar ke reduce.
+      </div>
+      <p>FMX mein jab rider <span class="highlight">Volt</span> (double backflip) execute karta hai, to bike ki rotational speed itni high hoti hai ke gyroscopic precession actively fight karti hai trajectory correction ke against. Riders ko millisecond-level precision chahiye apne <span class="highlight">spatial awareness</span> mein — they call it "feeling the rotation" — ye actually vestibular system aur proprioceptive feedback ka combination hai jo years of training se develop hota hai.</p>
+      <p>BMX 360 mein rider apni <span class="highlight">spot technique</span> use karta hai: ek fixed point ko track karna jab body spin karti hai, exactly jaise ice skaters karte hain. Ye dizzyness prevent karta hai aur landing spot ko lock karta hai. <span class="highlight">Precession</span> — wo phenomenon jahan ek spinning gyroscope 90 degrees off-axis force ko respond karta hai — ko actively counteract karna padta hai handlebars ke through subtle wrist input se.</p>
+    </div>
+
+    <div class="chapter" style="--accent:var(--neon)">
+      <h2>🚀 CHAPTER 3: THE ANATOMY OF MEGA STUNTS</h2>
+      <div class="stunt-grid">
+        <div class="stunt-card">
+          <h3>🔄 NAC-NAC</h3>
+          <p>Rider apni ek leg ko seat ke ek side se dusri side par swing karta hai mid-air mein — essentially ek "leg over" maneuver. Perfect Nac-Nac mein leg fully extended, toes pointed, bike at an angle hoti hai. Ye trick FMX mein originally Travis Pastrana ne popularize ki. Execution ke liye hip flexor strength aur precise timing chahiye kyunki leg ko peak height par swing initiate karni padti hai.</p>
+          <div class="pts">💰 500-700 PTS | DIFFICULTY: ★★★☆☆</div>
+        </div>
+        <div class="stunt-card">
+          <h3>✈️ CAN-CAN</h3>
+          <p>Dono paon ek taraf se bike ke frame ke upar se doosri taraf le jaate hain — ek graceful arc jo rider ko momentarily seat ke saath-saath horizontally extend karta hai. Originally BMX se nikli ye trick FMX mein massive air pe aur zyada impressive ho jaati hai. Rider ko apni weight perfectly centered rakhni hoti hai taake bike tumble na kare.</p>
+          <div class="pts">💰 550-750 PTS | DIFFICULTY: ★★★☆☆</div>
+        </div>
+        <div class="stunt-card">
+          <h3>🧗 CLIFFHANGER</h3>
+          <p>Rider handlebars ko apne feet se pakarta hai jab bike air mein hoti hai — feet on bars, hands free, body fully stretched. Ye insanity ka level 11 hai. Cliffhanger ke liye extreme core strength aur flexibility chahiye. Gravity khi bhi miscalculation ko immediately punish karti hai. James "Bubba" Stewart aur Pastrana ne isko mainstream kiya competitive FMX mein.</p>
+          <div class="pts">💰 1200-1800 PTS | DIFFICULTY: ★★★★★</div>
+        </div>
+        <div class="stunt-card">
+          <h3>🌬️ INDIAN AIR</h3>
+          <p>No-hander ki variation mein rider ek hand se seat pakarta hai aur doosra hand free hota hai — body twisted, bike angled. "Indian" naam is trick ki original BMX roots se aaya. Subtlety is trick ki khoobsoorti hai — sirf trained eye isko dekh ke appreciate kar sakta hai proper execution. Modern variations mein Indian Air to Barspin aur Indian No-Hander combo shamil hain.</p>
+          <div class="pts">💰 800-1100 PTS | DIFFICULTY: ★★★★☆</div>
+        </div>
+        <div class="stunt-card">
+          <h3>💫 SUPERMAN</h3>
+          <p>Rider apne paon seat ke peeche le jata hai jab haath handlebars pe hote hain — body fully horizontal, wind mein fly karte hue — exactly like Superman. Iska evolution: pehle Superman, phir Superman Seat Grab, phir Superman Indian Air. Har variation ek nayi level of commitment aur air time demand karta hai. 70+ foot kickers pe ye trick 4+ seconds air time deti hai.</p>
+          <div class="pts">💰 900-1300 PTS | DIFFICULTY: ★★★★☆</div>
+        </div>
+        <div class="stunt-card">
+          <h3>🌪️ TAILWHIP</h3>
+          <p>Frame bike ke front end ke around 360° rotate karta hai jab rider handlebars pe khara rehta hai. Ye BMX ki signature trick hai. Mechanics mein rider apne paon se rear dropouts ko kick karta hai rotation initiate karne ke liye, phir frame ek full rotation complete karta hai air mein. Double aur triple tailwhips competitive BMX mein standard hain. Landing mein timing critical hai — feet ko frame pe catch karna ek art hai.</p>
+          <div class="pts">💰 700-1000 PTS | DIFFICULTY: ★★★★☆</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chapter" style="--accent:var(--plasma)">
+      <h2>🛹 CHAPTER 4: STREET CULTURE — GRINDS, WALLRIDES & THE URBAN PLAYGROUND</h2>
+      <p>Street riding philosophy ek simple premise pe built hai: <span class="highlight">mundane ko transform karo</span>. Wo concrete ledge jo office workers ignore karte hain, wo handrail jo sirf support ke liye bani thi, wo gap jo sidewalk ko road se divide karta hai — ye sab ek street rider ke liye opportunities hain. Ye mindset — urban landscape ko potential line aur obstacle ke rubah dekhna — riding culture ka DNA hai.</p>
+      <p><span class="highlight">Grinds</span> — jab bike ka metal directly surface pe slide karta hai — wo sound produce karte hain jo culture ka heartbeat hai. Peg grind mein rider apne pegs (cylindrical steel tubes axles pe mounted) ko rail ya ledge pe land karta hai aur slide karta hai momentum se. <span class="highlight">Smith grind</span> mein rear peg aur front wheel dono surface pe hote hain. <span class="highlight">Feeble grind</span> mein front peg surface pe aur rear wheel far side pe hota hai — ek precarious, beautiful position. Har grind style ek alag physics equation solve karta hai: friction coefficient, contact surface angle, speed requirement sab alag hote hain.</p>
+      <div class="tech-box">
+        🔩 GRIND PHYSICS: Successful grind ke liye approach speed carefully calculated honi chahiye. Too slow = stall and bail. Too fast = loss of control mid-grind. Optimal approach angle typically 20-35° depending on obstacle height. Pegs ka steel composition determines friction characteristics — softer steel slides more freely on coping/rails.
+      </div>
+      <p><span class="highlight">Wallrides</span> gravity ka open mazaq hain. Rider full speed se vertical ya near-vertical wall par drive karta hai, tyres friction se momentarily grip karte hain, phir rider apni direction reverse karta hai aur land karta hai. Physics ye keh raha hai ye impossible hai; culture keh raha hai ye inevitable hai. Mat Hoffman ne 1990s mein wallrides ko new dimension diya jab usne quarter-pipe wallride combinations introduce kiye.</p>
+      <p>Street ka vocabulary infinitely expandable hai: <span class="highlight">180s aur 360s over stairs</span>, <span class="highlight">hop over bollards</span>, <span class="highlight">gap to grind combinations</span>, <span class="highlight">manual to nose manual transfers</span>, <span class="highlight">bank to ledge lines</span>. Har city ek alag "spot" culture develop karti hai — LA ke iconic spots alag hain NYC se, aur London ke moist concrete tricks London-specific approach demand karta hai.</p>
+    </div>
+
+    <div class="chapter" style="--accent:var(--green)">
+      <h2>🩰 CHAPTER 5: FLATLAND BMX — THE LIVING DANCE</h2>
+      <p>Flatland BMX ko samajhne ke liye, imagine karo ballet aur engineering ka child. Koi ramp nahi, koi obstacle nahi — sirf ek smooth flat surface, ek bike, aur ek rider jiska body control itna precise hai ke wo laws of physics se negotiate karta hua lagta hai. Flatland ek closed vocabulary nahi hai — ye ek living language hai jo constantly evolve ho rahi hai.</p>
+      <p>Core flatland moves <span class="highlight">balance physics</span> ke extremes explore karte hain. <span class="highlight">Manual</span> mein rider front wheel utha ke rear wheel pe sirf balance karta hai — ek seemingly simple act jo actually constant micro-adjustments demand karta hai through ankle, knee, hip, aur wrist. <span class="highlight">Nose manual</span> opposite hai: front wheel pe balance, rear upar. <span class="highlight">Decade</span> mein rider handlebars ke around pivot karta hai ek full rotation — ye combo strength aur spatial awareness ka masterpiece hai.</p>
+      <div class="tech-box">
+        ⚖️ BALANCE MECHANICS: Human body ka center of mass (CoM) approximately S2 vertebra ke paas hota hai. Flatland mein rider constantly apna CoM bike ke contact point ke upar rakhta hai. Inverted moves mein (like hitchhiker) CoM repositioning milliseconds mein hoti hai — processed subconsciously through cerebellum after thousands of repetitions.
+      </div>
+      <p><span class="highlight">Hitchhiker</span> — ek move jahan rider bike ke rear end pe inverted position mein balance karta hai — requires inverted vestibular processing. <span class="highlight">Whiplash</span> series — multiple linked spins combining front aur rear balance — ek complete choreographic sequence hai. Riders jaise <span class="highlight">Matthias Dandois</span> aur <span class="highlight">Viki Gomez</span> ne flatland ko performance art ke level pe le gaye hain, sequences create karte hue jo 3-4 minutes tak continuous flow maintain karti hain bina ek bhi foot ground touch karaye.</p>
+    </div>
+
+    <div class="chapter" style="--accent:var(--orange)">
+      <h2>🏍️ CHAPTER 6: FMX — FREESTYLE MOTOCROSS — SCALE IT TO INFINITY</h2>
+      <p>Agar BMX stunts aag se khel raha hai, to FMX aag mein jump karna hai. <span class="highlight">250cc full-size motorcycles</span> 75+ feet ki distance cover karte hain ek single jump mein, 40+ feet air height achieve karte hue. Rider ka combined weight motorcycle ke saath 500+ pounds hota hai — phir bhi ye machines spin, flip, aur twist karte hain jaise toys hain. Ye human engineering aur biological capability ka extreme test hai.</p>
+      <p>FMX ki origin story 1990s off-road racing se hai jab riders race mein boring straight sections pe naturally tricks perform karne lage. Carey Hart, Ronnie Renner, aur Mike Metzger ne establish kiya ke competitions possible hain. Lekin <span class="highlight">Travis Pastrana</span> ne 2006 X Games mein pehla competition double backflip land karke game completely change kar diya — ek trick jise experts ne impossible kaha tha years pehle.</p>
+      <div class="tech-box">
+        🏍️ FMX KICKER ENGINEERING: Professional FMX ramps (kickers) typically 10-12 feet tall hote hain 45° angle pe. Dirt composition carefully managed hoti hai — too hard = harsh takeoff vibration, too soft = inconsistent lip. Riders apni launch angle 1-2 degrees ke precision se feel karte hain. Ek degree ka difference 70-foot gap pe significant trajectory variation create karta hai.
+      </div>
+      <p><span class="highlight">Body Varial</span> — rider's body rotates independent of bike mid-air — FMX mein ye level of body awareness demand karta hai jo almost superhuman lagta hai. <span class="highlight">Lazyboy</span> — full reclining position on bike mid-air — ye trick riders ki 250cc machine pe itna control demonstrate karta hai jitna aam log sofa pe karte hain. <span class="highlight">Rock Solid</span> — both hands off, both feet off, full flying position — ye FMX ka Mount Everest hai.</p>
+    </div>
+
+    <div class="chapter" style="--accent:var(--fire)">
+      <h2>⚙️ CHAPTER 7: GEAR, SAFETY & THE ENGINEERING OF SURVIVAL</h2>
+      <p>Extreme bike culture mein gear evolution ek parallel story hai stunts ki evolution ke saath. <span class="highlight">Full-face helmets</span> jo aaj standard hain, unka design aerospace crash helmet technology se inspired hai. MIPS (Multi-directional Impact Protection System) technology — jo helmet ke andar ek low-friction layer add karta hai — rotational forces ko reduce karta hai brain injuries prevent karne ke liye. Modern helmets FIM aur ECE 22.06 certified hote hain, specific g-force thresholds withstand karne ke liye tested.</p>
+      <p><span class="highlight">Neck braces</span> — originally motocross racing se — FMX mein essential ho gaye hain. Leatt DBX 6.5 jaisi products cervical spine ko hyperextension aur hyperflexion se protect karti hain crash events mein. Ye brace 30-40% neck injury risk reduce karta hai studied crashes mein. Body armor mein CE Level 1 aur Level 2 impact ratings hote hain — Level 2 professional competition standard hai.</p>
+      <div class="tech-box">
+        🔧 BIKE SAFETY ENGINEERING: Modern stunt bikes mein Odyssey Gyro (rotor) cable systems allow handlebar full 360° rotation without cable tangling — critical for barspins aur decade tricks. Sealed bearing hubs minimize maintenance aur maximize reliability. CNC-machined parts ensure consistent tolerances within 0.001 inches.
+      </div>
+      <p><span class="highlight">Foam pits</span> training revolution laye: foam block landing zones allow riders ko new tricks practice karne ke liye risk dramatically reduce kar ke. Airbag systems (inflatable landing pads) FMX training mein game-changer bane — riders pehle airbag pe trick practice karte hain, phir dirt pe attempt. Ye progression model "sending it blind" culture se shift kiya towards calculated risk-taking philosophy ki taraf.</p>
+    </div>
+
+    <div class="chapter" style="--accent:var(--neon)">
+      <h2>🧠 CHAPTER 8: MENTAL TOUGHNESS, VISUALIZATION & THE SEND</h2>
+      <p>"Sending it" — wo moment jab rider kisi massive jump ya trick ko fully commit karta hai — sirf physical act nahi hai. Ye ek <span class="highlight">neurological event</span> hai. Sport psychologists who study action sports athletes find ke successful riders different cognitive patterns use karte hain compared to casual riders. <span class="highlight">Kinesthetic visualization</span> — mentally "feeling" through the entire trick before physical execution — cortical activation create karta hai jo actual performance se remarkably similar hoti hai.</p>
+      <p>Fear management extreme riding mein central challenge hai. Amygdala (brain ka fear center) threat ke response mein cortisol aur adrenaline release karta hai. Elite riders ne essentially apni <span class="highlight">threat assessment system</span> ko retrain kiya hai — obstacles jo normal people ko terrify karte hain, wo unhe calculated challenges dikhte hain. Ye "reprogramming" months aur years of progressive exposure se aati hai — gradually bigger ki taraf.</p>
+      <div class="tech-box">
+        🧠 FLOW STATE: Psychologist Mihaly Csikszentmihalyi ka "flow" concept extreme biking mein perfectly manifest hota hai. Flow state — complete immersion with effortless action — tab achieve hota hai jab rider ki skill level exactly match karta hai challenge level ke saath. Time perception distorts: riders report ke 4-second air time "slow motion" lagta hai peak flow state mein.
+      </div>
+      <p>Bail psychology equally important hai. Experienced riders ko pata hota hai ke "bail" kab karna hai — ek half-committed trick fully committed trick se zyada dangerous hoti hai. <span class="highlight">Commitment paradox</span>: fear physically sabotage karta hai execution, therefore commit karna (despite fear) often safer hota hai bail karne se. Ye paradox accept karna elite rider aur amateur ke beech ek fundamental dividing line hai.</p>
+    </div>
+
+    <div class="chapter" style="--accent:var(--gold)">
+      <h2>🌍 CHAPTER 9: CULTURE, COMMUNITY & THE HISTORY OF EXTREME</h2>
+      <p>Extreme bike stunts ki history 1970s Southern California ke dusty hills se shuru hoti hai jahan kids apni Schwinn bikes par Evel Knievel ki takleed karte the. <span class="highlight">BMX racing</span> formally start hua 1974 mein California mein, lekin freestyle evolution 1980s mein inevitable thi. Bob Haro, R.L. Osborn, aur Eddie Fiola woh pioneers the jinhone yeh prove kiya ke bikes trick machines hain, sirf racing tools nahi.</p>
+      <p><span class="highlight">Mat Hoffman</span> — "The Condor" — 1990s mein literally vert riding ki limits redefine kar di. Usne 26-foot vert wall ki height achieve ki using a motorcycle tow-in — essentially human-powered flight. Hoffman's influence ne riders ki next generation ko inspire kiya ke "impossible" sirf ek word hai jo ki challenge karne ke liye exist karta hai.</p>
+      <p>X Games (ESPN, 1995 mein launch) ne action sports ko mainstream visibility di. Lekin purani-school riders argue karte hain ke media coverage ne simultaneously culture ka kuch authentic element dilute kar diya. <span class="highlight">Underground/street culture</span> deliberately mainstream se door rahi — filming spots, VHS tape culture, aur zine distribution networks apni own parallel economy aur recognition system maintain kiya.</p>
+      <p>Global spread dramatic thi: Japan ne apna distinct <span class="highlight">flatland school</span> develop kiya jo European style se fundamentally alag hai. Brazil ne FMX ke saath love affair shuru ki jo Sao Paulo ke clay hills se LA arenas tak pahunchi. UK ne street riding culture nurture ki jo local architecture ke saath organically evolve hui. Har geography ne discipline ki own dialect develop ki.</p>
+    </div>
+
+    <div class="chapter" style="--accent:var(--plasma)">
+      <h2>🔮 CHAPTER 10: THE FUTURE — DOUBLE FLIPS, ELECTRIC BIKES & BEYOND</h2>
+      <p>Jab Travis Pastrana ne 2006 mein double backflip land kiya, logo ne socha yahi limit hai. 2018 mein, Josh Sheehan ne <span class="highlight">triple backflip</span> land kiya foam pit mein, phir dirt pe. Boundary push karta rehta hai. Electric dirt bikes (like KTM Freeride E-XC) ka introduction FMX mein naye possibilities la raha hai — instant torque delivery unlike petrol engines, significantly different weight distribution, aur quieter operation jo indoor venues possible banata hai.</p>
+      <p><span class="highlight">Augmented reality</span> training tools already development mein hain — systems jo riders ko real-time body position feedback de sakte hain mid-trick ke baad video analysis ke through. Motion capture technology jaise Xsens suits rider kinematics data capture karte hain jo coaches precise adjustments suggest karne ke liye use karte hain.</p>
+      <div class="tech-box">
+        🚀 NEXT FRONTIER: Researchers at sports science institutes study kya possibilities hain quadruple rotation FMX tricks ke liye within next decade. Physics calculations suggest ke yeh theoretically possible hai given current ramp technology aur athletic training methods — but the biological limit (human vestibular processing speed) may be the ultimate constraint, not physics.
+      </div>
+      <p>Culture ka future inclusive direction mein hai — <span class="highlight">adaptive riders</span> (prosthetic limb users, wheelchair users) pushing extreme limits, women's FMX competitions gaining mainstream traction, aur younger demographics entering sport through <span class="highlight">pump tracks aur bike parks</span> globally proliferating. Ye sport jahan gravity ko challenge karna its founding act tha, ab uski own history aur assumptions ko bhi challenge kar raha hai — aur that is the most extreme stunt of all.</p>
+    </div>
+
+    <button class="back-btn" onclick="showScreen('titleScreen')">← BACK TO MENU</button>
+  </div>
+</div>
+
+<!-- ========================= GAME SCREEN ========================= -->
+<div class="screen hidden" id="gameScreen">
+  <canvas id="gameCanvas"></canvas>
+
+  <!-- HUD -->
+  <div id="hud">
+    <div class="hud-top">
+      <!-- LEFT -->
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div class="panel">
+          <div class="panel-label">Score</div>
+          <div class="panel-val gold" id="hud_score">0</div>
+        </div>
+        <div class="panel">
+          <div class="panel-label">Mode</div>
+          <div id="modeTag">FREE RIDE</div>
+        </div>
+        <div class="panel" style="min-width:140px">
+          <div class="bar-row">
+            <div class="bar-item">
+              <span class="bar-name">HP</span>
+              <div class="bar-track"><div class="bar-fill" id="healthFill" style="width:100%"></div></div>
+            </div>
+            <div class="bar-item">
+              <span class="bar-name">BOOST</span>
+              <div class="bar-track"><div class="bar-fill" id="boostFill" style="width:100%"></div></div>
+            </div>
+            <div class="bar-item">
+              <span class="bar-name">STUNT</span>
+              <div class="bar-track"><div class="bar-fill" id="stuntFill" style="width:0%"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CENTER -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+        <div class="combo-ring">
+          <svg width="70" height="70" viewBox="0 0 70 70">
+            <circle cx="35" cy="35" r="30" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="6"/>
+            <circle cx="35" cy="35" r="30" fill="none" stroke="#ffc400" stroke-width="6" stroke-dasharray="188.5" id="comboArc" stroke-dashoffset="188.5" stroke-linecap="round"/>
+          </svg>
+          <div class="combo-text">
+            <div id="comboVal">x1</div>
+            <div class="combo-label">COMBO</div>
+          </div>
+        </div>
+        <button class="pause-btn-hud" id="pauseBtn">⏸ PAUSE</button>
+      </div>
+
+      <!-- RIGHT -->
+      <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+        <div class="panel" style="text-align:right">
+          <div class="panel-label">Best</div>
+          <div class="panel-val sm" id="hud_best">0</div>
+        </div>
+        <div class="panel" style="text-align:right">
+          <div class="panel-label">Distance</div>
+          <div class="panel-val neon sm" id="hud_dist">0m</div>
+        </div>
+        <div class="panel" style="text-align:right">
+          <div class="panel-label">Speed</div>
+          <div class="panel-val sm" id="hud_speed">0 <span style="font-size:12px;color:var(--muted)">km/h</span></div>
+        </div>
+        <div class="panel" style="text-align:right">
+          <div class="panel-label">Tricks</div>
+          <div class="panel-val fire sm" id="hud_tricks">0</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MID (trick flash) -->
+    <div class="hud-mid">
+      <div id="trickFlash"></div>
+      <div id="scorePopup"></div>
+    </div>
+
+    <!-- BOTTOM -->
+    <div class="hud-bottom">
+      <div class="panel">
+        <div class="panel-label">Level</div>
+        <div id="levelTag">ROOKIE</div>
+        <div class="bar-track" id="levelBar" style="width:120px;margin-top:4px"><div class="bar-fill" id="xpFill" style="width:0%;background:linear-gradient(90deg,var(--gold),var(--fire))"></div></div>
+      </div>
+      <div class="panel" style="font-family:'Orbitron',sans-serif;font-size:10px;letter-spacing:2px;color:var(--muted);text-align:center">
+        Z·X·C·V·B·N — TRICKS<br>
+        SPACE — JUMP &nbsp;|&nbsp; SHIFT — BOOST<br>
+        M — MANUAL &nbsp;|&nbsp; P — PAUSE
+      </div>
+      <div class="panel" style="text-align:right">
+        <div class="panel-label">Timer</div>
+        <div class="panel-val sm" id="hud_timer" style="color:var(--plasma)">∞</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Controls -->
+  <div id="mobileCtrl">
+    <div class="ctrl-group">
+      <button class="ctrlBtn" id="mb_L">◀</button>
+      <button class="ctrlBtn" id="mb_R">▶</button>
+      <button class="ctrlBtn" id="mb_B">⚡</button>
+    </div>
+    <div class="ctrl-group">
+      <button class="ctrlBtn" id="mb_T1">FLIP</button>
+      <button class="ctrlBtn jump-btn" id="mb_J">JUMP</button>
+      <button class="ctrlBtn" id="mb_T2">SPIN</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========================= PAUSE ========================= -->
+<div class="screen hidden" id="pauseScreen">
+  <div class="overlay-title" style="color:var(--neon);text-shadow:var(--glow-neon)">PAUSED</div>
+  <div class="overlay-sub">TAKE A BREATH, LEGEND</div>
+  <div class="overlay-btns">
+    <button class="obtn primary" id="resumeBtn">▶ RESUME</button>
+    <button class="obtn sec" id="restartBtn2">↺ RESTART</button>
+    <button class="obtn sec" id="menuFromPause">🏠 MENU</button>
+  </div>
+</div>
+
+<!-- ========================= GAME OVER ========================= -->
+<div class="screen hidden" id="gameOverScreen">
+  <div class="overlay-title" style="color:var(--fire);text-shadow:var(--glow-fire)">BAILED!</div>
+  <div class="overlay-sub">YOU HIT THE DIRT HARD</div>
+  <div class="results-box">
+    <div class="r-item"><div class="r-label">SCORE</div><div class="r-val" id="go_score">0</div></div>
+    <div class="r-item"><div class="r-label">BEST</div><div class="r-val" id="go_best">0</div></div>
+    <div class="r-item"><div class="r-label">DISTANCE</div><div class="r-val" id="go_dist">0m</div></div>
+    <div class="r-item"><div class="r-label">TRICKS</div><div class="r-val" id="go_tricks">0</div></div>
+  </div>
+  <div class="overlay-btns">
+    <button class="obtn primary" id="restartBtn">↺ TRY AGAIN</button>
+    <button class="obtn sec" id="menuFromGO">🏠 MAIN MENU</button>
+  </div>
+</div>
+
+<script>
+// =====================================================================
+//  EXTREME BIKE STUNTS 3D — Full Engine
+// =====================================================================
+
+// ---------- BG CANVAS ----------
+const bgCvs = document.getElementById('bgCanvas');
+const bgCtx = bgCvs.getContext('2d');
+let stars = Array.from({length:80},()=>({x:Math.random(),y:Math.random()*0.75,r:Math.random()*2+0.3,t:Math.random()*Math.PI*2,s:Math.random()*0.8+0.4}));
+let bgRunning=true;
+let _cachedBgGrad=null,_cachedBgW=0,_cachedBgH=0;
+// Pre-bake static bg onto an offscreen canvas
+let bgOffscreen=null;
+function buildBgOffscreen(W,H){
+  bgOffscreen=document.createElement('canvas');
+  bgOffscreen.width=W;bgOffscreen.height=H;
+  const c=bgOffscreen.getContext('2d');
+  const g=c.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#02020e');g.addColorStop(0.5,'#07041a');g.addColorStop(1,'#140408');
+  c.fillStyle=g;c.fillRect(0,0,W,H);
+  c.globalAlpha=0.07;
+  const ng=c.createRadialGradient(W*0.3,H*0.25,10,W*0.3,H*0.25,W*0.4);
+  ng.addColorStop(0,'#d500f9');ng.addColorStop(1,'transparent');
+  c.fillStyle=ng;c.fillRect(0,0,W,H);
+  const ng2=c.createRadialGradient(W*0.75,H*0.4,10,W*0.75,H*0.4,W*0.35);
+  ng2.addColorStop(0,'#ff3d00');ng2.addColorStop(1,'transparent');
+  c.fillStyle=ng2;c.fillRect(0,0,W,H);
+  c.globalAlpha=1;
+}
+function resizeBg(){bgCvs.width=innerWidth;bgCvs.height=innerHeight;buildBgOffscreen(innerWidth,innerHeight);}
+resizeBg(); window.addEventListener('resize',resizeBg);
+let _bgFrame=0;
+function drawBg(ts=0){
+  if(!bgRunning){requestAnimationFrame(drawBg);return;}
+  _bgFrame++;
+  // Only redraw stars every 3 frames (20fps is enough for twinkling)
+  if(_bgFrame%3!==0){requestAnimationFrame(drawBg);return;}
+  const W=bgCvs.width,H=bgCvs.height;
+  bgCtx.clearRect(0,0,W,H);
+  if(bgOffscreen)bgCtx.drawImage(bgOffscreen,0,0);
+  for(const s of stars){
+    const a=0.4+0.5*Math.sin(ts/1200*s.s+s.t);
+    bgCtx.globalAlpha=a;bgCtx.fillStyle='#fff';
+    bgCtx.beginPath();bgCtx.arc(s.x*W,s.y*H,s.r,0,Math.PI*2);bgCtx.fill();
+  }
+  bgCtx.globalAlpha=1;
+  requestAnimationFrame(drawBg);
+}
+requestAnimationFrame(drawBg);
+
+// ---------- LEVEL DEFINITIONS ----------
+const LEVEL_DEFS = [
+  {id:1,name:'ROOKIE HILLS',desc:'Gentle slopes and low ramps. Learn the basics and build your confidence.',difficulty:1,terrain:'hills',accent:'#00e676',badge:'STARTER',unlocked:true},
+  {id:2,name:'DIRT PARK',desc:'Earthen mounds and rhythm sections. Chain tricks across pro-style jump lines.',difficulty:2,terrain:'dirt',accent:'#ffc400',badge:'DIRT',unlocked:true},
+  {id:3,name:'URBAN JUNGLE',desc:'Concrete ledges, rails, stairs, and gaps. The city is your playground.',difficulty:3,terrain:'street',accent:'#00e5ff',badge:'STREET',unlocked:false},
+  {id:4,name:'MOUNTAIN RAGE',desc:'Steep technical terrain. Massive air off natural rock kickers.',difficulty:4,terrain:'mountain',accent:'#ff9100',badge:'MOUNTAIN',unlocked:false},
+  {id:5,name:'NIGHT CIRCUIT',desc:'High-speed neon-lit course. Boost corridors and trick gates.',difficulty:4,terrain:'night',accent:'#d500f9',badge:'NIGHT',unlocked:false},
+  {id:6,name:'DESERT STORM',desc:'Sandy dunes and unpredictable terrain. Speed is survival.',difficulty:5,terrain:'desert',accent:'#ff5722',badge:'DESERT',unlocked:false},
+  {id:7,name:'FMX STADIUM',desc:'Professional FMX ramps. 75-foot gaps. Stadium crowd watching every move.',difficulty:6,terrain:'stadium',accent:'#ff1744',badge:'FMX',unlocked:false},
+  {id:8,name:'SNOW PEAK',desc:'Ice and snow. Zero traction. Maximum commitment required.',difficulty:7,terrain:'snow',accent:'#80d8ff',badge:'SNOW',unlocked:false},
+  {id:9,name:'VOLCANIC HELL',desc:'Lava flows, extreme heat, impossible obstacles. Only legends survive.',difficulty:9,terrain:'volcano',accent:'#ff3d00',badge:'EXTREME',unlocked:false},
+  {id:10,name:'GOAT ARENA',desc:'The final challenge. Everything combined. Prove you are the Greatest Of All Time.',difficulty:10,terrain:'final',accent:'#ffd700',badge:'GOAT',unlocked:false},
+];
+function buildLevelGrid(){
+  const grid=document.getElementById('levelsGrid');
+  grid.innerHTML='';
+  const scores=JSON.parse(localStorage.getItem('ebs_lvl_scores')||'{}');
+  LEVEL_DEFS.forEach(lv=>{
+    const stars=scores[lv.id]?Math.min(3,Math.floor(scores[lv.id]/5000)):0;
+    const card=document.createElement('div');
+    card.className='level-card'+(lv.unlocked?'':' locked');
+    card.style.setProperty('--accent',lv.accent);
+    card.innerHTML=`
+      <div class="lc-num">LEVEL ${lv.id.toString().padStart(2,'0')}</div>
+      <div class="lc-name">${lv.name}</div>
+      <div class="lc-desc">${lv.desc}</div>
+      <div class="lc-badges">
+        <span class="badge" style="color:${lv.accent};border-color:${lv.accent}">${lv.badge}</span>
+        <span class="badge" style="color:#666;border-color:#333">DIFF ${'★'.repeat(lv.difficulty)}${'☆'.repeat(10-lv.difficulty)}</span>
+      </div>
+      <div class="lc-stars">${'★'.repeat(stars)}${'☆'.repeat(3-stars)}</div>
+    `;
+    if(lv.unlocked) card.onclick=()=>startGame('career',lv);
+    grid.appendChild(card);
+  });
+}
+buildLevelGrid();
+
+// ---------- SCREEN ROUTER ----------
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));
+  const el=document.getElementById(id);
+  if(el){el.classList.remove('hidden');}
+}
+showScreen('titleScreen');
+
+// Load title stats
+function loadTitleStats(){
+  document.getElementById('ts_best').textContent=(parseInt(localStorage.getItem('ebs_best')||0)).toLocaleString();
+  document.getElementById('ts_dist').textContent=(parseInt(localStorage.getItem('ebs_dist')||0))+'m';
+  document.getElementById('ts_tricks').textContent=(parseInt(localStorage.getItem('ebs_tricks')||0));
+}
+loadTitleStats();
+
+function showGarage(){alert('🔧 GARAGE: Coming in next update! Customize your bike, wheels, and color schemes.');}
+
+// ---------- GAME ENGINE ----------
+const TRICKS_DEF=[
+  {name:'Backflip',key:'KeyZ',pts:500,rotate:-Math.PI*2,minAir:0.08},
+  {name:'Frontflip',key:'KeyX',pts:500,rotate:Math.PI*2,minAir:0.08},
+  {name:'Superman',key:'KeyC',pts:900,rotate:0,minAir:0.1,special:'superman'},
+  {name:'No-Hander',key:'KeyV',pts:450,rotate:0,minAir:0.07,special:'nohander'},
+  {name:'Barspin',key:'KeyB',pts:380,rotate:0,minAir:0.06,special:'barspin'},
+  {name:'Tailwhip',key:'KeyN',pts:650,rotate:0,minAir:0.09,special:'tailwhip'},
+  {name:'Nac-Nac',key:'KeyQ',pts:550,rotate:0,minAir:0.08,special:'nacnac'},
+  {name:'360 Flip',key:'KeyA',pts:950,rotate:Math.PI*2,minAir:0.12},
+  {name:'Can-Can',key:'KeyS',pts:500,rotate:0,minAir:0.07,special:'cancan'},
+  {name:'Double BF',key:'KeyD',pts:1600,rotate:-Math.PI*4,minAir:0.18},
+];
+const PLAYER_LEVELS=[
+  {name:'ROOKIE',xp:0,color:'#aaffaa'},
+  {name:'AMATEUR',xp:2000,color:'#ffff88'},
+  {name:'PRO RIDER',xp:6000,color:'#ffaa44'},
+  {name:'EXPERT',xp:14000,color:'#ff6644'},
+  {name:'LEGEND',xp:28000,color:'#ff44cc'},
+  {name:'GOAT 🐐',xp:55000,color:'#ffd700'},
+];
+
+const keys={};
+const mobileKeys={};
+window.addEventListener('keydown',e=>{
+  keys[e.code]=true;
+  if((e.code==='KeyP'||e.code==='Escape')&&G&&!G.over&&!G.titleVis)G.togglePause();
+  ['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code)&&e.preventDefault();
+});
+window.addEventListener('keyup',e=>keys[e.code]=false);
+
+// Mobile binds
+;['mb_L','mb_R','mb_B','mb_J','mb_T1','mb_T2'].forEach(id=>{
+  const el=document.getElementById(id);
+  if(!el)return;
+  const prop=id.replace('mb_','').toLowerCase();
+  el.addEventListener('touchstart',e=>{e.preventDefault();mobileKeys[prop]=true;},{ passive:false});
+  el.addEventListener('touchend',e=>{e.preventDefault();mobileKeys[prop]=false;});
+  el.addEventListener('mousedown',()=>mobileKeys[prop]=true);
+  el.addEventListener('mouseup',()=>mobileKeys[prop]=false);
+});
+
+function rand(a,b){return a+Math.random()*(b-a);}
+function clamp(v,mn,mx){return Math.max(mn,Math.min(mx,v));}
+function lerp(a,b,t){return a+t*(b-a);}
+
+// Terrain gen
+function genTerrain(startX,n,diff){
+  const pts=[{x:startX,y:innerHeight*0.62}];
+  let cx=startX,cy=innerHeight*0.62;
+  for(let i=0;i<n;i++){
+    const r=Math.random();
+    let dx=rand(70,160),dy=0;
+    if(r<0.2+diff*0.05){dy=rand(-130,-55)*(1+diff*0.2);}
+    else if(r<0.38){dy=rand(55,140);}
+    else if(r<0.52+diff*0.04){dx=rand(110,220+diff*30);dy=rand(-30,30);}
+    else{dy=rand(-25,25);}
+    cx+=dx;cy=clamp(cy+dy,innerHeight*0.28,innerHeight*0.82);
+    pts.push({x:cx,y:cy});
+  }
+  return pts;
+}
+function getY(pts,wx){
+  for(let i=0;i<pts.length-1;i++){
+    if(wx>=pts[i].x&&wx<=pts[i+1].x){
+      const t=(wx-pts[i].x)/(pts[i+1].x-pts[i].x);
+      return lerp(pts[i].y,pts[i+1].y,t);
+    }
+  }
+  return pts.at(-1)?.y||innerHeight*0.62;
+}
+function getAngle(pts,wx){
+  for(let i=0;i<pts.length-1;i++){
+    if(wx>=pts[i].x&&wx<=pts[i+1].x)
+      return Math.atan2(pts[i+1].y-pts[i].y,pts[i+1].x-pts[i].x);
+  }
+  return 0;
+}
+function genCoins(pts){
+  const c=[];
+  for(let i=0;i<pts.length-1;i+=2){
+    if(Math.random()<0.38){
+      const mx=(pts[i].x+pts[i+1].x)/2;
+      c.push({x:mx,y:getY(pts,mx)-rand(30,90),got:false,val:rand(50,200)|0});
+    }
+  }
+  return c;
+}
+
+class Particle{
+  constructor(x,y,vx,vy,col,sz,life){
+    Object.assign(this,{x,y,vx,vy,col,sz,life,ml:life});
+  }
+  update(dt){this.x+=this.vx*dt;this.y+=this.vy*dt;this.vy+=700*dt;this.life-=dt;}
+  draw(ctx,camX){
+    const a=clamp(this.life/this.ml,0,1);
+    ctx.globalAlpha=a;
+    ctx.beginPath();ctx.arc(this.x-camX,this.y,this.sz*a,0,Math.PI*2);ctx.fill();
+  }
+}
+
+class Game{
+  constructor(mode='freeride',levelDef=null){
+    this.mode=mode; this.levelDef=levelDef; this.titleVis=false;
+    this.over=false; this.paused=false;
+    this.score=0; this.bestScore=parseInt(localStorage.getItem('ebs_best')||0);
+    this.tricks=0; this.xp=0; this.lvlIdx=0;
+    this.combo=1; this.comboT=0; this.stunt=0; this.stuntActive=false; this.stuntT=0;
+    this.camX=0; this.particles=[]; this._td={};
+    this.timer=mode==='trickattack'?60:null;
+    this.diff=(levelDef?.difficulty||1)*0.15;
+
+    const cvs=document.getElementById('gameCanvas');
+    cvs.width=innerWidth; cvs.height=innerHeight;
+    this.ctx=cvs.getContext('2d');
+
+    this.bike={x:220,y:400,vx:0,vy:0,rot:0,angV:0,onG:false,airT:0,
+               hp:100,boost:100,boostR:false,dist:0,spd:0,
+               tRotT:0,tRotC:0,crashed:false};
+    this.terrain=genTerrain(0,300,this.diff);
+    this.coins=genCoins(this.terrain);
+    this.extThresh=this.terrain.at(-1).x-500;
+    this._tIdx=0; // cached terrain lookup index
+    this._skyGrad=null; // cached sky gradient
+    this._hudTick=0; // throttle HUD DOM updates
+
+    document.getElementById('modeTag').textContent=
+      {career:'CAREER',freeride:'FREE RIDE',trickattack:'TRICK ATTACK',survival:'SURVIVAL'}[mode]||mode.toUpperCase();
+
+    this._last=null;
+    this._loop=this._loop.bind(this);
+    requestAnimationFrame(this._loop);
+    window.addEventListener('resize',()=>{cvs.width=innerWidth;cvs.height=innerHeight;});
+  }
+
+  _loop(ts){
+    if(this.paused||this.over)return;
+    const dt=Math.min((ts-(this._last||ts))/1000,0.05);
+    this._last=ts;
+    this.update(dt);
+    this.draw();
+    requestAnimationFrame(this._loop);
+  }
+
+  update(dt){
+    const b=this.bike,W=innerWidth,H=innerHeight;
+    const L=keys['ArrowLeft']||mobileKeys['l'];
+    const R=keys['ArrowRight']||mobileKeys['r'];
+    const jump=(keys['Space']||keys['ArrowUp']||mobileKeys['j'])&&!this._jh;
+    const boost=(keys['ShiftLeft']||keys['ShiftRight']||mobileKeys['b'])&&b.boost>0&&!b.boostR;
+
+    // Jump
+    if(jump&&b.onG){b.vy=-570;b.onG=false;this._jh=true;this.spawnP(b.x,b.y,8,'#ffd700',3,0.3);}
+    if(!keys['Space']&&!keys['ArrowUp']&&!mobileKeys['j'])this._jh=false;
+
+    // Acceleration
+    let tvx=R?1:(L?-1:0);
+    tvx*=boost?530:290;
+    if(!b.crashed)b.vx=lerp(b.vx,tvx,b.onG?dt*4.5:dt*1.3);
+
+    // Boost
+    if(boost){b.boost=Math.max(0,b.boost-dt*38);if(b.boost<=0)b.boostR=true;}
+    else{if(b.boostR){b.boost=Math.min(100,b.boost+dt*14);if(b.boost>=100)b.boostR=false;}
+    else b.boost=Math.min(100,b.boost+dt*9);}
+
+    // Tricks in air
+    if(!b.onG&&b.airT>0.08){
+      for(const tr of TRICKS_DEF){
+        if((keys[tr.key]||mobileKeys[tr.key==='KeyZ'?'t1':tr.key==='KeyQ'?'t2':''])&&!this._td[tr.key]){
+          this._td[tr.key]=true; this.doTrick(tr);
+        }
+      }
+    }
+
+    // Mode-specific mobile tricks
+    if(mobileKeys['t1']&&!b.onG&&b.airT>0.08&&!this._td['mb_t1']){
+      this._td['mb_t1']=true; this.doTrick(TRICKS_DEF[0]);
+    }
+    if(!mobileKeys['t1'])this._td['mb_t1']=false;
+    if(mobileKeys['t2']&&!b.onG&&b.airT>0.08&&!this._td['mb_t2']){
+      this._td['mb_t2']=true; this.doTrick(TRICKS_DEF[6]);
+    }
+    if(!mobileKeys['t2'])this._td['mb_t2']=false;
+
+    // Manual
+    if(keys['KeyM']&&b.onG){this.addScore(Math.round(200*dt),'');}
+    // Stoppie
+    if(keys['KeyK']&&b.onG){this.addScore(Math.round(250*dt),'');}
+
+    // Physics
+    b.vy+=990*dt;
+    b.x+=b.vx*dt; b.y+=b.vy*dt;
+
+    if(!b.onG){
+      b.airT+=dt; b.tRotC=lerp(b.tRotC,b.tRotT,dt*5);
+      if(L)b.angV-=dt*5; if(R)b.angV+=dt*5;
+      b.angV=clamp(b.angV,-9,9);
+    }
+
+    // Ground - use cached index for O(1) avg lookup
+    const pts2=this.terrain;
+    while(this._tIdx<pts2.length-2&&pts2[this._tIdx+1].x<b.x)this._tIdx++;
+    if(this._tIdx>0&&pts2[this._tIdx].x>b.x)this._tIdx--;
+    let tY,tA;
+    if(this._tIdx<pts2.length-1){
+      const p0=pts2[this._tIdx],p1=pts2[this._tIdx+1];
+      const t2=Math.max(0,Math.min(1,(b.x-p0.x)/(p1.x-p0.x)));
+      tY=p0.y+t2*(p1.y-p0.y);
+      tA=Math.atan2(p1.y-p0.y,p1.x-p0.x);
+    } else {tY=getY(this.terrain,b.x);tA=0;}
+    if(b.y+17>=tY){
+      b.y=tY-17;
+      if(!b.onG){
+        const la=Math.abs(b.rot%(Math.PI*2));
+        const bad=la>0.85&&la<Math.PI*2-0.85;
+        if(bad&&b.airT>0.35){
+          const dmg=Math.round(b.airT*18+la*12);
+          b.hp=Math.max(0,b.hp-dmg);
+          this.combo=1;this.comboT=0;
+          this.spawnP(b.x,b.y,14,'#ff4400',4,0.55);
+          if(b.hp<=0){this.crash();return;}
+        } else if(b.airT>0.25){
+          this.addScore(Math.round(b.airT*28),'');
+          this.spawnP(b.x,b.y,6,'#00e5ff',3,0.35);
+        }
+        b.tRotT=0; b.tRotC=0; this._td={};
+      }
+      b.onG=true; b.airT=0; b.vy=0;
+      b.angV*=0.55; b.rot=lerp(b.rot,tA,dt*9);
+    } else {b.onG=false; b.rot+=b.angV*dt;}
+
+    // Survival mode: double damage
+    if(this.mode==='survival'&&b.onG)b.hp=Math.max(0,b.hp-dt*0.5);
+    if(b.hp<=0){this.crash();return;}
+
+    // Coins
+    for(const c of this.coins){
+      if(c.got)continue;
+      const dx=c.x-b.x,dy=c.y-b.y;
+      if(dx*dx+dy*dy<600){c.got=true;this.addScore(c.val*this.combo,'🪙');this.spawnP(c.x,c.y,6,'#ffd700',3,0.4);}
+    }
+
+    // Camera
+    this.camX=lerp(this.camX,b.x-W*0.33,dt*4.5);
+
+    // Stats
+    b.dist=Math.max(b.dist,Math.round((b.x-220)/10));
+    b.spd=Math.round(Math.abs(b.vx)*0.36);
+
+    // Out of bounds
+    if(b.y>H+120||b.x<this.camX-60){this.crash();return;}
+
+    // Combo decay
+    if(this.comboT>0){this.comboT-=dt;if(this.comboT<=0)this.combo=1;}
+
+    // Stunt
+    if(!this.stuntActive)this.stunt=Math.max(0,this.stunt-dt*7);
+    if(this.stuntActive){this.stuntT-=dt;if(this.stuntT<=0){this.stuntActive=false;this.stunt=0;}}
+
+    // Particles
+    this.particles=this.particles.filter(p=>p.life>0);
+    this.particles.forEach(p=>p.update(dt));
+
+    // Extend terrain
+    if(b.x>this.extThresh){
+      const last=this.terrain.at(-1);
+      const np=genTerrain(last.x,80,this.diff);
+      np.shift();
+      this.terrain=this.terrain.concat(np);
+      this.coins=this.coins.concat(genCoins(np));
+      this.extThresh=this.terrain.at(-1).x-500;
+    }
+
+    // Timer (trick attack)
+    if(this.timer!==null){this.timer=Math.max(0,this.timer-dt);if(this.timer<=0){this.crash();return;}}
+
+    // XP level up
+    while(this.lvlIdx<PLAYER_LEVELS.length-1&&this.xp>=PLAYER_LEVELS[this.lvlIdx+1].xp){
+      this.lvlIdx++;
+      this.flash('LEVEL UP! '+PLAYER_LEVELS[this.lvlIdx].name,'#ffd700');
+      this.spawnP(b.x,b.y,25,'#ffd700',5,0.9);
+    }
+
+    this._hudTick++;
+    if(this._hudTick%3===0)this.updateHUD();
+  }
+
+  doTrick(tr){
+    const b=this.bike;
+    if(b.airT<tr.minAir)return;
+    let pts=Math.round(tr.pts*(this.stuntActive?2:1)*this.combo);
+    this.addScore(pts,tr.name);
+    this.tricks++; this.xp+=Math.round(pts/4);
+    this.combo=Math.min(this.combo+0.5,12); this.comboT=3.5;
+    b.tRotT+=tr.rotate||0;
+    this.stunt=Math.min(100,this.stunt+rand(14,28));
+    if(this.stunt>=100&&!this.stuntActive){
+      this.stuntActive=true;this.stuntT=5;
+      this.flash('⚡ STUNT OVERDRIVE! ⚡','#ff3d00');
+      this.spawnP(b.x,b.y,30,'#ff3d00',5,0.9);
+    } else {
+      this.flash(tr.name+(this.stuntActive?' ×2!':''),this.stuntActive?'#ff3d00':'#ffc400');
+    }
+    this.spawnP(b.x,b.y,10,'#ffc400',4,0.5);
+  }
+
+  addScore(pts,label){
+    this.score+=pts;
+    if(pts>0&&label){this.scorePopup('+'+pts+(label?' '+label:''));}
+  }
+
+  crash(){
+    const b=this.bike;
+    this.over=true;
+    if(this.score>this.bestScore){
+      this.bestScore=this.score;
+      localStorage.setItem('ebs_best',this.bestScore);
+    }
+    localStorage.setItem('ebs_dist',Math.max(parseInt(localStorage.getItem('ebs_dist')||0),b.dist));
+    localStorage.setItem('ebs_tricks',Math.max(parseInt(localStorage.getItem('ebs_tricks')||0),this.tricks));
+    if(this.levelDef){
+      const s=JSON.parse(localStorage.getItem('ebs_lvl_scores')||'{}');
+      s[this.levelDef.id]=Math.max(s[this.levelDef.id]||0,this.score);
+      localStorage.setItem('ebs_lvl_scores',JSON.stringify(s));
+    }
+    this.spawnP(b.x,b.y,35,'#ff3d00',5,1.1);
+    setTimeout(()=>this.showGameOver(),900);
+  }
+
+  showGameOver(){
+    document.getElementById('go_score').textContent=this.score.toLocaleString();
+    document.getElementById('go_best').textContent=this.bestScore.toLocaleString();
+    document.getElementById('go_dist').textContent=this.bike.dist+'m';
+    document.getElementById('go_tricks').textContent=this.tricks;
+    showScreen('gameOverScreen');
+    document.getElementById('gameOverScreen').classList.remove('hidden');
+    document.getElementById('gameScreen').classList.remove('hidden');
+  }
+
+  flash(msg,col='#ffc400'){
+    const el=document.getElementById('trickFlash');
+    el.textContent=msg; el.style.color=col;
+    el.style.textShadow=`0 0 30px ${col}, 0 0 60px ${col}`;
+    el.style.opacity='1';
+    clearTimeout(this._ft);
+    this._ft=setTimeout(()=>el.style.opacity='0',1300);
+  }
+
+  scorePopup(txt){
+    const el=document.getElementById('scorePopup');
+    el.textContent=txt; el.style.opacity='1';
+    clearTimeout(this._spt);
+    this._spt=setTimeout(()=>el.style.opacity='0',900);
+  }
+
+  spawnP(x,y,n,col,sz,life){
+    if(this.particles.length>120)return; // cap total particles
+    for(let i=0;i<n;i++){
+      const a=Math.random()*Math.PI*2,spd=rand(60,210);
+      this.particles.push(new Particle(x,y,Math.cos(a)*spd,Math.sin(a)*spd-80,col,sz,life));
+    }
+  }
+
+  togglePause(){
+    this.paused=!this.paused;
+    document.getElementById('pauseScreen').classList.toggle('hidden',!this.paused);
+    if(!this.paused){this._last=performance.now();requestAnimationFrame(this._loop);}
+  }
+
+  updateHUD(){
+    const b=this.bike;
+    document.getElementById('hud_score').textContent=this.score.toLocaleString();
+    document.getElementById('hud_best').textContent=this.bestScore.toLocaleString();
+    document.getElementById('hud_dist').textContent=b.dist+'m';
+    document.getElementById('hud_speed').innerHTML=b.spd+' <span style="font-size:12px;color:var(--muted)">km/h</span>';
+    document.getElementById('hud_tricks').textContent=this.tricks;
+    document.getElementById('healthFill').style.width=b.hp+'%';
+    document.getElementById('boostFill').style.width=b.boost+'%';
+    document.getElementById('stuntFill').style.width=this.stunt+'%';
+    // combo ring
+    const comboFrac=Math.min((this.combo-1)/11,1);
+    document.getElementById('comboVal').textContent='×'+Math.floor(this.combo);
+    document.getElementById('comboArc').style.strokeDashoffset=188.5*(1-comboFrac);
+    // level
+    const lv=PLAYER_LEVELS[this.lvlIdx];
+    const lt=document.getElementById('levelTag'); lt.textContent=lv.name; lt.style.color=lv.color;
+    const nxt=PLAYER_LEVELS[this.lvlIdx+1];
+    document.getElementById('xpFill').style.width=nxt?clamp((this.xp-lv.xp)/(nxt.xp-lv.xp)*100,0,100)+'%':'100%';
+    // timer
+    const ht=document.getElementById('hud_timer');
+    if(this.timer!==null){ht.textContent=Math.ceil(this.timer)+'s';ht.style.color=this.timer<10?'#ff1744':'var(--plasma)';}
+    else ht.textContent='∞';
+  }
+
+  // ---- DRAW ----
+  draw(){
+    const ctx=this.ctx,W=innerWidth,H=innerHeight,b=this.bike;
+    ctx.clearRect(0,0,W,H);
+    this.drawSky(ctx,W,H);
+    this.drawMtns(ctx,W,H);
+    this.drawTerrain(ctx,W,H);
+    this.drawCoins(ctx,W,H);
+    // Draw particles batched by color
+    const byColor={};
+    for(const p of this.particles){if(!byColor[p.col])byColor[p.col]=[];byColor[p.col].push(p);}
+    for(const col in byColor){
+      ctx.fillStyle=col;
+      for(const p of byColor[col])p.draw(ctx,this.camX);
+    }
+    ctx.globalAlpha=1;
+    this.drawBike(ctx,W,H);
+    if(Math.abs(b.vx)>380)this.drawSpeedLines(ctx,W,H,b.vx);
+    if(this.stuntActive)this.drawStuntOverlay(ctx,W,H);
+  }
+
+  drawSky(ctx,W,H){
+    if(!this._skyGrad){
+      this._skyGrad=ctx.createLinearGradient(0,0,0,H*0.72);
+      this._skyGrad.addColorStop(0,'#02020e');
+      this._skyGrad.addColorStop(0.3,'#060318');
+      this._skyGrad.addColorStop(0.6,'#0e0620');
+      this._skyGrad.addColorStop(1,'#1a0610');
+    }
+    ctx.fillStyle=this._skyGrad;ctx.fillRect(0,0,W,H);
+  }
+
+  drawMtns(ctx,W,H){
+    const mPara=[-this.camX*0.06,-this.camX*0.14,-this.camX*0.22];
+    const cols=['#080615','#0d0b1e','#150d1f'];
+    const scales=[0.35,0.25,0.18];
+    for(let mi=0;mi<3;mi++){
+      ctx.fillStyle=cols[mi];
+      ctx.beginPath();
+      const cnt=12;
+      for(let i=0;i<=cnt;i++){
+        const mx=((i/cnt*W*1.3+mPara[mi])%( W*1.5)+W*1.5)%(W*1.5)-W*0.1;
+        const mh=H*(scales[mi]+Math.sin(i*2.3+mi*7)*0.05);
+        if(i===0)ctx.moveTo(mx,H*0.72);
+        ctx.lineTo(mx-70,H*0.72);
+        ctx.lineTo(mx,H*0.72-mh);
+        ctx.lineTo(mx+70,H*0.72);
+      }
+      ctx.lineTo(W,H*0.72);ctx.lineTo(0,H*0.72);ctx.closePath();ctx.fill();
+    }
+  }
+
+  drawTerrain(ctx,W,H){
+    const pts=this.terrain;
+    let si=0,ei=pts.length-1;
+    for(let i=0;i<pts.length-1;i++){if(pts[i+1].x-this.camX>-60){si=Math.max(0,i-1);break;}}
+    for(let i=si;i<pts.length;i++){if(pts[i].x-this.camX>W+120){ei=i;break;}}
+
+    // Main fill
+    const gnd=ctx.createLinearGradient(0,H*0.45,0,H);
+    gnd.addColorStop(0,'#2d1808');gnd.addColorStop(0.3,'#1e1005');gnd.addColorStop(1,'#0e0800');
+    ctx.beginPath();
+    ctx.moveTo(pts[si].x-this.camX,H+20);
+    for(let i=si;i<=ei;i++)ctx.lineTo(pts[i].x-this.camX,pts[i].y);
+    ctx.lineTo(pts[ei].x-this.camX,H+20);
+    ctx.closePath();ctx.fillStyle=gnd;ctx.fill();
+
+    // Surface
+    ctx.beginPath();
+    ctx.moveTo(pts[si].x-this.camX,pts[si].y);
+    for(let i=si+1;i<=ei;i++)ctx.lineTo(pts[i].x-this.camX,pts[i].y);
+    ctx.strokeStyle='#7a4500';ctx.lineWidth=4;ctx.stroke();
+
+    // Ramp highlights only
+    for(let i=si;i<ei-1;i++){
+      const dy=pts[i+1].y-pts[i].y;
+      if(dy<-55){
+        ctx.beginPath();
+        ctx.moveTo(pts[i].x-this.camX,pts[i].y);
+        ctx.lineTo(pts[i+1].x-this.camX,pts[i+1].y);
+        ctx.strokeStyle='rgba(255,160,60,0.6)';ctx.lineWidth=5;ctx.stroke();
+      }
+    }
+  }
+
+  drawCoins(ctx,W,H){
+    const t=Date.now()/1000;
+    for(const c of this.coins){
+      if(c.got)continue;
+      const cx=c.x-this.camX;
+      if(cx<-30||cx>W+30)continue;
+      const cy=c.y+Math.sin(t*3+c.x*0.01)*5;
+      ctx.save();ctx.translate(cx,cy);ctx.rotate(t*2);
+      ctx.fillStyle='#ffc400';
+      ctx.beginPath();ctx.arc(0,0,9,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#cc6600';
+      ctx.beginPath();ctx.arc(2,2,7,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#ffc400';
+      ctx.beginPath();ctx.arc(0,0,7,0,Math.PI*2);ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  drawBike(ctx,W,H){
+    const b=this.bike;
+    const sx=b.x-this.camX,sy=b.y;
+    ctx.save();ctx.translate(sx,sy);ctx.rotate(b.rot+b.tRotC);
+
+    // Shadow
+    ctx.save();ctx.rotate(-b.rot-b.tRotC);
+    ctx.globalAlpha=0.2;ctx.fillStyle='#000';
+    ctx.beginPath();ctx.ellipse(0,22,28,7,0,0,Math.PI*2);ctx.fill();
+    ctx.globalAlpha=1;ctx.restore();
+
+    // Boost flame
+    if((keys['ShiftLeft']||keys['ShiftRight']||mobileKeys['b'])&&b.boost>0){
+      const fl=rand(18,42);
+      const fg=ctx.createLinearGradient(-30,0,-30-fl,0);
+      fg.addColorStop(0,'rgba(255,80,0,0.95)');fg.addColorStop(0.5,'rgba(255,200,0,0.5)');fg.addColorStop(1,'transparent');
+      ctx.fillStyle=fg;
+      ctx.beginPath();ctx.moveTo(-28,-5);ctx.lineTo(-28-fl,0);ctx.lineTo(-28,5);ctx.closePath();ctx.fill();
+    }
+
+    // Wheels
+    this._wheel(ctx,-22,0,13,b.vx);this._wheel(ctx,22,0,13,b.vx);
+
+    // Frame
+    ctx.strokeStyle='#d8d8e8';ctx.lineWidth=2.8;ctx.lineCap='round';
+    ctx.beginPath();ctx.moveTo(-22,0);ctx.lineTo(0,-17);ctx.lineTo(22,0);ctx.moveTo(-22,0);ctx.lineTo(22,0);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(0,-17);ctx.lineTo(22,-15);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(22,-15);ctx.lineTo(22,0);ctx.stroke();
+    // Handlebar
+    ctx.strokeStyle='#999';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(13,-19);ctx.lineTo(27,-19);ctx.stroke();
+    // Seat
+    ctx.strokeStyle='#ff5500';ctx.lineWidth=3;
+    ctx.beginPath();ctx.moveTo(-7,-19);ctx.lineTo(6,-19);ctx.stroke();
+
+    // Rider
+    this._rider(ctx,b);
+
+    // Stunt glow
+    if(this.stuntActive){
+      ctx.save();ctx.globalAlpha=0.25+0.2*Math.sin(Date.now()/80);
+      ctx.strokeStyle='#ff3d00';ctx.lineWidth=5;
+      ctx.beginPath();ctx.arc(0,-10,32,0,Math.PI*2);ctx.stroke();
+      ctx.globalAlpha=1;ctx.restore();
+    }
+    ctx.restore();
+  }
+
+  _wheel(ctx,x,y,r,vx){
+    const rot=Date.now()/1000*(vx/r);
+    ctx.save();ctx.translate(x,y);
+    ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fillStyle='#1a1a1a';ctx.fill();
+    ctx.strokeStyle='#444';ctx.lineWidth=3;ctx.stroke();
+    ctx.strokeStyle='#777';ctx.lineWidth=1.5;
+    for(let s=0;s<6;s++){const a=rot+s/6*Math.PI*2;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(Math.cos(a)*(r-2),Math.sin(a)*(r-2));ctx.stroke();}
+    ctx.beginPath();ctx.arc(0,0,2.5,0,Math.PI*2);ctx.fillStyle='#bbb';ctx.fill();
+    ctx.restore();
+  }
+
+  _rider(ctx,b){
+    ctx.strokeStyle='#ffcc88';ctx.lineWidth=2.8;ctx.lineCap='round';
+    ctx.beginPath();ctx.moveTo(0,-17);ctx.lineTo(0,-37);ctx.stroke();
+    ctx.beginPath();ctx.arc(0,-43,6.5,0,Math.PI*2);ctx.fillStyle='#ffcc88';ctx.fill();
+    ctx.strokeStyle='#ff5500';ctx.lineWidth=2;ctx.stroke();
+    ctx.fillStyle='rgba(0,180,255,0.7)';ctx.beginPath();ctx.ellipse(1,-43,4.5,2.5,-0.2,0,Math.PI);ctx.fill();
+    ctx.strokeStyle='#ffcc88';ctx.lineWidth=2.5;
+    ctx.beginPath();ctx.moveTo(0,-29);ctx.lineTo(15,-21);ctx.moveTo(0,-29);ctx.lineTo(-4,-21);ctx.stroke();
+    ctx.strokeStyle='#3355ff';ctx.lineWidth=2.8;
+    ctx.beginPath();ctx.moveTo(0,-17);ctx.lineTo(-8,-4);ctx.lineTo(-20,0);ctx.moveTo(0,-17);ctx.lineTo(4,-4);ctx.lineTo(20,0);ctx.stroke();
+  }
+
+  drawSpeedLines(ctx,W,H,vx){
+    const a=Math.min((Math.abs(vx)-380)/180,0.45);
+    ctx.globalAlpha=a;ctx.strokeStyle='#fff';ctx.lineWidth=1;
+    for(let i=0;i<14;i++){
+      const ly=rand(0,H),lx1=rand(0,W*0.4),lx2=lx1+rand(60,200);
+      ctx.beginPath();ctx.moveTo(lx1,ly);ctx.lineTo(lx2,ly);ctx.stroke();
+    }
+    ctx.globalAlpha=1;
+  }
+
+  drawStuntOverlay(ctx,W,H){
+    ctx.save();
+    const pulse=0.05+0.04*Math.sin(Date.now()/100);
+    ctx.strokeStyle='rgba(255,61,0,'+pulse+')';ctx.lineWidth=8;
+    ctx.strokeRect(0,0,W,H);
+    ctx.restore();
+  }
+}
+
+// ---- GAME INSTANCE ----
+let G=null;
+function startGame(mode,lvDef=null){
+  bgRunning=false; // pause bg star animation during gameplay
+  showScreen('gameScreen');
+  document.getElementById('gameOverScreen').classList.add('hidden');
+  document.getElementById('pauseScreen').classList.add('hidden');
+  G=new Game(mode,lvDef);
+}
+
+// ---- UI BUTTONS ----
+document.getElementById('pauseBtn').onclick=()=>{if(G&&!G.over)G.togglePause();};
+document.getElementById('resumeBtn').onclick=()=>{if(G)G.togglePause();};
+document.getElementById('restartBtn').onclick=()=>{
+  document.getElementById('gameOverScreen').classList.add('hidden');
+  if(G)startGame(G.mode,G.levelDef);
+};
+document.getElementById('restartBtn2').onclick=()=>{
+  if(G){G.togglePause();startGame(G.mode,G.levelDef);}
+};
+document.getElementById('menuFromPause').onclick=()=>{
+  if(G){G.paused=false;G.over=true;}
+  bgRunning=true;
+  showScreen('titleScreen');loadTitleStats();buildLevelGrid();
+};
+document.getElementById('menuFromGO').onclick=()=>{
+  bgRunning=true;
+  showScreen('titleScreen');loadTitleStats();buildLevelGrid();
+};
+</script>
+</body>
+</html>
